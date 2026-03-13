@@ -366,19 +366,6 @@ impl<'a> TypeChecker<'a> {
     }
 
     fn check_call(&mut self, span: Span, callee: &Expr, args: &[Expr]) -> Type {
-        if let ExprKind::Field { base, field } = &callee.kind {
-            let receiver_ty = self.check_expr(base);
-            if let Type::Struct(receiver_name) = receiver_ty {
-                let key = FunctionKey {
-                    receiver: Some(receiver_name.clone()),
-                    name: field.clone(),
-                };
-                if let Some(signature) = self.result.function_signatures.get(&key).cloned() {
-                    return self.check_signature_call(span, &signature, args);
-                }
-            }
-        }
-
         let callee_ty = self.check_expr(callee);
         match callee_ty {
             Type::Function(signature) => self.check_signature_call(span, &signature, args),

@@ -52,12 +52,38 @@ fn main() -> int {
         };
         assert!(method.receiver.is_some());
         assert_eq!(method.name, "greet");
+        let method_body = method.body.as_ref().expect("method should have a body");
+        let Stmt::Expr(method_expr) = &method_body.statements[0] else {
+            panic!("expected method body expression");
+        };
+        assert!(matches!(method_expr.kind, ExprKind::Call { .. }));
+        let ExprKind::Call { args, .. } = &method_expr.kind else {
+            unreachable!("checked above");
+        };
+        assert!(matches!(
+            args.first().map(|expr| &expr.kind),
+            Some(ExprKind::Binary { .. })
+        ));
+        let ExprKind::Binary { right, .. } = &args[0].kind else {
+            unreachable!("checked above");
+        };
+        assert!(matches!(right.kind, ExprKind::Field { .. }));
 
         let Item::Function(main_fn) = &module.items[3] else {
             panic!("expected main function");
         };
         let body = main_fn.body.as_ref().expect("main should have a body");
         assert_eq!(body.statements.len(), 3);
+        let Stmt::For(for_stmt) = &body.statements[1] else {
+            panic!("expected for loop");
+        };
+        let Stmt::Expr(loop_expr) = &for_stmt.body.statements[0] else {
+            panic!("expected loop body expression");
+        };
+        let ExprKind::Call { callee, .. } = &loop_expr.kind else {
+            panic!("expected method call");
+        };
+        assert!(matches!(callee.kind, ExprKind::Field { .. }));
     }
 
     #[test]

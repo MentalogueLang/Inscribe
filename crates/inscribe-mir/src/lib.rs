@@ -8,7 +8,7 @@ pub mod lower;
 pub mod nodes;
 
 pub use borrow_check::{check_mutable_assignments, BorrowIssue};
-pub use const_eval::{evaluate_constant_rvalue, fold_block_constants};
+pub use const_eval::{evaluate_constant_rvalue, fold_block_constants, fold_function_constants};
 pub use determinism::{find_nondeterministic_calls, DeterminismIssue};
 pub use lower::lower_program;
 pub use nodes::{
@@ -28,7 +28,8 @@ mod tests {
     use inscribe_typeck::check_module;
 
     use crate::{
-        check_mutable_assignments, find_nondeterministic_calls, lower_program, TerminatorKind,
+        check_mutable_assignments, find_nondeterministic_calls, fold_function_constants,
+        lower_program, ConstantValue, Operand, Rvalue, StatementKind, TerminatorKind,
     };
 
     #[test]
@@ -89,5 +90,45 @@ fn main() -> int {
         let issues = find_nondeterministic_calls(&mir);
         assert_eq!(issues.len(), 1);
         assert!(issues[0].callee.contains("random_value"));
+    }
+
+    #[test]
+    fn folds_constants_across_cfg_edges() {
+        let source = r#"
+fn main() -> int {
+    let value = 4
+
+    if true {
+        let doubled = value + value
+        doubled
+    } else {
+        0
+    }
+}
+"#;
+
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&module, &resolved, &typed);
+        let mut mir = lower_program(&hir);
+
+        let function = &mut mir.functions[0];
+        fold_function_constants(function);
+
+        assert!(function.blocks.iter().any(|block| {
+            block.statements.iter().any(|statement| {
+                matches!(
+                    &statement.kind,
+                    StatementKind::Assign(_, Rvalue::Use(Operand::Constant(constant)))
+                        if matches!(constant.value, ConstantValue::Integer(ref value) if value == "8")
+                )
+            })
+        }));
+        assert!(matches!(
+            function.blocks[1].terminator,
+            TerminatorKind::Goto { .. }
+        ));
     }
 }

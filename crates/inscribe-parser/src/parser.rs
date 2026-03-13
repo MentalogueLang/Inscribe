@@ -608,7 +608,9 @@ impl Parser {
     }
 
     fn parse_path_expression(&mut self) -> Result<Expr, ParseError> {
-        let path = self.parse_path()?;
+        let start = self.current_span().start;
+        let (name, span) = self.expect_identifier()?;
+        let path = Path::new(vec![name], Span::new(start, span.end));
         Ok(Expr::new(ExprKind::Path(path.clone()), path.span))
     }
 
