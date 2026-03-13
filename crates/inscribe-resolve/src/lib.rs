@@ -7,4 +7,9 @@ pub mod module_tree;
 pub mod resolver;
 pub mod scope;
 
-// TODO: Implement the library root module for inscribe-resolve.
+pub use resolver::{
+    resolve_module, Builtins, FunctionInfo, FunctionKey, ParamInfo, ResolveError, ResolvedProgram,
+    StructInfo, Symbol, SymbolId, SymbolKind, TypeName,
+};
+
+// TODO: Add a loader-facing API that can resolve multiple source files into a single module graph.

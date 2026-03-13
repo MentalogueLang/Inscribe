@@ -8,4 +8,8 @@ pub mod infer;
 pub mod ownership;
 pub mod unify;
 
-// TODO: Implement the library root module for inscribe-typeck.
+pub use check::check_module;
+pub use errors::TypeError;
+pub use infer::{expr_key, BindingInfo, BindingKind, FunctionSignature, Type, TypeCheckResult};
+
+// TODO: Add a session-facing facade that can run resolve + typeck as a single compiler phase.
