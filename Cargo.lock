@@ -75,7 +75,11 @@ version = "0.1.0"
 name = "inscribe-mir"
 version = "0.1.0"
 dependencies = [
+ "inscribe-ast",
  "inscribe-hir",
+ "inscribe-lexer",
+ "inscribe-parser",
+ "inscribe-resolve",
  "inscribe-typeck",
 ]
 
