@@ -1,4 +1,14 @@
-// TODO: Implement the diagnostics module for inscribe-session.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Diagnostic {
+    pub stage: &'static str,
+    pub message: String,
+}
 
-#[derive(Debug, Default)]
-pub struct DiagnosticsStub;
+impl Diagnostic {
+    pub fn new(stage: &'static str, message: impl Into<String>) -> Self {
+        Self {
+            stage,
+            message: message.into(),
+        }
+    }
+}
