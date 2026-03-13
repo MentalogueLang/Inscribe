@@ -1,0 +1,9 @@
+[package]
+name = "inscribe-codegen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+inscribe-abi = { path = "../inscribe-abi" }
+inscribe-mir = { path = "../inscribe-mir" }
+inscribe-sandbox = { path = "../inscribe-sandbox" }

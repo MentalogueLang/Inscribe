@@ -1,0 +1,9 @@
+[package]
+name = "inscribe-debug"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+inscribe-ast = { path = "../inscribe-ast" }
+inscribe-hir = { path = "../inscribe-hir" }
+inscribe-mir = { path = "../inscribe-mir" }

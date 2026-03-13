@@ -1,0 +1,8 @@
+[package]
+name = "inscribe-hir"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+inscribe-ast = { path = "../inscribe-ast" }
+inscribe-typeck = { path = "../inscribe-typeck" }

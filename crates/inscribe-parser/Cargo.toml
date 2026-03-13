@@ -1,0 +1,9 @@
+[package]
+name = "inscribe-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+inscribe-ast = { path = "../inscribe-ast" }
+inscribe-lexer = { path = "../inscribe-lexer" }
+inscribe-session = { path = "../inscribe-session" }

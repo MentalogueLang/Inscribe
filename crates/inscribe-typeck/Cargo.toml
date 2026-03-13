@@ -1,0 +1,9 @@
+[package]
+name = "inscribe-typeck"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+inscribe-ast = { path = "../inscribe-ast" }
+inscribe-resolve = { path = "../inscribe-resolve" }
+inscribe-session = { path = "../inscribe-session" }

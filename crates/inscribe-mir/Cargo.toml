@@ -1,0 +1,8 @@
+[package]
+name = "inscribe-mir"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+inscribe-hir = { path = "../inscribe-hir" }
+inscribe-typeck = { path = "../inscribe-typeck" }

@@ -1,0 +1,20 @@
+[workspace]
+members = [
+    "crates/inscribe-cli",
+    "crates/inscribe-session",
+    "crates/inscribe-lexer",
+    "crates/inscribe-parser",
+    "crates/inscribe-ast",
+    "crates/inscribe-resolve",
+    "crates/inscribe-typeck",
+    "crates/inscribe-hir",
+    "crates/inscribe-mir",
+    "crates/inscribe-comptime",
+    "crates/inscribe-abi",
+    "crates/inscribe-ffi",
+    "crates/inscribe-sandbox",
+    "crates/inscribe-codegen",
+    "crates/inscribe-debug",
+    "crates/inscribe-incremental",
+]
+resolver = "2"
