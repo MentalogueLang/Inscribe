@@ -9,7 +9,7 @@ use crate::session::{
 
 pub fn run(args: &[String]) -> Result<(), String> {
     if args.len() != 1 {
-        return Err("usage: inscribe run <input.ins>".to_string());
+        return Err("usage: inscribe run <input.mtl>".to_string());
     }
 
     let input = parse_path_arg(&args[0]);

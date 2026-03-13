@@ -21,10 +21,10 @@ pub fn dispatch(args: &[String]) -> Result<(), String> {
 pub fn usage() -> String {
     [
         "usage:",
-        "  inscribe check <input.ins>",
-        "  inscribe emit asm <input.ins> [--target <linux-x86_64|windows-x86_64>] [-o <output.asm>]",
-        "  inscribe build <input.ins> [--target <linux-x86_64|windows-x86_64>] [-o <output>]",
-        "  inscribe run <input.ins>",
+        "  inscribe check <input.mtl>",
+        "  inscribe emit asm <input.mtl> [--target <linux-x86_64|windows-x86_64>] [-o <output.asm>]",
+        "  inscribe build <input.mtl> [--target <linux-x86_64|windows-x86_64>] [-o <output>]",
+        "  inscribe run <input.mtl>",
     ]
     .join("\n")
 }

@@ -9,7 +9,7 @@ use crate::session::{
 pub fn run(args: &[String]) -> Result<(), String> {
     if args.is_empty() {
         return Err(
-            "usage: inscribe emit asm <input.ins> [--target <triple>] [-o <output.asm>]"
+            "usage: inscribe emit asm <input.mtl> [--target <triple>] [-o <output.asm>]"
                 .to_string(),
         );
     }
