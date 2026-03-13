@@ -1,0 +1,10 @@
+fn main() -> int {
+    let start = 5
+    let bonus = 2
+
+    if true {
+        start + bonus
+    } else {
+        0
+    }
+}

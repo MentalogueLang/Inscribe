@@ -1,0 +1,31 @@
+fn abs_int(value: int) -> int {
+    if value < (0) {
+        -value
+    } else {
+        0 + value
+    }
+}
+
+fn min_int(left: int, right: int) -> int {
+    if left < (0 + right) {
+        0 + left
+    } else {
+        0 + right
+    }
+}
+
+fn max_int(left: int, right: int) -> int {
+    if left > (0 + right) {
+        0 + left
+    } else {
+        0 + right
+    }
+}
+
+fn clamp_int(value: int, lower: int, upper: int) -> int {
+    max_int(lower, min_int(value, upper))
+}
+
+fn square_int(value: int) -> int {
+    value * value
+}

@@ -1,0 +1,3 @@
+fn print_int(value: int)
+fn print_bool(value: bool)
+fn print_string(value: string)

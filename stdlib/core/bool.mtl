@@ -1,0 +1,15 @@
+fn bool_to_int(value: bool) -> int {
+    if value {
+        1
+    } else {
+        0
+    }
+}
+
+fn select_int(condition: bool, when_true: int, when_false: int) -> int {
+    if condition {
+        when_true
+    } else {
+        when_false
+    }
+}

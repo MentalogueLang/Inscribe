@@ -1,0 +1,13 @@
+fn unwrap_or_int(value: Result<int, Error>, fallback: int) -> int {
+    match value {
+        Ok(inner) => inner
+        Err(_) => fallback
+    }
+}
+
+fn is_ok_int(value: Result<int, Error>) -> bool {
+    match value {
+        Ok(_) => true
+        Err(_) => false
+    }
+}
