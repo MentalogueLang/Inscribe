@@ -14,7 +14,14 @@ version = "0.1.0"
 name = "inscribe-cli"
 version = "0.1.0"
 dependencies = [
+ "inscribe-codegen",
+ "inscribe-hir",
+ "inscribe-lexer",
+ "inscribe-mir",
+ "inscribe-parser",
+ "inscribe-resolve",
  "inscribe-session",
+ "inscribe-typeck",
 ]
 
 [[package]]
@@ -22,8 +29,13 @@ name = "inscribe-codegen"
 version = "0.1.0"
 dependencies = [
  "inscribe-abi",
+ "inscribe-hir",
+ "inscribe-lexer",
  "inscribe-mir",
+ "inscribe-parser",
+ "inscribe-resolve",
  "inscribe-sandbox",
+ "inscribe-typeck",
 ]
 
 [[package]]

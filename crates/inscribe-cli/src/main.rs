@@ -1,8 +1,13 @@
-use inscribe_session as _;
-
 pub mod commands;
 pub mod session;
 
-// TODO: Implement the binary entry point module for inscribe-cli.
-
-fn main() {}
+fn main() {
+    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    match commands::dispatch(&args) {
+        Ok(()) => {}
+        Err(message) => {
+            eprintln!("{message}");
+            std::process::exit(1);
+        }
+    }
+}
