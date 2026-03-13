@@ -1,9 +1,167 @@
 use inscribe_abi as _;
-use inscribe_mir as _;
 use inscribe_sandbox as _;
 
+use inscribe_mir::MirProgram;
+
 pub mod llvm;
+mod native;
 pub mod targets;
 pub mod wasm;
 
-// TODO: Implement the library root module for inscribe-codegen.
+pub use native::{emit_assembly, emit_executable};
+pub use targets::{Architecture, ExecutableFormat, OperatingSystem, Target};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CodegenError {
+    pub message: String,
+}
+
+impl CodegenError {
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+}
+
+impl std::fmt::Display for CodegenError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl std::error::Error for CodegenError {}
+
+pub fn emit_native_assembly(program: &MirProgram, target: Target) -> Result<String, CodegenError> {
+    emit_assembly(program, target)
+}
+
+pub fn emit_native_executable(
+    program: &MirProgram,
+    target: Target,
+) -> Result<Vec<u8>, CodegenError> {
+    emit_executable(program, target)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+    use std::path::PathBuf;
+    use std::process::Command;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    use inscribe_hir::lower_module;
+    use inscribe_lexer::lex;
+    use inscribe_mir::lower_program;
+    use inscribe_parser::parse_module;
+    use inscribe_resolve::resolve_module;
+    use inscribe_typeck::check_module;
+
+    use crate::{emit_native_assembly, emit_native_executable, Target};
+
+    fn compile_source(source: &str) -> inscribe_mir::MirProgram {
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&module, &resolved, &typed);
+        lower_program(&hir)
+    }
+
+    #[test]
+    fn emits_linux_x64_assembly() {
+        let mir = compile_source(
+            r#"
+fn main() -> int {
+    let base = 40
+
+    if true {
+        base + 2
+    } else {
+        0
+    }
+}
+"#,
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains(".intel_syntax noprefix"));
+        assert!(assembly.contains("_start:"));
+        assert!(assembly.contains("syscall"));
+        assert!(assembly.contains(".Lbb"));
+    }
+
+    #[test]
+    fn emits_raw_elf_bytes() {
+        let mir = compile_source(
+            r#"
+fn main() -> int {
+    7
+}
+"#,
+        );
+
+        let bytes =
+            emit_native_executable(&mir, Target::linux_x86_64()).expect("elf emission should work");
+
+        assert_eq!(&bytes[..4], b"\x7FELF");
+        assert_eq!(bytes[4], 2);
+        assert_eq!(bytes[5], 1);
+        assert_eq!(u16::from_le_bytes([bytes[18], bytes[19]]), 62);
+    }
+
+    #[test]
+    fn emits_raw_pe_bytes() {
+        let mir = compile_source(
+            r#"
+fn main() -> int {
+    9
+}
+"#,
+        );
+
+        let bytes = emit_native_executable(&mir, Target::windows_x86_64())
+            .expect("pe emission should work");
+
+        assert_eq!(&bytes[..2], b"MZ");
+        let pe_offset =
+            u32::from_le_bytes([bytes[0x3c], bytes[0x3d], bytes[0x3e], bytes[0x3f]]) as usize;
+        assert_eq!(&bytes[pe_offset..pe_offset + 4], b"PE\0\0");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn generated_pe_executable_runs() {
+        let mir = compile_source(
+            r#"
+fn main() -> int {
+    let counter = 4
+    counter + 3
+}
+"#,
+        );
+
+        let bytes = emit_native_executable(&mir, Target::windows_x86_64())
+            .expect("pe emission should work");
+        let path = temp_output("inscribe_codegen_smoke.exe");
+        fs::write(&path, bytes).expect("should write executable");
+
+        let status = Command::new(&path)
+            .status()
+            .expect("generated executable should run");
+
+        let _ = fs::remove_file(&path);
+        assert_eq!(status.code(), Some(7));
+    }
+
+    #[cfg(windows)]
+    fn temp_output(name: &str) -> PathBuf {
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("time should move forward")
+            .as_nanos();
+        std::env::temp_dir().join(format!("{stamp}_{name}"))
+    }
+}
