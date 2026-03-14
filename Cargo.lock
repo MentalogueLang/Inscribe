@@ -43,7 +43,12 @@ dependencies = [
 name = "inscribe-comptime"
 version = "0.1.0"
 dependencies = [
+ "inscribe-hir",
+ "inscribe-lexer",
  "inscribe-mir",
+ "inscribe-parser",
+ "inscribe-resolve",
+ "inscribe-typeck",
 ]
 
 [[package]]
