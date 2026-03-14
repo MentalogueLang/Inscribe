@@ -7,3 +7,7 @@ edition = "2021"
 inscribe-ast = { path = "../inscribe-ast" }
 inscribe-hir = { path = "../inscribe-hir" }
 inscribe-mir = { path = "../inscribe-mir" }
+
+[dev-dependencies]
+inscribe-resolve = { path = "../inscribe-resolve" }
+inscribe-typeck = { path = "../inscribe-typeck" }

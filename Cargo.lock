@@ -58,6 +58,8 @@ dependencies = [
  "inscribe-ast",
  "inscribe-hir",
  "inscribe-mir",
+ "inscribe-resolve",
+ "inscribe-typeck",
 ]
 
 [[package]]
