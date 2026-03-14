@@ -5,4 +5,6 @@ edition = "2021"
 
 [dependencies]
 inscribe-ast = { path = "../inscribe-ast" }
+inscribe-lexer = { path = "../inscribe-lexer" }
+inscribe-parser = { path = "../inscribe-parser" }
 inscribe-session = { path = "../inscribe-session" }

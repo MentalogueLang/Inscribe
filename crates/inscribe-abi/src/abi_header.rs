@@ -15,6 +15,27 @@ pub struct AbiHeader {
     pub flags: u32,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AbiCompatibilityError {
+    pub message: String,
+}
+
+impl AbiCompatibilityError {
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+}
+
+impl std::fmt::Display for AbiCompatibilityError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl std::error::Error for AbiCompatibilityError {}
+
 impl AbiHeader {
     pub fn current(target: AbiTarget, stability: Stability) -> Self {
         Self {
@@ -29,6 +50,49 @@ impl AbiHeader {
 
     pub fn is_compatible_with_current(&self) -> bool {
         self.magic == ABI_MAGIC && CURRENT_ABI_VERSION.is_compatible_with(self.version)
+    }
+
+    pub fn ensure_link_compatible(
+        &self,
+        target: AbiTarget,
+        require_stable: bool,
+    ) -> Result<(), AbiCompatibilityError> {
+        if self.magic != ABI_MAGIC {
+            return Err(AbiCompatibilityError::new(
+                "ABI header magic does not match Inscribe",
+            ));
+        }
+
+        if !CURRENT_ABI_VERSION.is_compatible_with(self.version) {
+            return Err(AbiCompatibilityError::new(format!(
+                "ABI version {} is not compatible with current {}",
+                self.version, CURRENT_ABI_VERSION
+            )));
+        }
+
+        if self.target != target {
+            return Err(AbiCompatibilityError::new(format!(
+                "ABI target mismatch: header is {:?}, requested {:?}",
+                self.target, target
+            )));
+        }
+
+        let target_cc = CallingConvention::for_target(target);
+        if self.calling_convention != target_cc && self.calling_convention != CallingConvention::C {
+            return Err(AbiCompatibilityError::new(format!(
+                "calling convention {:?} is not link-compatible with target {:?}",
+                self.calling_convention, target
+            )));
+        }
+
+        if require_stable && !self.stability.allows_external_linking() {
+            return Err(AbiCompatibilityError::new(format!(
+                "ABI stability `{}` is not allowed for external linking",
+                self.stability.display_name()
+            )));
+        }
+
+        Ok(())
     }
 
     pub fn to_bytes(&self) -> [u8; ABI_HEADER_SIZE] {

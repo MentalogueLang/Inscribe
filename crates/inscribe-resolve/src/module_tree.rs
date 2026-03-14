@@ -1,18 +1,19 @@
 use inscribe_ast::nodes::{Item, Module};
 use inscribe_ast::span::Span;
+use std::path::PathBuf;
 
 use crate::resolver::FunctionKey;
 
-// TODO: Expand this into a true multi-file module graph once file loading exists.
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleTree {
-    pub root: ModuleNode,
+    pub entry: PathBuf,
+    pub modules: Vec<ModuleNode>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleNode {
     pub name: String,
+    pub path: PathBuf,
     pub imports: Vec<ImportNode>,
     pub items: Vec<ItemNode>,
     pub span: Span,
@@ -21,6 +22,7 @@ pub struct ModuleNode {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ImportNode {
     pub path: Vec<String>,
+    pub resolved_path: Option<PathBuf>,
     pub span: Span,
 }
 
@@ -38,6 +40,7 @@ impl ModuleTree {
             .filter_map(|item| match item {
                 Item::Import(import) => Some(ImportNode {
                     path: import.path.segments.clone(),
+                    resolved_path: None,
                     span: import.span,
                 }),
                 _ => None,
@@ -67,12 +70,18 @@ impl ModuleTree {
             .collect();
 
         Self {
-            root: ModuleNode {
+            entry: PathBuf::from("<memory>"),
+            modules: vec![ModuleNode {
                 name: "root".to_string(),
+                path: PathBuf::from("<memory>"),
                 imports,
                 items,
                 span: module.span,
-            },
+            }],
         }
+    }
+
+    pub fn from_nodes(entry: PathBuf, modules: Vec<ModuleNode>) -> Self {
+        Self { entry, modules }
     }
 }

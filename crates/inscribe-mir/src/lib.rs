@@ -31,8 +31,8 @@ mod tests {
 
     use crate::{
         check_mutable_assignments, find_nondeterministic_calls, fold_function_constants,
-        lower_program, optimize_function, Constant, ConstantValue, Operand, Rvalue,
-        StatementKind, TerminatorKind,
+        lower_program, optimize_function, Constant, ConstantValue, Operand, Rvalue, StatementKind,
+        TerminatorKind,
     };
 
     #[test]
@@ -189,9 +189,10 @@ fn passthrough(value: int) -> int {
         optimize_function(function);
 
         assert!(function.blocks.iter().all(|block| {
-            block.statements.iter().all(|statement| {
-                !is_identity_binary(statement)
-            })
+            block
+                .statements
+                .iter()
+                .all(|statement| !is_identity_binary(statement))
         }));
     }
 

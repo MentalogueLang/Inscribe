@@ -110,6 +110,8 @@ name = "inscribe-resolve"
 version = "0.1.0"
 dependencies = [
  "inscribe-ast",
+ "inscribe-lexer",
+ "inscribe-parser",
  "inscribe-session",
 ]
 

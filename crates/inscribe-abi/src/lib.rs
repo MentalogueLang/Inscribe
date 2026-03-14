@@ -4,7 +4,7 @@ pub mod layout;
 pub mod stability;
 pub mod versioning;
 
-pub use abi_header::{AbiHeader, ABI_HEADER_SIZE, ABI_MAGIC};
+pub use abi_header::{AbiCompatibilityError, AbiHeader, ABI_HEADER_SIZE, ABI_MAGIC};
 pub use calling_conv::{AbiTarget, CallingConvention};
 pub use layout::{AbiType, FieldLayout, Layout, StructField, StructLayout, StructMemoryLayout};
 pub use stability::Stability;
@@ -75,5 +75,23 @@ mod tests {
     #[test]
     fn current_version_is_self_compatible() {
         assert!(CURRENT_ABI_VERSION.is_compatible_with(CURRENT_ABI_VERSION));
+    }
+
+    #[test]
+    fn stable_header_is_link_compatible() {
+        let header = current_header(AbiTarget::LinuxX86_64, Stability::Stable);
+        header
+            .ensure_link_compatible(AbiTarget::LinuxX86_64, true)
+            .expect("stable header should be link-compatible");
+    }
+
+    #[test]
+    fn unstable_header_is_rejected_for_stable_linking() {
+        let header = current_header(AbiTarget::LinuxX86_64, Stability::Experimental);
+        let error = header
+            .ensure_link_compatible(AbiTarget::LinuxX86_64, true)
+            .expect_err("experimental headers should be rejected");
+
+        assert!(error.message.contains("not allowed for external linking"));
     }
 }
