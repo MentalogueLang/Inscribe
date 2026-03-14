@@ -8,7 +8,7 @@ use inscribe_ast::nodes::{Item, Module};
 use inscribe_ast::span::Span;
 use inscribe_codegen::Target;
 use inscribe_hir::lower_module;
-use inscribe_mir::{lower_program, MirProgram};
+use inscribe_mir::{lower_program, optimize_program, MirProgram};
 use inscribe_parser::parse_module;
 use inscribe_session::{Session, SessionError};
 use inscribe_typeck::analyze_module;
@@ -22,7 +22,9 @@ pub fn compile_file_to_mir(input: &Path) -> Result<MirProgram, SessionError> {
     let (resolved, typed) = analyze_module(&module)
         .map_err(|errors| join_errors("typeck", errors.into_iter().map(|e| e.to_string())))?;
     let hir = lower_module(&module, &resolved, &typed);
-    Ok(lower_program(&hir))
+    let mut mir = lower_program(&hir);
+    optimize_program(&mut mir);
+    Ok(mir)
 }
 
 fn load_module_closure(input: &Path) -> Result<Module, SessionError> {

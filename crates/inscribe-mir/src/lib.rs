@@ -6,6 +6,7 @@ pub mod const_eval;
 pub mod determinism;
 pub mod lower;
 pub mod nodes;
+pub mod optimize;
 
 pub use borrow_check::{check_mutable_assignments, BorrowIssue};
 pub use const_eval::{evaluate_constant_rvalue, fold_block_constants, fold_function_constants};
@@ -16,6 +17,7 @@ pub use nodes::{
     MirFunction, MirProgram, Operand, Place, ProjectionElem, Rvalue, Statement, StatementKind,
     TerminatorKind,
 };
+pub use optimize::{optimize_function, optimize_program};
 
 // TODO: Add a pipeline facade that lowers source all the way to MIR once the session owns orchestration.
 
@@ -29,7 +31,8 @@ mod tests {
 
     use crate::{
         check_mutable_assignments, find_nondeterministic_calls, fold_function_constants,
-        lower_program, ConstantValue, Operand, Rvalue, StatementKind, TerminatorKind,
+        lower_program, optimize_function, Constant, ConstantValue, Operand, Rvalue,
+        StatementKind, TerminatorKind,
     };
 
     #[test]
@@ -130,5 +133,84 @@ fn main() -> int {
             function.blocks[1].terminator,
             TerminatorKind::Goto { .. }
         ));
+    }
+
+    #[test]
+    fn optimizer_removes_unreachable_blocks() {
+        let source = r#"
+fn main() -> int {
+    if true {
+        1
+    } else {
+        2
+    }
+}
+"#;
+
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&module, &resolved, &typed);
+        let mut mir = lower_program(&hir);
+
+        let function = &mut mir.functions[0];
+        let before = function.blocks.len();
+        optimize_function(function);
+
+        assert!(function.blocks.len() < before);
+        assert!(function
+            .blocks
+            .iter()
+            .all(|block| !matches!(block.terminator, TerminatorKind::Branch { .. })));
+    }
+
+    #[test]
+    fn optimizer_simplifies_identity_arithmetic() {
+        let source = r#"
+fn passthrough(value: int) -> int {
+    let multiplied = value * 1
+    multiplied + 0
+}
+"#;
+
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&module, &resolved, &typed);
+        let mut mir = lower_program(&hir);
+
+        let function = mir
+            .functions
+            .iter_mut()
+            .find(|function| function.name == "passthrough")
+            .expect("passthrough function should exist");
+        optimize_function(function);
+
+        assert!(function.blocks.iter().all(|block| {
+            block.statements.iter().all(|statement| {
+                !is_identity_binary(statement)
+            })
+        }));
+    }
+
+    fn is_identity_binary(statement: &crate::Statement) -> bool {
+        let StatementKind::Assign(_, Rvalue::BinaryOp { op, left, right }) = &statement.kind else {
+            return false;
+        };
+
+        (op == "Multiply" && is_integer_operand(right, "1"))
+            || (op == "Add" && (is_integer_operand(left, "0") || is_integer_operand(right, "0")))
+    }
+
+    fn is_integer_operand(operand: &Operand, expected: &str) -> bool {
+        matches!(
+            operand,
+            Operand::Constant(Constant {
+                value: ConstantValue::Integer(value),
+                ..
+            }) if value == expected
+        )
     }
 }

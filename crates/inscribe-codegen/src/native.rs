@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use inscribe_mir::{
-    fold_function_constants, BasicBlockId, ConstantValue, MirFunction, MirProgram, Operand, Place,
+    optimize_function, BasicBlockId, ConstantValue, MirFunction, MirProgram, Operand, Place,
     ProjectionElem, Rvalue, StatementKind, TerminatorKind,
 };
 use inscribe_typeck::Type;
@@ -40,7 +40,7 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
     };
 
     let mut function = function.clone();
-    fold_function_constants(&mut function);
+    optimize_function(&mut function);
 
     let stack = StackLayout::new(&function, target)?;
     let mut instructions = Vec::new();
