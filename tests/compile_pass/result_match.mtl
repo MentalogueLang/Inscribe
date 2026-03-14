@@ -1,0 +1,6 @@
+fn score(value: Result<int, Error>) -> int {
+    match value {
+        Ok(inner) => inner
+        Err(_) => 0
+    }
+}

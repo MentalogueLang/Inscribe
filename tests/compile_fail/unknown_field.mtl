@@ -1,0 +1,8 @@
+struct User {
+    age: int
+}
+
+fn main() -> int {
+    let user = User { age: 3 }
+    user.name
+}

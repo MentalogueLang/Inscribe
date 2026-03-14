@@ -1,0 +1,13 @@
+struct User {
+    name: string
+    age: int
+}
+
+fn User.age_next(self) -> int {
+    self.age + 1
+}
+
+fn main() -> int {
+    let user = User { name: "Ada", age: 6 }
+    user.age_next()
+}
