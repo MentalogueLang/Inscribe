@@ -92,6 +92,7 @@ impl<'a> FunctionLowerer<'a> {
             receiver: self.function.receiver.clone(),
             name: self.function.name.clone(),
             signature: self.function.signature.clone(),
+            is_declaration: self.function.is_declaration,
             locals: self.locals,
             blocks: self.blocks,
             entry: self.entry,

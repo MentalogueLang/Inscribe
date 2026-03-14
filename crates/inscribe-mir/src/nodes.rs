@@ -20,6 +20,7 @@ pub struct MirFunction {
     pub receiver: Option<String>,
     pub name: String,
     pub signature: FunctionSignature,
+    pub is_declaration: bool,
     pub locals: Vec<LocalDecl>,
     pub blocks: Vec<BasicBlockData>,
     pub entry: BasicBlockId,

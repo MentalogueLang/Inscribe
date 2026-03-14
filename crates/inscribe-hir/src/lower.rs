@@ -94,6 +94,7 @@ fn lower_function(function: &FunctionDecl, typed: &TypeCheckResult) -> HirFuncti
         name: key.name,
         signature,
         params,
+        is_declaration: function.body.is_none(),
         body: function.body.as_ref().map(|body| lower_block(body, typed)),
         span: function.span,
     }

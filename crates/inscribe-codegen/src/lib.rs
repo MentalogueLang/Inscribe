@@ -257,4 +257,24 @@ fn main() -> int {
             .expect("pe emission should work");
         assert_eq!(&bytes[..2], b"MZ");
     }
+
+    #[test]
+    fn rejects_unimplemented_declared_runtime_functions() {
+        let mir = compile_source(
+            r#"
+fn print_int(value: int)
+
+fn main() -> int {
+    print_int(7)
+    0
+}
+"#,
+        );
+
+        let error = emit_native_executable(&mir, Target::linux_x86_64())
+            .expect_err("declared runtime calls should not compile as no-op stubs");
+        assert!(error
+            .message
+            .contains("does not yet implement declared runtime function `print_int`"));
+    }
 }

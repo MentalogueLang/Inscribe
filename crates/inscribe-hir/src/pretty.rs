@@ -34,7 +34,9 @@ pub fn render(program: &HirProgram) -> String {
                 out.push_str(" -> ");
                 out.push_str(&function.signature.return_type.display_name());
                 out.push('\n');
-                if let Some(body) = &function.body {
+                if function.is_declaration {
+                    out.push_str("  <declaration>\n");
+                } else if let Some(body) = &function.body {
                     for statement in &body.statements {
                         out.push_str("  ");
                         out.push_str(&render_statement(statement));

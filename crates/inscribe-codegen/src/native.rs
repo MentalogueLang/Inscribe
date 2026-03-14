@@ -32,6 +32,13 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
     let mut program = program.clone();
     optimize_program(&mut program);
 
+    if let Some(declaration) = program.functions.iter().find(|function| function.is_declaration) {
+        return Err(CodegenError::new(format!(
+            "native codegen does not yet implement declared runtime function `{}`",
+            callable_name(declaration)
+        )));
+    }
+
     let Some(main_index) = program
         .functions
         .iter()

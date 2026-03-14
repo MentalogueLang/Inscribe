@@ -42,6 +42,7 @@ pub struct HirFunction {
     pub name: String,
     pub signature: FunctionSignature,
     pub params: Vec<HirParam>,
+    pub is_declaration: bool,
     pub body: Option<HirBlock>,
     pub span: Span,
 }
