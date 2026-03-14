@@ -153,6 +153,30 @@ fn main() -> int {
         assert!(assembly.contains("__ml_fn_add"));
     }
 
+    #[test]
+    fn emits_many_argument_calls() {
+        let mir = compile_source(
+            r#"
+fn sum8(a: int, b: int, c: int, d: int, e: int, f: int, g: int, h: int) -> int {
+    a + b + c + d + e + f + g + h
+}
+
+fn main() -> int {
+    sum8(1, 2, 3, 4, 5, 6, 7, 8)
+}
+"#,
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("call __ml_fn_sum8"));
+        assert!(assembly.contains("r8"));
+        assert!(assembly.contains("r9"));
+        assert!(assembly.contains("qword ptr [rsp + 0]"));
+        assert!(assembly.contains("qword ptr [rsp + 8]"));
+    }
+
     #[cfg(windows)]
     #[test]
     fn generated_pe_executable_runs() {
@@ -176,6 +200,34 @@ fn main() -> int {
 
         let _ = fs::remove_file(&path);
         assert_eq!(status.code(), Some(7));
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn generated_pe_executable_runs_with_many_arguments() {
+        let mir = compile_source(
+            r#"
+fn sum6(a: int, b: int, c: int, d: int, e: int, f: int) -> int {
+    a + b + c + d + e + f
+}
+
+fn main() -> int {
+    sum6(1, 2, 3, 4, 5, 6)
+}
+"#,
+        );
+
+        let bytes = emit_native_executable(&mir, Target::windows_x86_64())
+            .expect("pe emission should work");
+        let path = temp_output("inscribe_codegen_many_args.exe");
+        fs::write(&path, bytes).expect("should write executable");
+
+        let status = Command::new(&path)
+            .status()
+            .expect("generated executable should run");
+
+        let _ = fs::remove_file(&path);
+        assert_eq!(status.code(), Some(21));
     }
 
     #[cfg(windows)]

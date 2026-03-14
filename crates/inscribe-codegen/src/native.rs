@@ -267,9 +267,17 @@ fn lower_call_terminator(
         )));
     };
 
-    let arg_registers = argument_registers(target_info, args.len())?;
-    for (operand, register) in args.iter().zip(arg_registers.iter()) {
+    let arg_registers = argument_registers(target_info);
+    let register_arg_count = args.len().min(arg_registers.len());
+    for (operand, register) in args.iter().take(register_arg_count).zip(arg_registers.iter()) {
         load_operand(operand, *register, stack, instructions)?;
+    }
+    for (stack_index, operand) in args.iter().skip(register_arg_count).enumerate() {
+        load_operand(operand, Register::Rax, stack, instructions)?;
+        instructions.push(Instruction::MovStackReg(
+            stack.outgoing_arg_offset(target_info, stack_index)?,
+            Register::Rax,
+        ));
     }
 
     instructions.push(Instruction::Call(label.clone()));
@@ -318,8 +326,9 @@ fn spill_params(
     target: Target,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
-    let arg_registers = argument_registers(target, function.signature.params.len())?;
-    for (index, register) in arg_registers.iter().enumerate() {
+    let arg_registers = argument_registers(target);
+    let register_arg_count = function.signature.params.len().min(arg_registers.len());
+    for (index, register) in arg_registers.iter().take(register_arg_count).enumerate() {
         let local_index = 1 + index;
         if local_index >= function.locals.len() {
             break;
@@ -327,6 +336,20 @@ fn spill_params(
         instructions.push(Instruction::MovStackReg(
             stack.offset_for(local_index)?,
             *register,
+        ));
+    }
+    for index in register_arg_count..function.signature.params.len() {
+        let local_index = 1 + index;
+        if local_index >= function.locals.len() {
+            break;
+        }
+        instructions.push(Instruction::MovRegStack(
+            Register::Rax,
+            stack.incoming_arg_offset(target, index - register_arg_count)?,
+        ));
+        instructions.push(Instruction::MovStackReg(
+            stack.offset_for(local_index)?,
+            Register::Rax,
         ));
     }
     Ok(())
@@ -368,20 +391,22 @@ fn direct_callee_name(callee: &Operand) -> Option<&str> {
     }
 }
 
-fn argument_registers(target: Target, count: usize) -> Result<&'static [Register], CodegenError> {
-    let registers = match target.os {
-        OperatingSystem::Linux => &[Register::Rdi, Register::Rsi][..],
-        OperatingSystem::Windows => &[Register::Rcx, Register::Rdx][..],
-    };
-
-    if count > registers.len() {
-        Err(CodegenError::new(format!(
-            "native codegen currently supports at most {} direct call arguments on {:?}",
-            registers.len(),
-            target.os
-        )))
-    } else {
-        Ok(&registers[..count])
+fn argument_registers(target: Target) -> &'static [Register] {
+    match target.os {
+        OperatingSystem::Linux => &[
+            Register::Rdi,
+            Register::Rsi,
+            Register::Rdx,
+            Register::Rcx,
+            Register::R8,
+            Register::R9,
+        ][..],
+        OperatingSystem::Windows => &[
+            Register::Rcx,
+            Register::Rdx,
+            Register::R8,
+            Register::R9,
+        ][..],
     }
 }
 
@@ -661,8 +686,54 @@ fn align_up(value: u32, alignment: u32) -> u32 {
     }
 }
 
+fn max_outgoing_call_area(function: &MirFunction, target: Target) -> usize {
+    function
+        .blocks
+        .iter()
+        .filter_map(|block| match &block.terminator {
+            TerminatorKind::Call { args, .. } => {
+                let stack_args = args.len().saturating_sub(argument_registers(target).len()) * 8;
+                Some(stack_arg_base(target) + stack_args)
+            }
+            _ => None,
+        })
+        .max()
+        .unwrap_or_else(|| match target.os {
+            OperatingSystem::Linux => 0,
+            OperatingSystem::Windows => 32,
+        })
+}
+
+fn stack_arg_base(target: Target) -> usize {
+    match target.os {
+        OperatingSystem::Linux => 0,
+        OperatingSystem::Windows => 32,
+    }
+}
+
+fn incoming_stack_arg_base(target: Target) -> usize {
+    match target.os {
+        OperatingSystem::Linux => 8,
+        OperatingSystem::Windows => 40,
+    }
+}
+
+fn required_frame_alignment(function: &MirFunction, target: Target) -> usize {
+    match target.os {
+        OperatingSystem::Linux => 8,
+        OperatingSystem::Windows => {
+            if function.receiver.is_none() && function.name == "main" {
+                0
+            } else {
+                8
+            }
+        }
+    }
+}
+
 struct StackLayout {
     total_size: usize,
+    outgoing_call_area: usize,
     offsets: Vec<i32>,
 }
 
@@ -678,29 +749,20 @@ impl StackLayout {
             }
         }
 
-        let shadow_space = if target.os == OperatingSystem::Windows {
-            32
-        } else {
-            0
-        };
+        let outgoing_call_area = max_outgoing_call_area(function, target);
         let frame_size = function.locals.len() * 8;
-        let mut total_size = shadow_space + frame_size;
-        total_size = match target.os {
-            OperatingSystem::Linux => align_up(total_size as u32, 16) as usize,
-            OperatingSystem::Windows => {
-                while total_size % 16 != 8 {
-                    total_size += 1;
-                }
-                total_size
-            }
-        };
+        let mut total_size = outgoing_call_area + frame_size;
+        while total_size % 16 != required_frame_alignment(function, target) {
+            total_size += 1;
+        }
 
         let offsets = (0..function.locals.len())
-            .map(|index| (shadow_space + index * 8) as i32)
+            .map(|index| (outgoing_call_area + index * 8) as i32)
             .collect();
 
         Ok(Self {
             total_size,
+            outgoing_call_area,
             offsets,
         })
     }
@@ -709,6 +771,28 @@ impl StackLayout {
         self.offsets.get(local).copied().ok_or_else(|| {
             CodegenError::new(format!("stack slot for local `{local}` does not exist"))
         })
+    }
+
+    fn outgoing_arg_offset(&self, target: Target, stack_index: usize) -> Result<i32, CodegenError> {
+        let offset = stack_arg_base(target)
+            .checked_add(stack_index * 8)
+            .ok_or_else(|| CodegenError::new("outgoing stack argument offset overflowed"))?;
+        if offset >= self.outgoing_call_area {
+            return Err(CodegenError::new(format!(
+                "outgoing stack argument slot `{stack_index}` does not exist"
+            )));
+        }
+        Ok(offset as i32)
+    }
+
+    fn incoming_arg_offset(&self, target: Target, stack_index: usize) -> Result<i32, CodegenError> {
+        let base = self
+            .total_size
+            .checked_add(incoming_stack_arg_base(target))
+            .and_then(|value| value.checked_add(stack_index * 8))
+            .ok_or_else(|| CodegenError::new("incoming stack argument offset overflowed"))?;
+        i32::try_from(base)
+            .map_err(|_| CodegenError::new("incoming stack argument offset exceeds x86-64 frame limits"))
     }
 }
 
@@ -735,6 +819,8 @@ enum Register {
     Rdx,
     Rdi,
     Rsi,
+    R8,
+    R9,
 }
 
 impl Register {
@@ -745,7 +831,21 @@ impl Register {
             Self::Rdx => 2,
             Self::Rdi => 7,
             Self::Rsi => 6,
+            Self::R8 => 8,
+            Self::R9 => 9,
         }
+    }
+
+    fn low3(self) -> u8 {
+        self.encoding() & 0b111
+    }
+
+    fn rex_r(self) -> u8 {
+        u8::from((self.encoding() & 0b1000) != 0) << 2
+    }
+
+    fn rex_b(self) -> u8 {
+        u8::from((self.encoding() & 0b1000) != 0)
     }
 
     fn name(self) -> &'static str {
@@ -755,6 +855,8 @@ impl Register {
             Self::Rdx => "rdx",
             Self::Rdi => "rdi",
             Self::Rsi => "rsi",
+            Self::R8 => "r8",
+            Self::R9 => "r9",
         }
     }
 }
@@ -977,18 +1079,18 @@ fn encode_instruction(
         Instruction::OrRegReg(dst, src) => encode_reg_reg(output, 0x09, *dst, *src),
         Instruction::IMulRegReg(dst, src) => {
             output.extend_from_slice(&[
-                0x48,
+                0x48 | dst.rex_r() | src.rex_b(),
                 0x0F,
                 0xAF,
-                modrm(0b11, dst.encoding(), src.encoding()),
+                modrm(0b11, dst.low3(), src.low3()),
             ]);
         }
         Instruction::Cqo => output.extend_from_slice(&[0x48, 0x99]),
         Instruction::IDivReg(reg) => {
-            output.extend_from_slice(&[0x48, 0xF7, modrm(0b11, 7, reg.encoding())]);
+            output.extend_from_slice(&[0x48 | reg.rex_b(), 0xF7, modrm(0b11, 7, reg.low3())]);
         }
         Instruction::NegReg(reg) => {
-            output.extend_from_slice(&[0x48, 0xF7, modrm(0b11, 3, reg.encoding())]);
+            output.extend_from_slice(&[0x48 | reg.rex_b(), 0xF7, modrm(0b11, 3, reg.low3())]);
         }
         Instruction::CmpRegImm(reg, value) => encode_cmp_reg_imm(output, *reg, *value),
         Instruction::CmpRegReg(left, right) => encode_reg_reg(output, 0x39, *left, *right),
@@ -1040,8 +1142,8 @@ fn relative_displacement(from: usize, len: usize, target: usize) -> Result<i32, 
 }
 
 fn encode_sub_rsp(output: &mut Vec<u8>, value: u32) {
-    if let Ok(value) = u8::try_from(value) {
-        output.extend_from_slice(&[0x48, 0x83, 0xEC, value]);
+    if let Ok(value) = i8::try_from(value) {
+        output.extend_from_slice(&[0x48, 0x83, 0xEC, value as u8]);
     } else {
         output.extend_from_slice(&[0x48, 0x81, 0xEC]);
         output.extend_from_slice(&value.to_le_bytes());
@@ -1049,8 +1151,8 @@ fn encode_sub_rsp(output: &mut Vec<u8>, value: u32) {
 }
 
 fn encode_add_rsp(output: &mut Vec<u8>, value: u32) {
-    if let Ok(value) = u8::try_from(value) {
-        output.extend_from_slice(&[0x48, 0x83, 0xC4, value]);
+    if let Ok(value) = i8::try_from(value) {
+        output.extend_from_slice(&[0x48, 0x83, 0xC4, value as u8]);
     } else {
         output.extend_from_slice(&[0x48, 0x81, 0xC4]);
         output.extend_from_slice(&value.to_le_bytes());
@@ -1058,34 +1160,47 @@ fn encode_add_rsp(output: &mut Vec<u8>, value: u32) {
 }
 
 fn encode_mov_reg_imm64(output: &mut Vec<u8>, reg: Register, value: i64) {
-    output.push(0x48);
-    output.push(0xB8 + reg.encoding());
+    output.push(0x48 | reg.rex_b());
+    output.push(0xB8 + reg.low3());
     output.extend_from_slice(&value.to_le_bytes());
 }
 
 fn encode_mov_reg_stack(output: &mut Vec<u8>, reg: Register, offset: i32) {
-    output.extend_from_slice(&[0x48, 0x8B]);
-    encode_rsp_memory_operand(output, reg.encoding(), offset);
+    output.extend_from_slice(&[0x48 | reg.rex_r(), 0x8B]);
+    encode_rsp_memory_operand(output, reg.low3(), offset);
 }
 
 fn encode_mov_stack_reg(output: &mut Vec<u8>, offset: i32, reg: Register) {
-    output.extend_from_slice(&[0x48, 0x89]);
-    encode_rsp_memory_operand(output, reg.encoding(), offset);
+    output.extend_from_slice(&[0x48 | reg.rex_r(), 0x89]);
+    encode_rsp_memory_operand(output, reg.low3(), offset);
 }
 
 fn encode_mov_reg_reg(output: &mut Vec<u8>, dst: Register, src: Register) {
-    output.extend_from_slice(&[0x48, 0x89, modrm(0b11, src.encoding(), dst.encoding())]);
+    output.extend_from_slice(&[
+        0x48 | src.rex_r() | dst.rex_b(),
+        0x89,
+        modrm(0b11, src.low3(), dst.low3()),
+    ]);
 }
 
 fn encode_reg_reg(output: &mut Vec<u8>, opcode: u8, dst: Register, src: Register) {
-    output.extend_from_slice(&[0x48, opcode, modrm(0b11, src.encoding(), dst.encoding())]);
+    output.extend_from_slice(&[
+        0x48 | src.rex_r() | dst.rex_b(),
+        opcode,
+        modrm(0b11, src.low3(), dst.low3()),
+    ]);
 }
 
 fn encode_cmp_reg_imm(output: &mut Vec<u8>, reg: Register, value: i32) {
     if let Ok(value8) = i8::try_from(value) {
-        output.extend_from_slice(&[0x48, 0x83, modrm(0b11, 7, reg.encoding()), value8 as u8]);
+        output.extend_from_slice(&[
+            0x48 | reg.rex_b(),
+            0x83,
+            modrm(0b11, 7, reg.low3()),
+            value8 as u8,
+        ]);
     } else {
-        output.extend_from_slice(&[0x48, 0x81, modrm(0b11, 7, reg.encoding())]);
+        output.extend_from_slice(&[0x48 | reg.rex_b(), 0x81, modrm(0b11, 7, reg.low3())]);
         output.extend_from_slice(&value.to_le_bytes());
     }
 }
@@ -1104,9 +1219,9 @@ fn encode_rsp_memory_operand(output: &mut Vec<u8>, reg: u8, offset: i32) {
 
 fn stack_mem_len(offset: i32) -> usize {
     if i8::try_from(offset).is_ok() {
-        4
+        5
     } else {
-        7
+        8
     }
 }
 
