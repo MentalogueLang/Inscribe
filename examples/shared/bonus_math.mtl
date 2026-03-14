@@ -1,0 +1,3 @@
+fn triple(value: int) -> int {
+    value + value + value
+}

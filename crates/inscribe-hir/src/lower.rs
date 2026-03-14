@@ -9,8 +9,6 @@ use crate::nodes::{
     HirMatchArm, HirParam, HirProgram, HirStmt, HirStruct, HirWhile,
 };
 
-// TODO: Lower control flow into a more SSA-friendly form once MIR is ready to consume it.
-
 pub fn lower_module(
     module: &Module,
     resolved: &ResolvedProgram,
@@ -158,11 +156,7 @@ fn lower_expr(expr: &Expr, typed: &TypeCheckResult) -> HirExpr {
             op: format!("{op:?}"),
             expr: Box::new(lower_expr(expr, typed)),
         },
-        ExprKind::Binary { op, left, right } => HirExprKind::Binary {
-            op: format!("{op:?}"),
-            left: Box::new(lower_expr(left, typed)),
-            right: Box::new(lower_expr(right, typed)),
-        },
+        ExprKind::Binary { op, left, right } => lower_binary_expr(*op, left, right, typed),
         ExprKind::Call { callee, args } => HirExprKind::Call {
             callee: Box::new(lower_expr(callee, typed)),
             args: args.iter().map(|arg| lower_expr(arg, typed)).collect(),
@@ -208,6 +202,48 @@ fn lower_expr(expr: &Expr, typed: &TypeCheckResult) -> HirExpr {
         kind,
         ty,
         span: expr.span,
+    }
+}
+
+fn lower_binary_expr(
+    op: inscribe_ast::nodes::BinaryOp,
+    left: &Expr,
+    right: &Expr,
+    typed: &TypeCheckResult,
+) -> HirExprKind {
+    match op {
+        inscribe_ast::nodes::BinaryOp::And => HirExprKind::If {
+            condition: Box::new(lower_expr(left, typed)),
+            then_block: block_with_expr(lower_expr(right, typed), right.span),
+            else_branch: Some(Box::new(bool_literal_expr(false, left.span))),
+        },
+        inscribe_ast::nodes::BinaryOp::Or => HirExprKind::If {
+            condition: Box::new(lower_expr(left, typed)),
+            then_block: block_with_expr(bool_literal_expr(true, left.span), left.span),
+            else_branch: Some(Box::new(lower_expr(right, typed))),
+        },
+        _ => HirExprKind::Binary {
+            op: format!("{op:?}"),
+            left: Box::new(lower_expr(left, typed)),
+            right: Box::new(lower_expr(right, typed)),
+        },
+    }
+}
+
+fn block_with_expr(expr: HirExpr, span: inscribe_ast::span::Span) -> HirBlock {
+    let ty = expr.ty.clone();
+    HirBlock {
+        statements: vec![HirStmt::Expr(expr)],
+        ty,
+        span,
+    }
+}
+
+fn bool_literal_expr(value: bool, span: inscribe_ast::span::Span) -> HirExpr {
+    HirExpr {
+        kind: HirExprKind::Literal(value.to_string()),
+        ty: Type::Bool,
+        span,
     }
 }
 

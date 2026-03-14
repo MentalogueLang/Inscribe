@@ -1,0 +1,10 @@
+import core.math
+import io.console
+import shared.bonus_math
+
+fn main() -> int {
+    let base = triple(3)
+    base = clamp_int(square_int(base), 0, 100)
+    write_int(base)
+    0
+}
