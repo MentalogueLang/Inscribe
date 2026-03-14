@@ -14,8 +14,10 @@ version = "0.1.0"
 name = "inscribe-cli"
 version = "0.1.0"
 dependencies = [
+ "inscribe-abi",
  "inscribe-ast",
  "inscribe-codegen",
+ "inscribe-debug",
  "inscribe-hir",
  "inscribe-lexer",
  "inscribe-mir",

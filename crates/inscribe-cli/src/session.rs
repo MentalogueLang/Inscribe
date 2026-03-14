@@ -4,7 +4,7 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use inscribe_codegen::Target;
-use inscribe_hir::lower_module;
+use inscribe_hir::{lower_module, HirProgram};
 use inscribe_mir::{lower_program, optimize_program, MirProgram};
 use inscribe_resolve::{load_module_graph, resolve_module_graph};
 use inscribe_session::{Session, SessionError};
@@ -14,7 +14,12 @@ pub fn host_session() -> Session {
     Session::default()
 }
 
-pub fn compile_file_to_mir(input: &Path) -> Result<MirProgram, SessionError> {
+pub struct CompiledArtifacts {
+    pub hir: HirProgram,
+    pub mir: MirProgram,
+}
+
+pub fn compile_file(input: &Path) -> Result<CompiledArtifacts, SessionError> {
     let graph = load_module_graph(input)?;
     let resolved = resolve_module_graph(&graph)
         .map_err(|errors| join_errors("resolve", errors.into_iter().map(|e| e.to_string())))?;
@@ -23,7 +28,15 @@ pub fn compile_file_to_mir(input: &Path) -> Result<MirProgram, SessionError> {
     let hir = lower_module(&graph.merged, &resolved, &typed);
     let mut mir = lower_program(&hir);
     optimize_program(&mut mir);
-    Ok(mir)
+    Ok(CompiledArtifacts { hir, mir })
+}
+
+pub fn compile_file_to_hir(input: &Path) -> Result<HirProgram, SessionError> {
+    compile_file(input).map(|artifacts| artifacts.hir)
+}
+
+pub fn compile_file_to_mir(input: &Path) -> Result<MirProgram, SessionError> {
+    compile_file(input).map(|artifacts| artifacts.mir)
 }
 
 fn join_errors<I>(stage: &'static str, errors: I) -> SessionError
@@ -62,6 +75,10 @@ pub fn parse_target_arg(maybe_target: Option<&str>) -> Result<Target, SessionErr
 
 pub fn default_assembly_output(input: &Path) -> PathBuf {
     input.with_extension("asm")
+}
+
+pub fn default_text_output(input: &Path, extension: &str) -> PathBuf {
+    input.with_extension(extension)
 }
 
 pub fn default_executable_output(input: &Path, target: Target) -> PathBuf {

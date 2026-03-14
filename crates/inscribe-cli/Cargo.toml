@@ -4,8 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+inscribe-abi = { path = "../inscribe-abi" }
 inscribe-ast = { path = "../inscribe-ast" }
 inscribe-codegen = { path = "../inscribe-codegen" }
+inscribe-debug = { path = "../inscribe-debug" }
 inscribe-hir = { path = "../inscribe-hir" }
 inscribe-lexer = { path = "../inscribe-lexer" }
 inscribe-mir = { path = "../inscribe-mir" }
