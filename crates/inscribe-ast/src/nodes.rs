@@ -1,7 +1,5 @@
 use crate::span::{Span, Spanned};
 
-// TODO: Grow these nodes as semantic analysis and lowering need richer syntax data.
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Module {
     pub items: Vec<Item>,
@@ -37,35 +35,69 @@ pub struct Import {
     pub span: Span,
 }
 
+impl Spanned for Import {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StructDecl {
     pub name: String,
+    pub name_span: Span,
     pub fields: Vec<StructField>,
     pub span: Span,
+}
+
+impl Spanned for StructDecl {
+    fn span(&self) -> Span {
+        self.span
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StructField {
     pub name: String,
+    pub name_span: Span,
     pub ty: TypeRef,
     pub span: Span,
+}
+
+impl Spanned for StructField {
+    fn span(&self) -> Span {
+        self.span
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FunctionDecl {
     pub receiver: Option<Path>,
     pub name: String,
+    pub name_span: Span,
     pub params: Vec<Param>,
     pub return_type: Option<TypeRef>,
     pub body: Option<Block>,
     pub span: Span,
 }
 
+impl Spanned for FunctionDecl {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Param {
     pub name: String,
+    pub name_span: Span,
     pub ty: Option<TypeRef>,
     pub span: Span,
+}
+
+impl Spanned for Param {
+    fn span(&self) -> Span {
+        self.span
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -106,17 +138,31 @@ impl Spanned for Stmt {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LetStmt {
     pub name: String,
+    pub name_span: Span,
     pub ty: Option<TypeRef>,
     pub value: Expr,
     pub span: Span,
 }
 
+impl Spanned for LetStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConstStmt {
     pub name: String,
+    pub name_span: Span,
     pub ty: Option<TypeRef>,
     pub value: Expr,
     pub span: Span,
+}
+
+impl Spanned for ConstStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -127,6 +173,12 @@ pub struct ForStmt {
     pub span: Span,
 }
 
+impl Spanned for ForStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WhileStmt {
     pub condition: Expr,
@@ -134,10 +186,22 @@ pub struct WhileStmt {
     pub span: Span,
 }
 
+impl Spanned for WhileStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
     pub span: Span,
+}
+
+impl Spanned for ReturnStmt {
+    fn span(&self) -> Span {
+        self.span
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -199,8 +263,15 @@ pub enum ExprKind {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StructLiteralField {
     pub name: String,
+    pub name_span: Span,
     pub value: Expr,
     pub span: Span,
+}
+
+impl Spanned for StructLiteralField {
+    fn span(&self) -> Span {
+        self.span
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -208,6 +279,12 @@ pub struct MatchArm {
     pub pattern: Pattern,
     pub value: Expr,
     pub span: Span,
+}
+
+impl Spanned for MatchArm {
+    fn span(&self) -> Span {
+        self.span
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -219,6 +296,12 @@ pub struct Pattern {
 impl Pattern {
     pub fn new(kind: PatternKind, span: Span) -> Self {
         Self { kind, span }
+    }
+}
+
+impl Spanned for Pattern {
+    fn span(&self) -> Span {
+        self.span
     }
 }
 
@@ -279,12 +362,38 @@ impl Spanned for TypeRef {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Path {
     pub segments: Vec<String>,
+    pub segment_spans: Vec<Span>,
     pub span: Span,
 }
 
 impl Path {
     pub fn new(segments: Vec<String>, span: Span) -> Self {
-        Self { segments, span }
+        Self {
+            segment_spans: vec![span; segments.len()],
+            segments,
+            span,
+        }
+    }
+
+    pub fn with_segment_spans(segments: Vec<String>, segment_spans: Vec<Span>, span: Span) -> Self {
+        debug_assert_eq!(segments.len(), segment_spans.len());
+        Self {
+            segments,
+            segment_spans,
+            span,
+        }
+    }
+
+    pub fn first(&self) -> Option<&str> {
+        self.segments.first().map(String::as_str)
+    }
+
+    pub fn last(&self) -> Option<&str> {
+        self.segments.last().map(String::as_str)
+    }
+
+    pub fn segment_span(&self, index: usize) -> Option<Span> {
+        self.segment_spans.get(index).copied()
     }
 }
 

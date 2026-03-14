@@ -98,19 +98,20 @@ impl Parser {
 
     fn parse_struct(&mut self) -> Result<StructDecl, ParseError> {
         let start = self.expect_simple(TokenKind::Struct)?.span.start;
-        let (name, _) = self.expect_identifier()?;
+        let (name, name_span) = self.expect_identifier()?;
         self.expect_simple(TokenKind::LBrace)?;
         self.skip_separators();
 
         let mut fields = Vec::new();
         while !self.check(TokenKind::RBrace) && !self.at_eof() {
             let field_start = self.current_span().start;
-            let (field_name, _) = self.expect_identifier()?;
+            let (field_name, field_name_span) = self.expect_identifier()?;
             self.expect_simple(TokenKind::Colon)?;
             let ty = self.parse_type()?;
             let span = Span::new(field_start, ty.span.end);
             fields.push(StructField {
                 name: field_name,
+                name_span: field_name_span,
                 ty,
                 span,
             });
@@ -124,6 +125,7 @@ impl Parser {
         let end = self.expect_simple(TokenKind::RBrace)?.span.end;
         Ok(StructDecl {
             name,
+            name_span,
             fields,
             span: Span::new(convert_position(start), convert_position(end)),
         })
@@ -132,7 +134,7 @@ impl Parser {
     fn parse_function(&mut self) -> Result<FunctionDecl, ParseError> {
         let start = self.expect_simple(TokenKind::Fn)?.span.start;
         let name_path = self.parse_path()?;
-        let (receiver, name) = split_function_name(name_path)?;
+        let (receiver, name, name_span) = split_function_name(name_path)?;
         self.expect_simple(TokenKind::LParen)?;
         let params = self.parse_params()?;
         self.expect_simple(TokenKind::RParen)?;
@@ -156,6 +158,7 @@ impl Parser {
         Ok(FunctionDecl {
             receiver,
             name,
+            name_span,
             params,
             return_type,
             body,
@@ -168,7 +171,7 @@ impl Parser {
         self.skip_inline_separators();
         while !self.check(TokenKind::RParen) && !self.at_eof() {
             let start = self.current_span().start;
-            let (name, _) = self.expect_identifier()?;
+            let (name, name_span) = self.expect_identifier()?;
             let ty = if self.match_simple(TokenKind::Colon) {
                 Some(self.parse_type()?)
             } else {
@@ -180,6 +183,7 @@ impl Parser {
                 .unwrap_or_else(|| self.previous_span().end);
             params.push(Param {
                 name,
+                name_span,
                 ty,
                 span: Span::new(start, end),
             });
@@ -270,7 +274,7 @@ impl Parser {
 
     fn parse_let(&mut self) -> Result<LetStmt, ParseError> {
         let start = self.expect_simple(TokenKind::Let)?.span.start;
-        let (name, _) = self.expect_identifier()?;
+        let (name, name_span) = self.expect_identifier()?;
         let ty = if self.match_simple(TokenKind::Colon) {
             Some(self.parse_type()?)
         } else {
@@ -280,6 +284,7 @@ impl Parser {
         let value = self.parse_expression(Precedence::Assignment.level())?;
         Ok(LetStmt {
             name,
+            name_span,
             ty,
             span: Span::new(convert_position(start), value.span.end),
             value,
@@ -288,7 +293,7 @@ impl Parser {
 
     fn parse_const(&mut self) -> Result<ConstStmt, ParseError> {
         let start = self.expect_simple(TokenKind::Const)?.span.start;
-        let (name, _) = self.expect_identifier()?;
+        let (name, name_span) = self.expect_identifier()?;
         let ty = if self.match_simple(TokenKind::Colon) {
             Some(self.parse_type()?)
         } else {
@@ -298,6 +303,7 @@ impl Parser {
         let value = self.parse_expression(Precedence::Assignment.level())?;
         Ok(ConstStmt {
             name,
+            name_span,
             ty,
             span: Span::new(convert_position(start), value.span.end),
             value,
@@ -610,7 +616,7 @@ impl Parser {
     fn parse_path_expression(&mut self) -> Result<Expr, ParseError> {
         let start = self.current_span().start;
         let (name, span) = self.expect_identifier()?;
-        let path = Path::new(vec![name], Span::new(start, span.end));
+        let path = Path::with_segment_spans(vec![name], vec![span], Span::new(start, span.end));
         Ok(Expr::new(ExprKind::Path(path.clone()), path.span))
     }
 
@@ -660,11 +666,12 @@ impl Parser {
         let mut fields = Vec::new();
         while !self.check(TokenKind::RBrace) && !self.at_eof() {
             let start = self.current_span().start;
-            let (name, _) = self.expect_identifier()?;
+            let (name, name_span) = self.expect_identifier()?;
             self.expect_simple(TokenKind::Colon)?;
             let value = self.parse_expression(Precedence::Assignment.level())?;
             fields.push(StructLiteralField {
                 name,
+                name_span,
                 value: value.clone(),
                 span: Span::new(start, value.span.end),
             });
@@ -693,14 +700,18 @@ impl Parser {
     fn parse_path(&mut self) -> Result<Path, ParseError> {
         let start = self.current_span().start;
         let mut segments = Vec::new();
-        let (first, _) = self.expect_identifier()?;
+        let mut segment_spans = Vec::new();
+        let (first, first_span) = self.expect_identifier()?;
         segments.push(first);
+        segment_spans.push(first_span);
         while self.match_simple(TokenKind::Dot) {
-            let (segment, _) = self.expect_identifier()?;
+            let (segment, segment_span) = self.expect_identifier()?;
             segments.push(segment);
+            segment_spans.push(segment_span);
         }
-        Ok(Path::new(
+        Ok(Path::with_segment_spans(
             segments,
+            segment_spans,
             Span::new(start, self.previous_span().end),
         ))
     }
@@ -827,17 +838,26 @@ impl Parser {
     }
 }
 
-fn split_function_name(path: Path) -> Result<(Option<Path>, String), ParseError> {
-    let mut segments = path.segments.clone();
+fn split_function_name(path: Path) -> Result<(Option<Path>, String, Span), ParseError> {
+    let mut segments = path.segments;
+    let mut segment_spans = path.segment_spans;
     let name = segments
+        .pop()
+        .ok_or_else(|| ParseError::new("expected a function name", path.span))?;
+    let name_span = segment_spans
         .pop()
         .ok_or_else(|| ParseError::new("expected a function name", path.span))?;
     let receiver = if segments.is_empty() {
         None
     } else {
-        Some(Path::new(segments, path.span))
+        let receiver_end = segment_spans.last().map(|span| span.end).unwrap_or(path.span.end);
+        Some(Path::with_segment_spans(
+            segments,
+            segment_spans,
+            Span::new(path.span.start, receiver_end),
+        ))
     };
-    Ok((receiver, name))
+    Ok((receiver, name, name_span))
 }
 
 fn convert_span(span: TokenSpan) -> Span {

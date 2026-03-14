@@ -59,8 +59,10 @@ mod tests {
         let module = Module {
             items: vec![Item::Struct(StructDecl {
                 name: "Point".to_string(),
+                name_span: span,
                 fields: vec![StructField {
                     name: "x".to_string(),
+                    name_span: span,
                     ty: TypeRef {
                         path: super::Path::new(vec!["int".to_string()], span),
                         arguments: Vec::new(),
@@ -115,8 +117,10 @@ mod tests {
             items: vec![Item::Function(FunctionDecl {
                 receiver: None,
                 name: "measure".to_string(),
+                name_span: span,
                 params: vec![Param {
                     name: "value".to_string(),
+                    name_span: span,
                     ty: None,
                     span,
                 }],
@@ -150,14 +154,17 @@ mod tests {
             items: vec![Item::Function(FunctionDecl {
                 receiver: None,
                 name: "sum".to_string(),
+                name_span: span,
                 params: vec![
                     Param {
                         name: "lhs".to_string(),
+                        name_span: span,
                         ty: None,
                         span,
                     },
                     Param {
                         name: "rhs".to_string(),
+                        name_span: span,
                         ty: None,
                         span,
                     },
