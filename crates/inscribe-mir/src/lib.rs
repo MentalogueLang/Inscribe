@@ -196,6 +196,42 @@ fn passthrough(value: int) -> int {
         }));
     }
 
+    #[test]
+    fn optimizer_prunes_unreachable_functions() {
+        let source = r#"
+fn helper() -> int {
+    9
+}
+
+fn unused() -> int {
+    3
+}
+
+fn main() -> int {
+    helper()
+}
+"#;
+
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&module, &resolved, &typed);
+        let mut mir = lower_program(&hir);
+
+        crate::optimize_program(&mut mir);
+
+        assert_eq!(mir.functions.len(), 2);
+        assert!(mir
+            .functions
+            .iter()
+            .any(|function| function.name == "helper"));
+        assert!(mir
+            .functions
+            .iter()
+            .all(|function| function.name != "unused"));
+    }
+
     fn is_identity_binary(statement: &crate::Statement) -> bool {
         let StatementKind::Assign(_, Rvalue::BinaryOp { op, left, right }) = &statement.kind else {
             return false;

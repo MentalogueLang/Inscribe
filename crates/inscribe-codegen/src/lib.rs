@@ -131,6 +131,28 @@ fn main() -> int {
         assert_eq!(&bytes[pe_offset..pe_offset + 4], b"PE\0\0");
     }
 
+    #[test]
+    fn emits_direct_function_calls() {
+        let mir = compile_source(
+            r#"
+fn add(left: int, right: int) -> int {
+    left + right
+}
+
+fn main() -> int {
+    add(4, 3)
+}
+"#,
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("call __ml_fn_add"));
+        assert!(assembly.contains("__ml_fn_main"));
+        assert!(assembly.contains("__ml_fn_add"));
+    }
+
     #[cfg(windows)]
     #[test]
     fn generated_pe_executable_runs() {
@@ -163,5 +185,24 @@ fn main() -> int {
             .expect("time should move forward")
             .as_nanos();
         std::env::temp_dir().join(format!("{stamp}_{name}"))
+    }
+
+    #[test]
+    fn emits_pe_with_helper_call() {
+        let mir = compile_source(
+            r#"
+fn add(left: int, right: int) -> int {
+    left + right
+}
+
+fn main() -> int {
+    add(2, 5)
+}
+"#,
+        );
+
+        let bytes = emit_native_executable(&mir, Target::windows_x86_64())
+            .expect("pe emission should work");
+        assert_eq!(&bytes[..2], b"MZ");
     }
 }

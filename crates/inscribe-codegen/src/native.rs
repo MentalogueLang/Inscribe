@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use inscribe_mir::{
-    optimize_function, BasicBlockId, ConstantValue, MirFunction, MirProgram, Operand, Place,
+    optimize_program, BasicBlockId, ConstantValue, MirFunction, MirProgram, Operand, Place,
     ProjectionElem, Rvalue, StatementKind, TerminatorKind,
 };
 use inscribe_typeck::Type;
@@ -29,30 +29,30 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
         ));
     }
 
-    let Some(function) = program
+    let mut program = program.clone();
+    optimize_program(&mut program);
+
+    let Some(main_index) = program
         .functions
         .iter()
-        .find(|function| function.receiver.is_none() && function.name == "main")
+        .position(|function| function.receiver.is_none() && function.name == "main")
     else {
         return Err(CodegenError::new(
             "native codegen requires a top-level `main` function",
         ));
     };
 
-    let mut function = function.clone();
-    optimize_function(&mut function);
-
-    let stack = StackLayout::new(&function, target)?;
     let mut instructions = Vec::new();
-    instructions.push(Instruction::Label(target.entry_symbol().to_string()));
-    if stack.total_size > 0 {
-        instructions.push(Instruction::SubRsp(stack.total_size as u32));
-    }
-    instructions.push(Instruction::Jump(block_label(function.entry)));
+    let labels = program
+        .functions
+        .iter()
+        .map(|function| (callable_name(function), function_label(function)))
+        .collect::<HashMap<_, _>>();
 
-    for block in &function.blocks {
-        instructions.push(Instruction::Label(block_label(block.id)));
-        lower_block(&function, block, &stack, target, &mut instructions)?;
+    emit_entry_wrapper(&program.functions[main_index], target, &mut instructions);
+
+    for function in &program.functions {
+        lower_function(function, &labels, target, &mut instructions)?;
     }
 
     Ok(LoweredProgram {
@@ -61,11 +61,34 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
     })
 }
 
+fn lower_function(
+    function: &MirFunction,
+    labels: &HashMap<String, String>,
+    target: Target,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let stack = StackLayout::new(function, target)?;
+    instructions.push(Instruction::Label(function_label(function)));
+    if stack.total_size > 0 {
+        instructions.push(Instruction::SubRsp(stack.total_size as u32));
+    }
+    spill_params(function, &stack, target, instructions)?;
+    instructions.push(Instruction::Jump(block_label(function, function.entry)));
+
+    for block in &function.blocks {
+        instructions.push(Instruction::Label(block_label(function, block.id)));
+        lower_block(function, block, &stack, labels, target, instructions)?;
+    }
+
+    Ok(())
+}
+
 fn lower_block(
     function: &MirFunction,
     block: &inscribe_mir::BasicBlockData,
     stack: &StackLayout,
-    target: Target,
+    labels: &HashMap<String, String>,
+    codegen_target: Target,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     for statement in &block.statements {
@@ -82,7 +105,7 @@ fn lower_block(
 
     match &block.terminator {
         TerminatorKind::Goto { target } => {
-            instructions.push(Instruction::Jump(block_label(*target)));
+            instructions.push(Instruction::Jump(block_label(function, *target)));
         }
         TerminatorKind::Branch {
             condition,
@@ -93,22 +116,33 @@ fn lower_block(
             instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
             instructions.push(Instruction::JumpIf(
                 Condition::NotEqual,
-                block_label(*then_bb),
+                block_label(function, *then_bb),
             ));
-            instructions.push(Instruction::Jump(block_label(*else_bb)));
+            instructions.push(Instruction::Jump(block_label(function, *else_bb)));
         }
-        TerminatorKind::Return => emit_exit(function, stack, target, instructions)?,
+        TerminatorKind::Return => emit_function_return(function, stack, instructions)?,
         TerminatorKind::Unreachable => instructions.push(Instruction::Ud2),
         TerminatorKind::Match { .. } => {
             return Err(CodegenError::new(
                 "native codegen does not yet support MIR `match` terminators",
             ))
         }
-        TerminatorKind::Call { .. } => {
-            return Err(CodegenError::new(
-                "native codegen does not yet support MIR calls",
-            ))
-        }
+        TerminatorKind::Call {
+            callee,
+            args,
+            destination,
+            target: next_block,
+        } => lower_call_terminator(
+            function,
+            callee,
+            args,
+            destination.as_ref(),
+            *next_block,
+            stack,
+            labels,
+            codegen_target,
+            instructions,
+        )?,
         TerminatorKind::IterNext { .. } => {
             return Err(CodegenError::new(
                 "native codegen does not yet support MIR `for` iterators",
@@ -210,10 +244,145 @@ fn lower_rvalue(
     }
 }
 
+fn lower_call_terminator(
+    function: &MirFunction,
+    callee: &Operand,
+    args: &[Operand],
+    destination: Option<&Place>,
+    target: BasicBlockId,
+    stack: &StackLayout,
+    labels: &HashMap<String, String>,
+    target_info: Target,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let Some(callee_name) = direct_callee_name(callee) else {
+        return Err(CodegenError::new(
+            "native codegen only supports direct function calls for now",
+        ));
+    };
+
+    let Some(label) = labels.get(callee_name) else {
+        return Err(CodegenError::new(format!(
+            "native codegen could not find callee `{callee_name}`"
+        )));
+    };
+
+    let arg_registers = argument_registers(target_info, args.len())?;
+    for (operand, register) in args.iter().zip(arg_registers.iter()) {
+        load_operand(operand, *register, stack, instructions)?;
+    }
+
+    instructions.push(Instruction::Call(label.clone()));
+
+    if let Some(place) = destination {
+        ensure_supported_local_type(function, place.local.0)?;
+        instructions.push(Instruction::MovStackReg(
+            stack.offset_for(place.local.0)?,
+            Register::Rax,
+        ));
+    }
+
+    instructions.push(Instruction::Jump(block_label(function, target)));
+    Ok(())
+}
+
 fn emit_compare(condition: Condition, instructions: &mut Vec<Instruction>) {
     instructions.push(Instruction::CmpRegReg(Register::Rax, Register::Rcx));
     instructions.push(Instruction::SetCondAl(condition));
     instructions.push(Instruction::MovzxEaxAl);
+}
+
+fn emit_entry_wrapper(main: &MirFunction, target: Target, instructions: &mut Vec<Instruction>) {
+    instructions.push(Instruction::Label(target.entry_symbol().to_string()));
+
+    match target.os {
+        OperatingSystem::Linux => {
+            instructions.push(Instruction::Call(function_label(main)));
+            instructions.push(Instruction::MovRegReg(Register::Rdi, Register::Rax));
+            instructions.push(Instruction::MovRegImm64(Register::Rax, 60));
+            instructions.push(Instruction::Syscall);
+            instructions.push(Instruction::Ud2);
+        }
+        OperatingSystem::Windows => {
+            instructions.push(Instruction::SubRsp(40));
+            instructions.push(Instruction::Call(function_label(main)));
+            instructions.push(Instruction::AddRsp(40));
+            instructions.push(Instruction::Ret);
+        }
+    }
+}
+
+fn spill_params(
+    function: &MirFunction,
+    stack: &StackLayout,
+    target: Target,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let arg_registers = argument_registers(target, function.signature.params.len())?;
+    for (index, register) in arg_registers.iter().enumerate() {
+        let local_index = 1 + index;
+        if local_index >= function.locals.len() {
+            break;
+        }
+        instructions.push(Instruction::MovStackReg(
+            stack.offset_for(local_index)?,
+            *register,
+        ));
+    }
+    Ok(())
+}
+
+fn emit_function_return(
+    function: &MirFunction,
+    stack: &StackLayout,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    match function.signature.return_type.as_ref() {
+        Type::Int | Type::Bool => instructions.push(Instruction::MovRegStack(
+            Register::Rax,
+            stack.offset_for(function.return_local.0)?,
+        )),
+        Type::Unit => instructions.push(Instruction::MovRegImm64(Register::Rax, 0)),
+        other => {
+            return Err(CodegenError::new(format!(
+                "native codegen currently only supports direct returns of `int`, `bool`, or `()`, found `{}`",
+                other.display_name()
+            )))
+        }
+    }
+
+    if stack.total_size > 0 {
+        instructions.push(Instruction::AddRsp(stack.total_size as u32));
+    }
+    instructions.push(Instruction::Ret);
+    Ok(())
+}
+
+fn direct_callee_name(callee: &Operand) -> Option<&str> {
+    match callee {
+        Operand::Constant(inscribe_mir::Constant {
+            value: ConstantValue::Function(name),
+            ..
+        }) => Some(name.as_str()),
+        _ => None,
+    }
+}
+
+fn argument_registers(target: Target, count: usize) -> Result<&'static [Register], CodegenError> {
+    let registers = match target.os {
+        OperatingSystem::Linux => &[Register::Rdi, Register::Rsi][..],
+        OperatingSystem::Windows => &[Register::Rcx, Register::Rdx][..],
+    };
+
+    if count > registers.len() {
+        Err(CodegenError::new(format!(
+            "native codegen currently supports at most {} direct call arguments on {:?}",
+            registers.len(),
+            target.os
+        )))
+    } else {
+        Ok(&registers[..count])
+    }
 }
 
 fn load_operand(
@@ -275,44 +444,6 @@ fn load_constant(
     Ok(())
 }
 
-fn emit_exit(
-    function: &MirFunction,
-    stack: &StackLayout,
-    target: Target,
-    instructions: &mut Vec<Instruction>,
-) -> Result<(), CodegenError> {
-    match function.signature.return_type.as_ref() {
-        Type::Int => instructions.push(Instruction::MovRegStack(
-            Register::Rax,
-            stack.offset_for(function.return_local.0)?,
-        )),
-        Type::Unit => instructions.push(Instruction::MovRegImm64(Register::Rax, 0)),
-        other => {
-            return Err(CodegenError::new(format!(
-                "native codegen currently only supports `main` returning `int` or `()`, found `{}`",
-                other.display_name()
-            )))
-        }
-    }
-
-    match target.os {
-        OperatingSystem::Linux => {
-            instructions.push(Instruction::MovRegReg(Register::Rdi, Register::Rax));
-            instructions.push(Instruction::MovRegImm64(Register::Rax, 60));
-            instructions.push(Instruction::Syscall);
-            instructions.push(Instruction::Ud2);
-        }
-        OperatingSystem::Windows => {
-            if stack.total_size > 0 {
-                instructions.push(Instruction::AddRsp(stack.total_size as u32));
-            }
-            instructions.push(Instruction::Ret);
-        }
-    }
-
-    Ok(())
-}
-
 fn ensure_supported_local_type(function: &MirFunction, local: usize) -> Result<(), CodegenError> {
     let Some(local_decl) = function.locals.get(local) else {
         return Err(CodegenError::new(format!(
@@ -335,8 +466,32 @@ fn is_supported_scalar_type(ty: &Type) -> bool {
     matches!(ty, Type::Int | Type::Bool | Type::Unit)
 }
 
-fn block_label(block: BasicBlockId) -> String {
-    format!(".Lbb{}", block.0)
+fn callable_name(function: &MirFunction) -> String {
+    function
+        .receiver
+        .as_ref()
+        .map(|receiver| format!("{receiver}.{}", function.name))
+        .unwrap_or_else(|| function.name.clone())
+}
+
+fn function_label(function: &MirFunction) -> String {
+    format!("__ml_fn_{}", sanitize_symbol(&callable_name(function)))
+}
+
+fn block_label(function: &MirFunction, block: BasicBlockId) -> String {
+    format!("{}.Lbb{}", function_label(function), block.0)
+}
+
+fn sanitize_symbol(name: &str) -> String {
+    name.chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() || ch == '_' {
+                ch
+            } else {
+                '_'
+            }
+        })
+        .collect()
 }
 
 fn render_assembly(program: &LoweredProgram, _target: Target) -> String {
@@ -577,7 +732,9 @@ impl LoweredProgram {
 enum Register {
     Rax,
     Rcx,
+    Rdx,
     Rdi,
+    Rsi,
 }
 
 impl Register {
@@ -585,7 +742,9 @@ impl Register {
         match self {
             Self::Rax => 0,
             Self::Rcx => 1,
+            Self::Rdx => 2,
             Self::Rdi => 7,
+            Self::Rsi => 6,
         }
     }
 
@@ -593,7 +752,9 @@ impl Register {
         match self {
             Self::Rax => "rax",
             Self::Rcx => "rcx",
+            Self::Rdx => "rdx",
             Self::Rdi => "rdi",
+            Self::Rsi => "rsi",
         }
     }
 }
@@ -675,6 +836,7 @@ enum Instruction {
     CmpRegReg(Register, Register),
     SetCondAl(Condition),
     MovzxEaxAl,
+    Call(String),
     Jump(String),
     JumpIf(Condition, String),
     Syscall,
@@ -720,9 +882,11 @@ impl Instruction {
             }
             Self::SetCondAl(_) => 3,
             Self::MovzxEaxAl => 3,
+            Self::Call(_) => 5,
             Self::Jump(_) => 5,
             Self::JumpIf(_, _) => 6,
-            Self::Syscall | Self::Ret | Self::Ud2 => 2,
+            Self::Syscall | Self::Ud2 => 2,
+            Self::Ret => 1,
         }
     }
 
@@ -751,6 +915,7 @@ impl Instruction {
             Self::CmpRegReg(left, right) => format!("cmp {}, {}", left.name(), right.name()),
             Self::SetCondAl(condition) => format!("{} al", condition.set_mnemonic()),
             Self::MovzxEaxAl => "movzx eax, al".to_string(),
+            Self::Call(label) => format!("call {label}"),
             Self::Jump(label) => format!("jmp {label}"),
             Self::JumpIf(condition, label) => format!("{} {label}", condition.mnemonic()),
             Self::Syscall => "syscall".to_string(),
@@ -831,6 +996,16 @@ fn encode_instruction(
             output.extend_from_slice(&[0x0F, condition.setcc_opcode(), 0xC0]);
         }
         Instruction::MovzxEaxAl => output.extend_from_slice(&[0x0F, 0xB6, 0xC0]),
+        Instruction::Call(label) => {
+            output.push(0xE8);
+            let target = offsets
+                .labels
+                .get(label)
+                .copied()
+                .ok_or_else(|| CodegenError::new(format!("unknown label `{label}`")))?;
+            let rel = relative_displacement(cursor, instruction.len(), target)?;
+            output.extend_from_slice(&rel.to_le_bytes());
+        }
         Instruction::Jump(label) => {
             output.push(0xE9);
             let target = offsets

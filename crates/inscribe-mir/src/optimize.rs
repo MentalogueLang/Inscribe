@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet, VecDeque};
+
 use crate::const_eval::{evaluate_constant_rvalue, fold_function_constants};
 use crate::nodes::{
     BasicBlockData, BasicBlockId, Constant, ConstantValue, MirFunction, MirProgram, Operand,
@@ -8,6 +10,7 @@ pub fn optimize_program(program: &mut MirProgram) {
     for function in &mut program.functions {
         optimize_function(function);
     }
+    prune_unreachable_functions(program);
 }
 
 pub fn optimize_function(function: &mut MirFunction) {
@@ -258,4 +261,64 @@ fn bool_constant_like(source: &Operand, value: bool) -> Operand {
         ty,
         value: ConstantValue::Bool(value),
     })
+}
+
+fn prune_unreachable_functions(program: &mut MirProgram) {
+    let mut names = HashMap::new();
+    for (index, function) in program.functions.iter().enumerate() {
+        names.insert(function_name(function), index);
+    }
+
+    let Some(&main_index) = names.get("main") else {
+        return;
+    };
+
+    let mut queue = VecDeque::from([main_index]);
+    let mut reachable = HashSet::new();
+
+    while let Some(index) = queue.pop_front() {
+        if !reachable.insert(index) {
+            continue;
+        }
+
+        for callee in called_functions(&program.functions[index]) {
+            if let Some(&callee_index) = names.get(callee.as_str()) {
+                queue.push_back(callee_index);
+            }
+        }
+    }
+
+    program.functions = program
+        .functions
+        .iter()
+        .cloned()
+        .enumerate()
+        .filter_map(|(index, function)| reachable.contains(&index).then_some(function))
+        .collect();
+}
+
+fn called_functions(function: &MirFunction) -> Vec<String> {
+    function
+        .blocks
+        .iter()
+        .filter_map(|block| match &block.terminator {
+            TerminatorKind::Call {
+                callee:
+                    Operand::Constant(Constant {
+                        value: ConstantValue::Function(name),
+                        ..
+                    }),
+                ..
+            } => Some(name.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+fn function_name(function: &MirFunction) -> String {
+    function
+        .receiver
+        .as_ref()
+        .map(|receiver| format!("{receiver}.{}", function.name))
+        .unwrap_or_else(|| function.name.clone())
 }
