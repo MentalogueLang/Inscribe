@@ -366,6 +366,16 @@ impl<'a> TypeChecker<'a> {
     }
 
     fn check_call(&mut self, span: Span, callee: &Expr, args: &[Expr]) -> Type {
+        if let ExprKind::Path(path) = &callee.kind {
+            if path.segments.len() == 1 {
+                match path.segments[0].as_str() {
+                    "Ok" => return self.check_result_constructor(span, args, true),
+                    "Err" => return self.check_result_constructor(span, args, false),
+                    _ => {}
+                }
+            }
+        }
+
         let callee_ty = self.check_expr(callee);
         match callee_ty {
             Type::Function(signature) => self.check_signature_call(span, &signature, args),
@@ -376,6 +386,27 @@ impl<'a> TypeChecker<'a> {
                 ));
                 Type::Unknown
             }
+        }
+    }
+
+    fn check_result_constructor(&mut self, span: Span, args: &[Expr], is_ok: bool) -> Type {
+        if args.len() != 1 {
+            self.errors.push(TypeError::new(
+                format!(
+                    "constructor `{}` expects 1 argument, found {}",
+                    if is_ok { "Ok" } else { "Err" },
+                    args.len()
+                ),
+                span,
+            ));
+            return Type::Unknown;
+        }
+
+        let payload = self.check_expr(&args[0]);
+        if is_ok {
+            Type::Result(Box::new(payload), Box::new(Type::Error))
+        } else {
+            Type::Result(Box::new(Type::Unknown), Box::new(payload))
         }
     }
 

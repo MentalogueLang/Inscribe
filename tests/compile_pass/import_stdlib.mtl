@@ -1,0 +1,8 @@
+import core.math
+import core.result
+
+fn main() -> int {
+    let value = Ok(7)
+    let clamped = clamp_int(unwrap_or_int(value, 3), 0, 9)
+    square_int(clamped)
+}

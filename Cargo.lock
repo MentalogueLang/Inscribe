@@ -14,6 +14,7 @@ version = "0.1.0"
 name = "inscribe-cli"
 version = "0.1.0"
 dependencies = [
+ "inscribe-ast",
  "inscribe-codegen",
  "inscribe-hir",
  "inscribe-lexer",
@@ -125,6 +126,8 @@ name = "inscribe-typeck"
 version = "0.1.0"
 dependencies = [
  "inscribe-ast",
+ "inscribe-lexer",
+ "inscribe-parser",
  "inscribe-resolve",
  "inscribe-session",
 ]

@@ -1,0 +1,5 @@
+import shared.math_helpers
+
+fn main() -> int {
+    add_three(4)
+}

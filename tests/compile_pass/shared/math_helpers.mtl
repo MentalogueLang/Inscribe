@@ -1,0 +1,3 @@
+fn add_three(value: int) -> int {
+    value + 3
+}
