@@ -1,3 +1,5 @@
 fn print_int(value: int)
 fn print_bool(value: bool)
 fn print_string(value: string)
+fn print_newline()
+fn flush_stdout()

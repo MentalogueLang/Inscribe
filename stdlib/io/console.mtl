@@ -1,0 +1,57 @@
+import runtime.io
+import core.bool
+
+fn write_int(value: int) {
+    print_int(value)
+}
+
+fn write_bool(value: bool) {
+    print_bool(value)
+}
+
+fn write_string(value: string) {
+    print_string(value)
+}
+
+fn newline() {
+    print_newline()
+}
+
+fn flush() {
+    flush_stdout()
+}
+
+fn write_line_int(value: int) {
+    write_int(value)
+    newline()
+}
+
+fn write_line_bool(value: bool) {
+    write_bool(value)
+    newline()
+}
+
+fn write_line_string(value: string) {
+    write_string(value)
+    newline()
+}
+
+fn write_bool_as_int(value: bool) {
+    write_int(bool_to_int(value))
+}
+
+fn write_line_bool_as_int(value: bool) {
+    write_bool_as_int(value)
+    newline()
+}
+
+fn write_pair_int(left: int, right: int) {
+    write_int(left)
+    newline()
+    write_int(right)
+}
+
+fn write_pair_int_line(left: int, right: int) {
+    write_pair_int(left, right)
+    newline()
+}

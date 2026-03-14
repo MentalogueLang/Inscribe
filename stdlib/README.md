@@ -16,3 +16,11 @@ Current rule of thumb:
 - Pure data transforms and control-flow helpers: write it in Mantelogue.
 
 The files here are kept intentionally small and conservative so they match the subset of Mantelogue that `inscribe` already parses and lowers today.
+
+Suggested layering:
+
+- `runtime.*`
+  Raw compiler/runtime-provided declarations that touch the host directly.
+
+- `core.*` and `io.*`
+  Mantelogue wrappers and helpers built on top of those runtime declarations.

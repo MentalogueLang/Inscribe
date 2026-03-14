@@ -233,13 +233,8 @@ fn resolve_import_path(
 
     let std_segments = if segments.first().is_some_and(|segment| segment == "std") {
         &segments[1..]
-    } else if matches!(
-        segments.first().map(String::as_str),
-        Some("core" | "runtime")
-    ) {
-        segments
     } else {
-        &[] as &[String]
+        segments
     };
 
     if !std_segments.is_empty() {

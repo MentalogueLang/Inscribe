@@ -1,0 +1,11 @@
+import io.console
+
+fn main() -> int {
+    write_line_int(7)
+    write_line_bool(true)
+    write_line_string("ok")
+    write_pair_int_line(2, 5)
+    write_line_bool_as_int(false)
+    flush()
+    0
+}

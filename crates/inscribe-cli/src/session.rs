@@ -130,6 +130,13 @@ mod tests {
         assert!(!program.functions.is_empty());
     }
 
+    #[test]
+    fn compiles_io_stdlib_import_fixture() {
+        let path = workspace_root().join("tests/compile_pass/import_io_console.mtl");
+        let program = compile_file_to_mir(&path).expect("io stdlib imports should compile");
+        assert!(!program.functions.is_empty());
+    }
+
     fn workspace_root() -> std::path::PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
