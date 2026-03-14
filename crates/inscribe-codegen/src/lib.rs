@@ -259,13 +259,13 @@ fn main() -> int {
     }
 
     #[test]
-    fn rejects_unimplemented_declared_runtime_functions() {
+    fn rejects_unknown_declared_runtime_functions() {
         let mir = compile_source(
             r#"
-fn print_int(value: int)
+fn host_magic(value: int)
 
 fn main() -> int {
-    print_int(7)
+    host_magic(7)
     0
 }
 "#,
@@ -275,6 +275,34 @@ fn main() -> int {
             .expect_err("declared runtime calls should not compile as no-op stubs");
         assert!(error
             .message
-            .contains("does not yet implement declared runtime function `print_int`"));
+            .contains("does not yet implement declared runtime function `host_magic`"));
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn generated_pe_runtime_prints_int() {
+        let mir = compile_source(
+            r#"
+fn print_int(value: int)
+
+fn main() -> int {
+    print_int(81)
+    0
+}
+"#,
+        );
+
+        let bytes = emit_native_executable(&mir, Target::windows_x86_64())
+            .expect("pe emission should work");
+        let path = temp_output("inscribe_codegen_print_int.exe");
+        fs::write(&path, bytes).expect("should write executable");
+
+        let output = Command::new(&path)
+            .output()
+            .expect("generated executable should run");
+
+        let _ = fs::remove_file(&path);
+        assert_eq!(output.status.code(), Some(0));
+        assert_eq!(String::from_utf8_lossy(&output.stdout), "81");
     }
 }

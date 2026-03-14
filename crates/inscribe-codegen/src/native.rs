@@ -32,7 +32,11 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
     let mut program = program.clone();
     optimize_program(&mut program);
 
-    if let Some(declaration) = program.functions.iter().find(|function| function.is_declaration) {
+    if let Some(declaration) = program
+        .functions
+        .iter()
+        .find(|function| function.is_declaration && !is_supported_runtime_declaration(function))
+    {
         return Err(CodegenError::new(format!(
             "native codegen does not yet implement declared runtime function `{}`",
             callable_name(declaration)
@@ -50,6 +54,7 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
     };
 
     let mut instructions = Vec::new();
+    let mut state = LoweringState::default();
     let labels = program
         .functions
         .iter()
@@ -59,21 +64,67 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
     emit_entry_wrapper(&program.functions[main_index], target, &mut instructions);
 
     for function in &program.functions {
-        lower_function(function, &labels, target, &mut instructions)?;
+        lower_function(function, &labels, target, &mut state, &mut instructions)?;
     }
 
     Ok(LoweredProgram {
         entry_label: target.entry_symbol().to_string(),
         instructions,
+        data_items: state.data_items,
+        uses_windows_runtime_imports: state.uses_windows_runtime_imports,
     })
+}
+
+#[derive(Debug, Default)]
+struct LoweringState {
+    data_items: Vec<DataItem>,
+    data_labels: HashMap<Vec<u8>, String>,
+    next_runtime_label: usize,
+    uses_windows_runtime_imports: bool,
+}
+
+impl LoweringState {
+    fn intern_c_string(&mut self, value: &str) -> String {
+        let mut bytes = value.as_bytes().to_vec();
+        bytes.push(0);
+        self.intern_bytes(bytes)
+    }
+
+    fn intern_bytes(&mut self, bytes: Vec<u8>) -> String {
+        if let Some(label) = self.data_labels.get(&bytes) {
+            return label.clone();
+        }
+
+        let label = format!("__ml_data_{}", self.data_items.len());
+        self.data_labels.insert(bytes.clone(), label.clone());
+        self.data_items.push(DataItem { label: label.clone(), bytes });
+        label
+    }
+
+    fn fresh_runtime_label(&mut self, prefix: &str) -> String {
+        let label = format!("__ml_rt_{prefix}_{}", self.next_runtime_label);
+        self.next_runtime_label += 1;
+        label
+    }
+}
+
+#[derive(Debug, Clone)]
+struct DataItem {
+    label: String,
+    bytes: Vec<u8>,
 }
 
 fn lower_function(
     function: &MirFunction,
     labels: &HashMap<String, String>,
     target: Target,
+    state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
+    if function.is_declaration {
+        return emit_runtime_function(function, target, state, instructions);
+    }
+
     let stack = StackLayout::new(function, target)?;
     instructions.push(Instruction::Label(function_label(function)));
     if stack.total_size > 0 {
@@ -84,7 +135,7 @@ fn lower_function(
 
     for block in &function.blocks {
         instructions.push(Instruction::Label(block_label(function, block.id)));
-        lower_block(function, block, &stack, labels, target, instructions)?;
+        lower_block(function, block, &stack, labels, target, state, instructions)?;
     }
 
     Ok(())
@@ -96,6 +147,7 @@ fn lower_block(
     stack: &StackLayout,
     labels: &HashMap<String, String>,
     codegen_target: Target,
+    state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     for statement in &block.statements {
@@ -105,7 +157,7 @@ fn lower_block(
             | StatementKind::Drop(_)
             | StatementKind::Nop => {}
             StatementKind::Assign(place, value) => {
-                lower_assign(function, place, value, stack, instructions)?
+                lower_assign(function, place, value, stack, state, instructions)?
             }
         }
     }
@@ -119,7 +171,7 @@ fn lower_block(
             then_bb,
             else_bb,
         } => {
-            load_operand(condition, Register::Rax, stack, instructions)?;
+            load_operand(condition, Register::Rax, stack, state, instructions)?;
             instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
             instructions.push(Instruction::JumpIf(
                 Condition::NotEqual,
@@ -148,6 +200,7 @@ fn lower_block(
             stack,
             labels,
             codegen_target,
+            state,
             instructions,
         )?,
         TerminatorKind::IterNext { .. } => {
@@ -170,6 +223,7 @@ fn lower_assign(
     place: &Place,
     value: &Rvalue,
     stack: &StackLayout,
+    state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     if !place.projection.is_empty() {
@@ -179,7 +233,7 @@ fn lower_assign(
     }
 
     ensure_supported_local_type(function, place.local.0)?;
-    lower_rvalue(value, stack, instructions)?;
+    lower_rvalue(value, stack, state, instructions)?;
     instructions.push(Instruction::MovStackReg(
         stack.offset_for(place.local.0)?,
         Register::Rax,
@@ -190,12 +244,13 @@ fn lower_assign(
 fn lower_rvalue(
     value: &Rvalue,
     stack: &StackLayout,
+    state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     match value {
-        Rvalue::Use(operand) => load_operand(operand, Register::Rax, stack, instructions),
+        Rvalue::Use(operand) => load_operand(operand, Register::Rax, stack, state, instructions),
         Rvalue::UnaryOp { op, operand } => {
-            load_operand(operand, Register::Rax, stack, instructions)?;
+            load_operand(operand, Register::Rax, stack, state, instructions)?;
             match op.as_str() {
                 "Negate" => instructions.push(Instruction::NegReg(Register::Rax)),
                 "Not" => {
@@ -212,8 +267,8 @@ fn lower_rvalue(
             Ok(())
         }
         Rvalue::BinaryOp { op, left, right } => {
-            load_operand(left, Register::Rax, stack, instructions)?;
-            load_operand(right, Register::Rcx, stack, instructions)?;
+            load_operand(left, Register::Rax, stack, state, instructions)?;
+            load_operand(right, Register::Rcx, stack, state, instructions)?;
             match op.as_str() {
                 "Add" => instructions.push(Instruction::AddRegReg(Register::Rax, Register::Rcx)),
                 "Subtract" => {
@@ -260,6 +315,7 @@ fn lower_call_terminator(
     stack: &StackLayout,
     labels: &HashMap<String, String>,
     target_info: Target,
+    state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     let Some(callee_name) = direct_callee_name(callee) else {
@@ -277,10 +333,10 @@ fn lower_call_terminator(
     let arg_registers = argument_registers(target_info);
     let register_arg_count = args.len().min(arg_registers.len());
     for (operand, register) in args.iter().take(register_arg_count).zip(arg_registers.iter()) {
-        load_operand(operand, *register, stack, instructions)?;
+        load_operand(operand, *register, stack, state, instructions)?;
     }
     for (stack_index, operand) in args.iter().skip(register_arg_count).enumerate() {
-        load_operand(operand, Register::Rax, stack, instructions)?;
+        load_operand(operand, Register::Rax, stack, state, instructions)?;
         instructions.push(Instruction::MovStackReg(
             stack.outgoing_arg_offset(target_info, stack_index)?,
             Register::Rax,
@@ -368,7 +424,7 @@ fn emit_function_return(
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     match function.signature.return_type.as_ref() {
-        Type::Int | Type::Bool => instructions.push(Instruction::MovRegStack(
+        Type::Int | Type::Bool | Type::String => instructions.push(Instruction::MovRegStack(
             Register::Rax,
             stack.offset_for(function.return_local.0)?,
         )),
@@ -398,6 +454,268 @@ fn direct_callee_name(callee: &Operand) -> Option<&str> {
     }
 }
 
+fn is_supported_runtime_declaration(function: &MirFunction) -> bool {
+    function.receiver.is_none()
+        && matches!(
+            function.name.as_str(),
+            "print_int" | "print_bool" | "print_string" | "print_newline" | "flush_stdout"
+        )
+}
+
+fn emit_runtime_function(
+    function: &MirFunction,
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    if !is_supported_runtime_declaration(function) {
+        return Err(CodegenError::new(format!(
+            "native codegen does not yet implement declared runtime function `{}`",
+            callable_name(function)
+        )));
+    }
+
+    match function.name.as_str() {
+        "print_int" => emit_runtime_print_int(function, target, state, instructions),
+        "print_bool" => emit_runtime_print_bool(function, target, state, instructions),
+        "print_string" => emit_runtime_print_string(function, target, state, instructions),
+        "print_newline" => emit_runtime_print_newline(function, target, state, instructions),
+        "flush_stdout" => emit_runtime_flush_stdout(function, target, state, instructions),
+        _ => Err(CodegenError::new(format!(
+            "native codegen does not yet implement declared runtime function `{}`",
+            callable_name(function)
+        ))),
+    }
+}
+
+fn emit_runtime_print_int(
+    function: &MirFunction,
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let loop_label = state.fresh_runtime_label("print_int_loop");
+    let zero_label = state.fresh_runtime_label("print_int_zero");
+    let non_negative_label = state.fresh_runtime_label("print_int_non_negative");
+    let after_sign_label = state.fresh_runtime_label("print_int_after_sign");
+    let done_label = state.fresh_runtime_label("print_int_done");
+    let frame = runtime_frame_size(target);
+
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    instructions.push(Instruction::LeaRegRspOffset(Register::R10, runtime_buffer_end_offset(target)));
+    instructions.push(Instruction::LeaRegRspOffset(
+        Register::R11,
+        runtime_buffer_end_offset(target) + 1,
+    ));
+    instructions.push(Instruction::MovRegReg(
+        Register::Rax,
+        first_argument_register(target),
+    ));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, zero_label.clone()));
+    instructions.push(Instruction::MovRegImm64(Register::R8, 0));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+    instructions.push(Instruction::JumpIf(Condition::GreaterEqual, non_negative_label.clone()));
+    instructions.push(Instruction::NegReg(Register::Rax));
+    instructions.push(Instruction::MovRegImm64(Register::R8, 1));
+    instructions.push(Instruction::Label(non_negative_label));
+    instructions.push(Instruction::Label(loop_label.clone()));
+    instructions.push(Instruction::MovRegImm64(Register::Rcx, 10));
+    instructions.push(Instruction::Cqo);
+    instructions.push(Instruction::IDivReg(Register::Rcx));
+    instructions.push(Instruction::AddRegImm(Register::Rdx, 48));
+    instructions.push(Instruction::MovMemReg8(Register::R10, Register::Rdx));
+    instructions.push(Instruction::SubRegImm(Register::R10, 1));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+    instructions.push(Instruction::JumpIf(Condition::NotEqual, loop_label));
+    instructions.push(Instruction::CmpRegImm(Register::R8, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, after_sign_label.clone()));
+    instructions.push(Instruction::MovRegImm64(Register::Rdx, 45));
+    instructions.push(Instruction::MovMemReg8(Register::R10, Register::Rdx));
+    instructions.push(Instruction::Jump(done_label.clone()));
+    instructions.push(Instruction::Label(zero_label));
+    instructions.push(Instruction::MovRegImm64(Register::Rdx, 48));
+    instructions.push(Instruction::MovMemReg8(Register::R10, Register::Rdx));
+    instructions.push(Instruction::Jump(done_label.clone()));
+    instructions.push(Instruction::Label(after_sign_label));
+    instructions.push(Instruction::AddRegImm(Register::R10, 1));
+    instructions.push(Instruction::Label(done_label));
+    instructions.push(Instruction::MovRegReg(Register::R9, Register::R11));
+    instructions.push(Instruction::SubRegReg(Register::R9, Register::R10));
+    emit_write_stdout(target, Register::R10, Register::R9, state, instructions);
+    emit_runtime_return(target, frame, instructions);
+    Ok(())
+}
+
+fn emit_runtime_print_bool(
+    function: &MirFunction,
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let true_label = state.fresh_runtime_label("print_bool_true");
+    let done_label = state.fresh_runtime_label("print_bool_done");
+    let frame = runtime_frame_size(target);
+    let true_data = state.intern_c_string("true");
+    let false_data = state.intern_c_string("false");
+
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    instructions.push(Instruction::CmpRegImm(first_argument_register(target), 0));
+    instructions.push(Instruction::JumpIf(Condition::NotEqual, true_label.clone()));
+    instructions.push(Instruction::MovRegDataAddr(Register::R10, false_data));
+    instructions.push(Instruction::MovRegImm64(Register::R9, 5));
+    instructions.push(Instruction::Jump(done_label.clone()));
+    instructions.push(Instruction::Label(true_label));
+    instructions.push(Instruction::MovRegDataAddr(Register::R10, true_data));
+    instructions.push(Instruction::MovRegImm64(Register::R9, 4));
+    instructions.push(Instruction::Label(done_label));
+    emit_write_stdout(target, Register::R10, Register::R9, state, instructions);
+    emit_runtime_return(target, frame, instructions);
+    Ok(())
+}
+
+fn emit_runtime_print_string(
+    function: &MirFunction,
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let loop_label = state.fresh_runtime_label("print_string_loop");
+    let done_label = state.fresh_runtime_label("print_string_done");
+    let frame = runtime_frame_size(target);
+
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    instructions.push(Instruction::MovRegReg(
+        Register::R10,
+        first_argument_register(target),
+    ));
+    instructions.push(Instruction::MovRegReg(
+        Register::R11,
+        first_argument_register(target),
+    ));
+    instructions.push(Instruction::Label(loop_label.clone()));
+    instructions.push(Instruction::MovzxRegMem8(Register::Rax, Register::R11));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, done_label.clone()));
+    instructions.push(Instruction::AddRegImm(Register::R11, 1));
+    instructions.push(Instruction::Jump(loop_label));
+    instructions.push(Instruction::Label(done_label));
+    instructions.push(Instruction::MovRegReg(Register::R9, Register::R11));
+    instructions.push(Instruction::SubRegReg(Register::R9, Register::R10));
+    emit_write_stdout(target, Register::R10, Register::R9, state, instructions);
+    emit_runtime_return(target, frame, instructions);
+    Ok(())
+}
+
+fn emit_runtime_print_newline(
+    function: &MirFunction,
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let frame = runtime_frame_size(target);
+    let newline = state.intern_c_string("\n");
+
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    instructions.push(Instruction::MovRegDataAddr(Register::R10, newline));
+    instructions.push(Instruction::MovRegImm64(Register::R9, 1));
+    emit_write_stdout(target, Register::R10, Register::R9, state, instructions);
+    emit_runtime_return(target, frame, instructions);
+    Ok(())
+}
+
+fn emit_runtime_flush_stdout(
+    function: &MirFunction,
+    target: Target,
+    _state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let frame = runtime_frame_size(target);
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    emit_runtime_return(target, frame, instructions);
+    Ok(())
+}
+
+fn emit_runtime_return(target: Target, frame: u32, instructions: &mut Vec<Instruction>) {
+    let _ = target;
+    instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+    instructions.push(Instruction::AddRsp(frame));
+    instructions.push(Instruction::Ret);
+}
+
+fn emit_write_stdout(
+    target: Target,
+    pointer: Register,
+    length: Register,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) {
+    match target.os {
+        OperatingSystem::Linux => {
+            instructions.push(Instruction::MovRegReg(Register::Rsi, pointer));
+            instructions.push(Instruction::MovRegReg(Register::Rdx, length));
+            instructions.push(Instruction::MovRegImm64(Register::Rdi, 1));
+            instructions.push(Instruction::MovRegImm64(Register::Rax, 1));
+            instructions.push(Instruction::Syscall);
+        }
+        OperatingSystem::Windows => {
+            state.uses_windows_runtime_imports = true;
+            instructions.push(Instruction::MovRegImm64(Register::Rcx, -11));
+            instructions.push(Instruction::CallImport(WIN_IMPORT_GET_STD_HANDLE.to_string()));
+            instructions.push(Instruction::MovRegReg(Register::Rcx, Register::Rax));
+            instructions.push(Instruction::MovRegReg(Register::Rdx, pointer));
+            instructions.push(Instruction::MovRegReg(Register::R8, length));
+            instructions.push(Instruction::LeaRegRspOffset(
+                Register::R9,
+                runtime_written_offset(target),
+            ));
+            instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+            instructions.push(Instruction::MovStackReg(runtime_windows_arg5_offset(target), Register::Rax));
+            instructions.push(Instruction::CallImport(WIN_IMPORT_WRITE_FILE.to_string()));
+        }
+    }
+}
+
+fn runtime_frame_size(target: Target) -> u32 {
+    match target.os {
+        OperatingSystem::Linux => 40,
+        OperatingSystem::Windows => 88,
+    }
+}
+
+fn runtime_buffer_end_offset(target: Target) -> i32 {
+    match target.os {
+        OperatingSystem::Linux => 31,
+        OperatingSystem::Windows => 87,
+    }
+}
+
+fn runtime_written_offset(target: Target) -> i32 {
+    match target.os {
+        OperatingSystem::Linux => 0,
+        OperatingSystem::Windows => 40,
+    }
+}
+
+fn runtime_windows_arg5_offset(target: Target) -> i32 {
+    match target.os {
+        OperatingSystem::Linux => 0,
+        OperatingSystem::Windows => 32,
+    }
+}
+
+fn first_argument_register(target: Target) -> Register {
+    argument_registers(target)[0]
+}
+
+const WIN_IMPORT_GET_STD_HANDLE: &str = "__ml_iat_GetStdHandle";
+const WIN_IMPORT_WRITE_FILE: &str = "__ml_iat_WriteFile";
+
 fn argument_registers(target: Target) -> &'static [Register] {
     match target.os {
         OperatingSystem::Linux => &[
@@ -421,6 +739,7 @@ fn load_operand(
     operand: &Operand,
     destination: Register,
     stack: &StackLayout,
+    state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     match operand {
@@ -440,13 +759,16 @@ fn load_operand(
             ));
             Ok(())
         }
-        Operand::Constant(constant) => load_constant(&constant.value, destination, instructions),
+        Operand::Constant(constant) => {
+            load_constant(&constant.value, destination, state, instructions)
+        }
     }
 }
 
 fn load_constant(
     value: &ConstantValue,
     destination: Register,
+    state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     let immediate = match value {
@@ -460,10 +782,10 @@ fn load_constant(
                 "native x86-64 codegen does not yet support floating-point constants",
             ))
         }
-        ConstantValue::String(_) => {
-            return Err(CodegenError::new(
-                "native x86-64 codegen does not yet support string constants",
-            ))
+        ConstantValue::String(value) => {
+            let label = state.intern_c_string(value);
+            instructions.push(Instruction::MovRegDataAddr(destination, label));
+            return Ok(());
         }
         ConstantValue::Function(name) => {
             return Err(CodegenError::new(format!(
@@ -495,7 +817,7 @@ fn ensure_supported_local_type(function: &MirFunction, local: usize) -> Result<(
 }
 
 fn is_supported_scalar_type(ty: &Type) -> bool {
-    matches!(ty, Type::Int | Type::Bool | Type::Unit)
+    matches!(ty, Type::Int | Type::Bool | Type::String | Type::Unit)
 }
 
 fn callable_name(function: &MirFunction) -> String {
@@ -548,15 +870,41 @@ fn render_assembly(program: &LoweredProgram, _target: Target) -> String {
         }
     }
 
+    if !program.data_items.is_empty() || program.uses_windows_runtime_imports {
+        out.push_str(".section .rodata\n");
+        for item in &program.data_items {
+            out.push_str(&item.label);
+            out.push_str(":\n");
+            out.push_str("    .byte ");
+            out.push_str(
+                &item
+                    .bytes
+                    .iter()
+                    .map(|byte| byte.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            );
+            out.push('\n');
+        }
+
+        if program.uses_windows_runtime_imports {
+            out.push_str(WIN_IMPORT_GET_STD_HANDLE);
+            out.push_str(":\n    .quad 0\n");
+            out.push_str(WIN_IMPORT_WRITE_FILE);
+            out.push_str(":\n    .quad 0\n");
+        }
+    }
+
     out
 }
 
 fn emit_elf(program: &LoweredProgram) -> Result<Vec<u8>, CodegenError> {
     let code_offset = 0x1000usize;
     let base_vaddr = 0x400000u64;
-    let code = encode(program, EncodeContext {})?;
-    let entry = base_vaddr + code_offset as u64 + program.entry_offset() as u64;
-    let file_size = code_offset + code.len();
+    let section_vaddr = base_vaddr + code_offset as u64;
+    let section = build_section(program, Target::linux_x86_64(), section_vaddr, code_offset as u32)?;
+    let entry = section_vaddr + program.entry_offset() as u64;
+    let file_size = code_offset + section.bytes.len();
 
     let mut bytes = Vec::with_capacity(file_size);
     bytes.extend_from_slice(b"\x7FELF");
@@ -589,7 +937,7 @@ fn emit_elf(program: &LoweredProgram) -> Result<Vec<u8>, CodegenError> {
     bytes.extend_from_slice(&0x1000u64.to_le_bytes());
 
     bytes.resize(code_offset, 0);
-    bytes.extend_from_slice(&code);
+    bytes.extend_from_slice(&section.bytes);
     Ok(bytes)
 }
 
@@ -598,12 +946,17 @@ fn emit_pe(program: &LoweredProgram) -> Result<Vec<u8>, CodegenError> {
     let headers_size = 0x200u32;
     let file_alignment = 0x200u32;
     let section_alignment = 0x1000u32;
-
-    let code = encode(program, EncodeContext {})?;
+    let image_base = 0x0000_0001_4000_0000u64;
+    let section = build_section(
+        program,
+        Target::windows_x86_64(),
+        image_base + code_rva as u64,
+        code_rva,
+    )?;
     let entry_rva = code_rva + program.entry_offset() as u32;
 
-    let text_raw_size = align_up(code.len() as u32, file_alignment);
-    let text_virtual_size = code.len() as u32;
+    let text_raw_size = align_up(section.bytes.len() as u32, file_alignment);
+    let text_virtual_size = section.bytes.len() as u32;
     let text_raw_ptr = headers_size;
     let size_of_image = align_up(code_rva + text_virtual_size, section_alignment);
 
@@ -629,7 +982,7 @@ fn emit_pe(program: &LoweredProgram) -> Result<Vec<u8>, CodegenError> {
     bytes[cursor + 8..cursor + 12].copy_from_slice(&0u32.to_le_bytes());
     bytes[cursor + 16..cursor + 20].copy_from_slice(&entry_rva.to_le_bytes());
     bytes[cursor + 20..cursor + 24].copy_from_slice(&code_rva.to_le_bytes());
-    bytes[cursor + 24..cursor + 32].copy_from_slice(&0x0000_0001_4000_0000u64.to_le_bytes());
+    bytes[cursor + 24..cursor + 32].copy_from_slice(&image_base.to_le_bytes());
     bytes[cursor + 32..cursor + 36].copy_from_slice(&section_alignment.to_le_bytes());
     bytes[cursor + 36..cursor + 40].copy_from_slice(&file_alignment.to_le_bytes());
     bytes[cursor + 40..cursor + 42].copy_from_slice(&6u16.to_le_bytes());
@@ -643,6 +996,10 @@ fn emit_pe(program: &LoweredProgram) -> Result<Vec<u8>, CodegenError> {
     bytes[cursor + 96..cursor + 104].copy_from_slice(&0x1000u64.to_le_bytes());
     bytes[cursor + 104..cursor + 108].copy_from_slice(&0u32.to_le_bytes());
     bytes[cursor + 108..cursor + 112].copy_from_slice(&16u32.to_le_bytes());
+    if let Some(imports) = &section.import_directory {
+        bytes[cursor + 120..cursor + 124].copy_from_slice(&imports.rva.to_le_bytes());
+        bytes[cursor + 124..cursor + 128].copy_from_slice(&imports.size.to_le_bytes());
+    }
 
     cursor += 0xF0;
 
@@ -654,13 +1011,173 @@ fn emit_pe(program: &LoweredProgram) -> Result<Vec<u8>, CodegenError> {
         code_rva,
         text_raw_size,
         text_raw_ptr,
-        0x6000_0020,
+        if section.import_directory.is_some() {
+            0xE000_0020
+        } else {
+            0x6000_0020
+        },
     );
 
     bytes.resize(text_raw_ptr as usize, 0);
-    bytes.extend_from_slice(&code);
+    bytes.extend_from_slice(&section.bytes);
     bytes.resize((text_raw_ptr + text_raw_size) as usize, 0);
     Ok(bytes)
+}
+
+struct BuiltSection {
+    bytes: Vec<u8>,
+    import_directory: Option<ImportDirectory>,
+}
+
+#[derive(Clone, Copy)]
+struct ImportDirectory {
+    rva: u32,
+    size: u32,
+}
+
+fn build_section(
+    program: &LoweredProgram,
+    target: Target,
+    section_vaddr: u64,
+    section_rva: u32,
+) -> Result<BuiltSection, CodegenError> {
+    let code_offsets = instruction_offsets(&program.instructions);
+    let code_size = code_offsets.size;
+    let mut all_labels = code_offsets.labels;
+    let mut cursor = code_size;
+    let mut data_layout = Vec::new();
+
+    for item in &program.data_items {
+        cursor = align_offset(cursor, 8);
+        all_labels.insert(item.label.clone(), cursor);
+        data_layout.push((cursor, item.clone()));
+        cursor += item.bytes.len();
+    }
+
+    let import_layout = if target.os == OperatingSystem::Windows && program.uses_windows_runtime_imports {
+        let layout = build_windows_import_layout(cursor, section_rva)?;
+        for (label, offset) in &layout.label_offsets {
+            all_labels.insert(label.clone(), *offset);
+        }
+        cursor = layout.end_offset;
+        Some(layout)
+    } else {
+        None
+    };
+
+    let mut bytes = encode(
+        program,
+        EncodeContext {
+            label_offsets: all_labels,
+            section_vaddr,
+        },
+    )?;
+    bytes.resize(code_size, 0);
+
+    for (offset, item) in data_layout {
+        if bytes.len() < offset {
+            bytes.resize(offset, 0);
+        }
+        bytes.extend_from_slice(&item.bytes);
+    }
+
+    let import_directory = if let Some(layout) = import_layout {
+        if bytes.len() < layout.start_offset {
+            bytes.resize(layout.start_offset, 0);
+        }
+        bytes.extend_from_slice(&layout.bytes);
+        Some(layout.directory)
+    } else {
+        None
+    };
+
+    if bytes.len() < cursor {
+        bytes.resize(cursor, 0);
+    }
+
+    Ok(BuiltSection { bytes, import_directory })
+}
+
+struct WindowsImportLayout {
+    bytes: Vec<u8>,
+    label_offsets: HashMap<String, usize>,
+    directory: ImportDirectory,
+    start_offset: usize,
+    end_offset: usize,
+}
+
+fn build_windows_import_layout(
+    start_offset: usize,
+    section_rva: u32,
+) -> Result<WindowsImportLayout, CodegenError> {
+    let mut bytes = Vec::new();
+    let mut label_offsets = HashMap::new();
+    let base = align_offset(start_offset, 8);
+
+    let descriptor_offset = 0usize;
+    bytes.resize(40, 0);
+
+    let dll_name_offset = bytes.len();
+    bytes.extend_from_slice(b"KERNEL32.DLL\0");
+
+    let hint_get_offset = bytes.len();
+    bytes.extend_from_slice(&0u16.to_le_bytes());
+    bytes.extend_from_slice(b"GetStdHandle\0");
+
+    let hint_write_offset = bytes.len();
+    bytes.extend_from_slice(&0u16.to_le_bytes());
+    bytes.extend_from_slice(b"WriteFile\0");
+
+    while bytes.len() % 8 != 0 {
+        bytes.push(0);
+    }
+
+    let ilt_offset = bytes.len();
+    bytes.resize(ilt_offset + 24, 0);
+
+    let iat_offset = bytes.len();
+    label_offsets.insert(WIN_IMPORT_GET_STD_HANDLE.to_string(), base + iat_offset);
+    label_offsets.insert(WIN_IMPORT_WRITE_FILE.to_string(), base + iat_offset + 8);
+    bytes.resize(iat_offset + 24, 0);
+
+    let ilt_get_rva = section_rva + base as u32 + hint_get_offset as u32;
+    let ilt_write_rva = section_rva + base as u32 + hint_write_offset as u32;
+    bytes[ilt_offset..ilt_offset + 8].copy_from_slice(&(ilt_get_rva as u64).to_le_bytes());
+    bytes[ilt_offset + 8..ilt_offset + 16]
+        .copy_from_slice(&(ilt_write_rva as u64).to_le_bytes());
+    bytes[iat_offset..iat_offset + 8].copy_from_slice(&(ilt_get_rva as u64).to_le_bytes());
+    bytes[iat_offset + 8..iat_offset + 16]
+        .copy_from_slice(&(ilt_write_rva as u64).to_le_bytes());
+
+    let descriptor_rva = section_rva + base as u32 + descriptor_offset as u32;
+    let ilt_rva = section_rva + base as u32 + ilt_offset as u32;
+    let iat_rva = section_rva + base as u32 + iat_offset as u32;
+    let dll_name_rva = section_rva + base as u32 + dll_name_offset as u32;
+
+    bytes[descriptor_offset..descriptor_offset + 4].copy_from_slice(&ilt_rva.to_le_bytes());
+    bytes[descriptor_offset + 12..descriptor_offset + 16]
+        .copy_from_slice(&dll_name_rva.to_le_bytes());
+    bytes[descriptor_offset + 16..descriptor_offset + 20]
+        .copy_from_slice(&iat_rva.to_le_bytes());
+
+    Ok(WindowsImportLayout {
+        bytes,
+        label_offsets,
+        directory: ImportDirectory {
+            rva: descriptor_rva,
+            size: 40,
+        },
+        start_offset: base,
+        end_offset: base + (iat_offset + 24),
+    })
+}
+
+fn align_offset(value: usize, alignment: usize) -> usize {
+    if value == 0 {
+        0
+    } else {
+        ((value + alignment - 1) / alignment) * alignment
+    }
 }
 
 fn write_u32(bytes: &mut [u8], offset: usize, value: u32) {
@@ -807,6 +1324,8 @@ impl StackLayout {
 struct LoweredProgram {
     entry_label: String,
     instructions: Vec<Instruction>,
+    data_items: Vec<DataItem>,
+    uses_windows_runtime_imports: bool,
 }
 
 impl LoweredProgram {
@@ -828,6 +1347,8 @@ enum Register {
     Rsi,
     R8,
     R9,
+    R10,
+    R11,
 }
 
 impl Register {
@@ -840,6 +1361,8 @@ impl Register {
             Self::Rsi => 6,
             Self::R8 => 8,
             Self::R9 => 9,
+            Self::R10 => 10,
+            Self::R11 => 11,
         }
     }
 
@@ -864,6 +1387,8 @@ impl Register {
             Self::Rsi => "rsi",
             Self::R8 => "r8",
             Self::R9 => "r9",
+            Self::R10 => "r10",
+            Self::R11 => "r11",
         }
     }
 }
@@ -930,22 +1455,29 @@ enum Instruction {
     SubRsp(u32),
     AddRsp(u32),
     MovRegImm64(Register, i64),
+    MovRegDataAddr(Register, String),
     MovRegStack(Register, i32),
     MovStackReg(i32, Register),
+    LeaRegRspOffset(Register, i32),
     MovRegReg(Register, Register),
     AddRegReg(Register, Register),
     SubRegReg(Register, Register),
+    AddRegImm(Register, i32),
+    SubRegImm(Register, i32),
     AndRegReg(Register, Register),
     OrRegReg(Register, Register),
     IMulRegReg(Register, Register),
     Cqo,
     IDivReg(Register),
     NegReg(Register),
+    MovMemReg8(Register, Register),
+    MovzxRegMem8(Register, Register),
     CmpRegImm(Register, i32),
     CmpRegReg(Register, Register),
     SetCondAl(Condition),
     MovzxEaxAl,
     Call(String),
+    CallImport(String),
     Jump(String),
     JumpIf(Condition, String),
     Syscall,
@@ -972,16 +1504,27 @@ impl Instruction {
                 }
             }
             Self::MovRegImm64(_, _) => 10,
+            Self::MovRegDataAddr(_, _) => 10,
             Self::MovRegStack(_, offset) | Self::MovStackReg(offset, _) => stack_mem_len(*offset),
+            Self::LeaRegRspOffset(_, offset) => stack_mem_len(*offset),
             Self::MovRegReg(_, _) => 3,
             Self::AddRegReg(_, _)
             | Self::SubRegReg(_, _)
             | Self::AndRegReg(_, _)
             | Self::OrRegReg(_, _)
             | Self::CmpRegReg(_, _) => 3,
+            Self::AddRegImm(_, value) | Self::SubRegImm(_, value) => {
+                if i8::try_from(*value).is_ok() {
+                    4
+                } else {
+                    7
+                }
+            }
             Self::IMulRegReg(_, _) => 4,
             Self::Cqo => 2,
             Self::IDivReg(_) | Self::NegReg(_) => 3,
+            Self::MovMemReg8(_, _) => 3,
+            Self::MovzxRegMem8(_, _) => 4,
             Self::CmpRegImm(_, value) => {
                 if i8::try_from(*value).is_ok() {
                     4
@@ -992,6 +1535,7 @@ impl Instruction {
             Self::SetCondAl(_) => 3,
             Self::MovzxEaxAl => 3,
             Self::Call(_) => 5,
+            Self::CallImport(_) => 6,
             Self::Jump(_) => 5,
             Self::JumpIf(_, _) => 6,
             Self::Syscall | Self::Ud2 => 2,
@@ -1005,26 +1549,39 @@ impl Instruction {
             Self::SubRsp(value) => format!("sub rsp, {value}"),
             Self::AddRsp(value) => format!("add rsp, {value}"),
             Self::MovRegImm64(reg, value) => format!("mov {}, {}", reg.name(), value),
+            Self::MovRegDataAddr(reg, label) => {
+                format!("mov {}, OFFSET FLAT:{label}", reg.name())
+            }
             Self::MovRegStack(reg, offset) => {
                 format!("mov {}, qword ptr [rsp + {offset}]", reg.name())
             }
             Self::MovStackReg(offset, reg) => {
                 format!("mov qword ptr [rsp + {offset}], {}", reg.name())
             }
+            Self::LeaRegRspOffset(reg, offset) => {
+                format!("lea {}, [rsp + {offset}]", reg.name())
+            }
             Self::MovRegReg(dst, src) => format!("mov {}, {}", dst.name(), src.name()),
             Self::AddRegReg(dst, src) => format!("add {}, {}", dst.name(), src.name()),
             Self::SubRegReg(dst, src) => format!("sub {}, {}", dst.name(), src.name()),
+            Self::AddRegImm(reg, value) => format!("add {}, {}", reg.name(), value),
+            Self::SubRegImm(reg, value) => format!("sub {}, {}", reg.name(), value),
             Self::AndRegReg(dst, src) => format!("and {}, {}", dst.name(), src.name()),
             Self::OrRegReg(dst, src) => format!("or {}, {}", dst.name(), src.name()),
             Self::IMulRegReg(dst, src) => format!("imul {}, {}", dst.name(), src.name()),
             Self::Cqo => "cqo".to_string(),
             Self::IDivReg(reg) => format!("idiv {}", reg.name()),
             Self::NegReg(reg) => format!("neg {}", reg.name()),
+            Self::MovMemReg8(base, src) => format!("mov byte ptr [{}], {}", base.name(), low8_name(*src)),
+            Self::MovzxRegMem8(dst, base) => {
+                format!("movzx {}, byte ptr [{}]", reg32_name(*dst), base.name())
+            }
             Self::CmpRegImm(reg, value) => format!("cmp {}, {}", reg.name(), value),
             Self::CmpRegReg(left, right) => format!("cmp {}, {}", left.name(), right.name()),
             Self::SetCondAl(condition) => format!("{} al", condition.set_mnemonic()),
             Self::MovzxEaxAl => "movzx eax, al".to_string(),
             Self::Call(label) => format!("call {label}"),
+            Self::CallImport(label) => format!("call qword ptr [rip + {label}]"),
             Self::Jump(label) => format!("jmp {label}"),
             Self::JumpIf(condition, label) => format!("{} {label}", condition.mnemonic()),
             Self::Syscall => "syscall".to_string(),
@@ -1034,10 +1591,14 @@ impl Instruction {
     }
 }
 
-struct EncodeContext {}
+struct EncodeContext {
+    label_offsets: HashMap<String, usize>,
+    section_vaddr: u64,
+}
 
 struct InstructionOffsets {
     labels: HashMap<String, usize>,
+    size: usize,
 }
 
 fn instruction_offsets(instructions: &[Instruction]) -> InstructionOffsets {
@@ -1051,15 +1612,14 @@ fn instruction_offsets(instructions: &[Instruction]) -> InstructionOffsets {
             _ => cursor += instruction.len(),
         }
     }
-    InstructionOffsets { labels }
+    InstructionOffsets { labels, size: cursor }
 }
 
 fn encode(program: &LoweredProgram, context: EncodeContext) -> Result<Vec<u8>, CodegenError> {
-    let offsets = instruction_offsets(&program.instructions);
     let mut output = Vec::new();
     let mut cursor = 0usize;
     for instruction in &program.instructions {
-        encode_instruction(instruction, &mut output, &offsets, &context, cursor)?;
+        encode_instruction(instruction, &mut output, &context, cursor)?;
         cursor += instruction.len();
     }
     Ok(output)
@@ -1068,8 +1628,7 @@ fn encode(program: &LoweredProgram, context: EncodeContext) -> Result<Vec<u8>, C
 fn encode_instruction(
     instruction: &Instruction,
     output: &mut Vec<u8>,
-    offsets: &InstructionOffsets,
-    _context: &EncodeContext,
+    context: &EncodeContext,
     cursor: usize,
 ) -> Result<(), CodegenError> {
     match instruction {
@@ -1077,11 +1636,15 @@ fn encode_instruction(
         Instruction::SubRsp(value) => encode_sub_rsp(output, *value),
         Instruction::AddRsp(value) => encode_add_rsp(output, *value),
         Instruction::MovRegImm64(reg, value) => encode_mov_reg_imm64(output, *reg, *value),
+        Instruction::MovRegDataAddr(reg, label) => encode_mov_reg_data_addr(output, *reg, label, context)?,
         Instruction::MovRegStack(reg, offset) => encode_mov_reg_stack(output, *reg, *offset),
         Instruction::MovStackReg(offset, reg) => encode_mov_stack_reg(output, *offset, *reg),
+        Instruction::LeaRegRspOffset(reg, offset) => encode_lea_reg_rsp(output, *reg, *offset),
         Instruction::MovRegReg(dst, src) => encode_mov_reg_reg(output, *dst, *src),
         Instruction::AddRegReg(dst, src) => encode_reg_reg(output, 0x01, *dst, *src),
         Instruction::SubRegReg(dst, src) => encode_reg_reg(output, 0x29, *dst, *src),
+        Instruction::AddRegImm(reg, value) => encode_reg_imm(output, 0, *reg, *value),
+        Instruction::SubRegImm(reg, value) => encode_reg_imm(output, 5, *reg, *value),
         Instruction::AndRegReg(dst, src) => encode_reg_reg(output, 0x21, *dst, *src),
         Instruction::OrRegReg(dst, src) => encode_reg_reg(output, 0x09, *dst, *src),
         Instruction::IMulRegReg(dst, src) => {
@@ -1099,6 +1662,8 @@ fn encode_instruction(
         Instruction::NegReg(reg) => {
             output.extend_from_slice(&[0x48 | reg.rex_b(), 0xF7, modrm(0b11, 3, reg.low3())]);
         }
+        Instruction::MovMemReg8(base, src) => encode_mov_mem_reg8(output, *base, *src),
+        Instruction::MovzxRegMem8(dst, base) => encode_movzx_reg_mem8(output, *dst, *base),
         Instruction::CmpRegImm(reg, value) => encode_cmp_reg_imm(output, *reg, *value),
         Instruction::CmpRegReg(left, right) => encode_reg_reg(output, 0x39, *left, *right),
         Instruction::SetCondAl(condition) => {
@@ -1107,8 +1672,18 @@ fn encode_instruction(
         Instruction::MovzxEaxAl => output.extend_from_slice(&[0x0F, 0xB6, 0xC0]),
         Instruction::Call(label) => {
             output.push(0xE8);
-            let target = offsets
-                .labels
+            let target = context
+                .label_offsets
+                .get(label)
+                .copied()
+                .ok_or_else(|| CodegenError::new(format!("unknown label `{label}`")))?;
+            let rel = relative_displacement(cursor, instruction.len(), target)?;
+            output.extend_from_slice(&rel.to_le_bytes());
+        }
+        Instruction::CallImport(label) => {
+            output.extend_from_slice(&[0xFF, 0x15]);
+            let target = context
+                .label_offsets
                 .get(label)
                 .copied()
                 .ok_or_else(|| CodegenError::new(format!("unknown label `{label}`")))?;
@@ -1117,8 +1692,8 @@ fn encode_instruction(
         }
         Instruction::Jump(label) => {
             output.push(0xE9);
-            let target = offsets
-                .labels
+            let target = context
+                .label_offsets
                 .get(label)
                 .copied()
                 .ok_or_else(|| CodegenError::new(format!("unknown label `{label}`")))?;
@@ -1127,8 +1702,8 @@ fn encode_instruction(
         }
         Instruction::JumpIf(condition, label) => {
             output.extend_from_slice(&[0x0F, condition.jcc_opcode()]);
-            let target = offsets
-                .labels
+            let target = context
+                .label_offsets
                 .get(label)
                 .copied()
                 .ok_or_else(|| CodegenError::new(format!("unknown label `{label}`")))?;
@@ -1166,6 +1741,25 @@ fn encode_add_rsp(output: &mut Vec<u8>, value: u32) {
     }
 }
 
+fn encode_mov_reg_data_addr(
+    output: &mut Vec<u8>,
+    reg: Register,
+    label: &str,
+    context: &EncodeContext,
+) -> Result<(), CodegenError> {
+    let offset = context
+        .label_offsets
+        .get(label)
+        .copied()
+        .ok_or_else(|| CodegenError::new(format!("unknown data label `{label}`")))?;
+    let absolute = context
+        .section_vaddr
+        .checked_add(offset as u64)
+        .ok_or_else(|| CodegenError::new("data label address overflowed"))?;
+    encode_mov_reg_imm64(output, reg, absolute as i64);
+    Ok(())
+}
+
 fn encode_mov_reg_imm64(output: &mut Vec<u8>, reg: Register, value: i64) {
     output.push(0x48 | reg.rex_b());
     output.push(0xB8 + reg.low3());
@@ -1179,6 +1773,11 @@ fn encode_mov_reg_stack(output: &mut Vec<u8>, reg: Register, offset: i32) {
 
 fn encode_mov_stack_reg(output: &mut Vec<u8>, offset: i32, reg: Register) {
     output.extend_from_slice(&[0x48 | reg.rex_r(), 0x89]);
+    encode_rsp_memory_operand(output, reg.low3(), offset);
+}
+
+fn encode_lea_reg_rsp(output: &mut Vec<u8>, reg: Register, offset: i32) {
+    output.extend_from_slice(&[0x48 | reg.rex_r(), 0x8D]);
     encode_rsp_memory_operand(output, reg.low3(), offset);
 }
 
@@ -1198,6 +1797,24 @@ fn encode_reg_reg(output: &mut Vec<u8>, opcode: u8, dst: Register, src: Register
     ]);
 }
 
+fn encode_reg_imm(output: &mut Vec<u8>, opcode_ext: u8, reg: Register, value: i32) {
+    if let Ok(value8) = i8::try_from(value) {
+        output.extend_from_slice(&[
+            0x48 | reg.rex_b(),
+            0x83,
+            modrm(0b11, opcode_ext, reg.low3()),
+            value8 as u8,
+        ]);
+    } else {
+        output.extend_from_slice(&[
+            0x48 | reg.rex_b(),
+            0x81,
+            modrm(0b11, opcode_ext, reg.low3()),
+        ]);
+        output.extend_from_slice(&value.to_le_bytes());
+    }
+}
+
 fn encode_cmp_reg_imm(output: &mut Vec<u8>, reg: Register, value: i32) {
     if let Ok(value8) = i8::try_from(value) {
         output.extend_from_slice(&[
@@ -1210,6 +1827,23 @@ fn encode_cmp_reg_imm(output: &mut Vec<u8>, reg: Register, value: i32) {
         output.extend_from_slice(&[0x48 | reg.rex_b(), 0x81, modrm(0b11, 7, reg.low3())]);
         output.extend_from_slice(&value.to_le_bytes());
     }
+}
+
+fn encode_mov_mem_reg8(output: &mut Vec<u8>, base: Register, src: Register) {
+    output.extend_from_slice(&[
+        0x40 | src.rex_r() | base.rex_b(),
+        0x88,
+        modrm(0b00, src.low3(), base.low3()),
+    ]);
+}
+
+fn encode_movzx_reg_mem8(output: &mut Vec<u8>, dst: Register, base: Register) {
+    output.extend_from_slice(&[
+        0x48 | dst.rex_r() | base.rex_b(),
+        0x0F,
+        0xB6,
+        modrm(0b00, dst.low3(), base.low3()),
+    ]);
 }
 
 fn encode_rsp_memory_operand(output: &mut Vec<u8>, reg: u8, offset: i32) {
@@ -1234,4 +1868,32 @@ fn stack_mem_len(offset: i32) -> usize {
 
 fn modrm(mode: u8, reg: u8, rm: u8) -> u8 {
     (mode << 6) | ((reg & 0b111) << 3) | (rm & 0b111)
+}
+
+fn low8_name(reg: Register) -> &'static str {
+    match reg {
+        Register::Rax => "al",
+        Register::Rcx => "cl",
+        Register::Rdx => "dl",
+        Register::Rdi => "dil",
+        Register::Rsi => "sil",
+        Register::R8 => "r8b",
+        Register::R9 => "r9b",
+        Register::R10 => "r10b",
+        Register::R11 => "r11b",
+    }
+}
+
+fn reg32_name(reg: Register) -> &'static str {
+    match reg {
+        Register::Rax => "eax",
+        Register::Rcx => "ecx",
+        Register::Rdx => "edx",
+        Register::Rdi => "edi",
+        Register::Rsi => "esi",
+        Register::R8 => "r8d",
+        Register::R9 => "r9d",
+        Register::R10 => "r10d",
+        Register::R11 => "r11d",
+    }
 }
