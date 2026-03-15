@@ -72,14 +72,17 @@ fn main() -> int {
     }
 
     #[test]
-    fn flags_nondeterministic_calls_by_name() {
+    fn flags_calls_with_nondeterministic_capabilities() {
         let source = r#"
-fn random_value() -> int {
+fn host_magic(value: int)
+
+fn helper() -> int {
+    host_magic(4)
     4
 }
 
 fn main() -> int {
-    random_value()
+    helper()
 }
 "#;
 
@@ -91,8 +94,31 @@ fn main() -> int {
         let mir = lower_program(&hir);
 
         let issues = find_nondeterministic_calls(&mir);
-        assert_eq!(issues.len(), 1);
-        assert!(issues[0].callee.contains("random_value"));
+        assert_eq!(issues.len(), 2);
+        assert!(issues.iter().any(|issue| issue.function == "helper" && issue.callee == "host_magic"));
+        assert!(issues.iter().any(|issue| issue.function == "main" && issue.callee == "helper"));
+    }
+
+    #[test]
+    fn keeps_deterministic_runtime_capabilities_allowed() {
+        let source = r#"
+fn print_int(value: int)
+
+fn main() -> int {
+    print_int(4)
+    0
+}
+"#;
+
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&module, &resolved, &typed);
+        let mir = lower_program(&hir);
+
+        let issues = find_nondeterministic_calls(&mir);
+        assert!(issues.is_empty());
     }
 
     #[test]
