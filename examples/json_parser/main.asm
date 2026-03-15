@@ -173,7 +173,7 @@ __ml_fn_is_space.Lbb2:
     jne __ml_fn_is_space.Lbb4
     jmp __ml_fn_is_space.Lbb5
 __ml_fn_is_space.Lbb3:
-    mov rax, 1
+    mov rax, qword ptr [rsp + 48]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 104
@@ -194,7 +194,7 @@ __ml_fn_is_space.Lbb5:
     jne __ml_fn_is_space.Lbb7
     jmp __ml_fn_is_space.Lbb8
 __ml_fn_is_space.Lbb6:
-    mov rax, 1
+    mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 48], rax
     jmp __ml_fn_is_space.Lbb3
 __ml_fn_is_space.Lbb7:
@@ -280,7 +280,7 @@ __ml_fn_is_hex_digit.Lbb3:
     jne __ml_fn_is_hex_digit.Lbb5
     jmp __ml_fn_is_hex_digit.Lbb6
 __ml_fn_is_hex_digit.Lbb4:
-    mov rax, 1
+    mov rax, qword ptr [rsp + 48]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 152
@@ -327,7 +327,7 @@ __ml_fn_is_hex_digit.Lbb9:
     jne __ml_fn_is_hex_digit.Lbb11
     jmp __ml_fn_is_hex_digit.Lbb12
 __ml_fn_is_hex_digit.Lbb10:
-    mov rax, 1
+    mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 64], rax
     jmp __ml_fn_is_hex_digit.Lbb7
 __ml_fn_is_hex_digit.Lbb11:
@@ -367,17 +367,17 @@ __ml_fn_is_hex_digit.Lbb16:
     mov qword ptr [rsp + 64], rax
     jmp __ml_fn_is_hex_digit.Lbb7
 __ml_fn_kind_code:
-    sub rsp, 200
+    sub rsp, 152
     mov qword ptr [rsp + 40], rcx
     jmp __ml_fn_kind_code.Lbb0
 __ml_fn_kind_code.Lbb0:
     mov rax, qword ptr [rsp + 40]
-    mov rcx, qword ptr [rsp + 56]
+    mov rcx, 1
     cmp rax, rcx
     sete al
     movzx eax, al
-    mov qword ptr [rsp + 64], rax
-    mov rax, qword ptr [rsp + 64]
+    mov qword ptr [rsp + 56], rax
+    mov rax, qword ptr [rsp + 56]
     cmp rax, 0
     jne __ml_fn_kind_code.Lbb1
     jmp __ml_fn_kind_code.Lbb2
@@ -387,111 +387,111 @@ __ml_fn_kind_code.Lbb1:
     jmp __ml_fn_kind_code.Lbb3
 __ml_fn_kind_code.Lbb2:
     mov rax, qword ptr [rsp + 40]
-    mov rcx, qword ptr [rsp + 80]
+    mov rcx, 2
+    cmp rax, rcx
+    sete al
+    movzx eax, al
+    mov qword ptr [rsp + 72], rax
+    mov rax, qword ptr [rsp + 72]
+    cmp rax, 0
+    jne __ml_fn_kind_code.Lbb4
+    jmp __ml_fn_kind_code.Lbb5
+__ml_fn_kind_code.Lbb3:
+    mov rax, qword ptr [rsp + 48]
+    mov qword ptr [rsp + 32], rax
+    mov rax, qword ptr [rsp + 32]
+    add rsp, 152
+    ret
+__ml_fn_kind_code.Lbb4:
+    mov rax, 2
+    mov qword ptr [rsp + 64], rax
+    jmp __ml_fn_kind_code.Lbb6
+__ml_fn_kind_code.Lbb5:
+    mov rax, qword ptr [rsp + 40]
+    mov rcx, 3
     cmp rax, rcx
     sete al
     movzx eax, al
     mov qword ptr [rsp + 88], rax
     mov rax, qword ptr [rsp + 88]
     cmp rax, 0
-    jne __ml_fn_kind_code.Lbb4
-    jmp __ml_fn_kind_code.Lbb5
-__ml_fn_kind_code.Lbb3:
-    mov rax, 1
-    mov qword ptr [rsp + 32], rax
-    mov rax, qword ptr [rsp + 32]
-    add rsp, 200
-    ret
-__ml_fn_kind_code.Lbb4:
-    mov rax, 2
-    mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_kind_code.Lbb6
-__ml_fn_kind_code.Lbb5:
-    mov rax, qword ptr [rsp + 40]
-    mov rcx, qword ptr [rsp + 104]
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 112], rax
-    mov rax, qword ptr [rsp + 112]
-    cmp rax, 0
     jne __ml_fn_kind_code.Lbb7
     jmp __ml_fn_kind_code.Lbb8
 __ml_fn_kind_code.Lbb6:
-    mov rax, 2
+    mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 48], rax
     jmp __ml_fn_kind_code.Lbb3
 __ml_fn_kind_code.Lbb7:
     mov rax, 3
-    mov qword ptr [rsp + 96], rax
+    mov qword ptr [rsp + 80], rax
     jmp __ml_fn_kind_code.Lbb9
 __ml_fn_kind_code.Lbb8:
     mov rax, qword ptr [rsp + 40]
-    mov rcx, qword ptr [rsp + 128]
+    mov rcx, 4
+    cmp rax, rcx
+    sete al
+    movzx eax, al
+    mov qword ptr [rsp + 104], rax
+    mov rax, qword ptr [rsp + 104]
+    cmp rax, 0
+    jne __ml_fn_kind_code.Lbb10
+    jmp __ml_fn_kind_code.Lbb11
+__ml_fn_kind_code.Lbb9:
+    mov rax, qword ptr [rsp + 80]
+    mov qword ptr [rsp + 64], rax
+    jmp __ml_fn_kind_code.Lbb6
+__ml_fn_kind_code.Lbb10:
+    mov rax, 4
+    mov qword ptr [rsp + 96], rax
+    jmp __ml_fn_kind_code.Lbb12
+__ml_fn_kind_code.Lbb11:
+    mov rax, qword ptr [rsp + 40]
+    mov rcx, 5
+    cmp rax, rcx
+    sete al
+    movzx eax, al
+    mov qword ptr [rsp + 120], rax
+    mov rax, qword ptr [rsp + 120]
+    cmp rax, 0
+    jne __ml_fn_kind_code.Lbb13
+    jmp __ml_fn_kind_code.Lbb14
+__ml_fn_kind_code.Lbb12:
+    mov rax, qword ptr [rsp + 96]
+    mov qword ptr [rsp + 80], rax
+    jmp __ml_fn_kind_code.Lbb9
+__ml_fn_kind_code.Lbb13:
+    mov rax, 5
+    mov qword ptr [rsp + 112], rax
+    jmp __ml_fn_kind_code.Lbb15
+__ml_fn_kind_code.Lbb14:
+    mov rax, qword ptr [rsp + 40]
+    mov rcx, 6
     cmp rax, rcx
     sete al
     movzx eax, al
     mov qword ptr [rsp + 136], rax
     mov rax, qword ptr [rsp + 136]
     cmp rax, 0
-    jne __ml_fn_kind_code.Lbb10
-    jmp __ml_fn_kind_code.Lbb11
-__ml_fn_kind_code.Lbb9:
-    mov rax, 3
-    mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_kind_code.Lbb6
-__ml_fn_kind_code.Lbb10:
-    mov rax, 4
-    mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_kind_code.Lbb12
-__ml_fn_kind_code.Lbb11:
-    mov rax, qword ptr [rsp + 40]
-    mov rcx, qword ptr [rsp + 152]
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 160], rax
-    mov rax, qword ptr [rsp + 160]
-    cmp rax, 0
-    jne __ml_fn_kind_code.Lbb13
-    jmp __ml_fn_kind_code.Lbb14
-__ml_fn_kind_code.Lbb12:
-    mov rax, 4
-    mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_kind_code.Lbb9
-__ml_fn_kind_code.Lbb13:
-    mov rax, 5
-    mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_kind_code.Lbb15
-__ml_fn_kind_code.Lbb14:
-    mov rax, qword ptr [rsp + 40]
-    mov rcx, qword ptr [rsp + 176]
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 184], rax
-    mov rax, qword ptr [rsp + 184]
-    cmp rax, 0
     jne __ml_fn_kind_code.Lbb16
     jmp __ml_fn_kind_code.Lbb17
 __ml_fn_kind_code.Lbb15:
-    mov rax, 5
-    mov qword ptr [rsp + 120], rax
+    mov rax, qword ptr [rsp + 112]
+    mov qword ptr [rsp + 96], rax
     jmp __ml_fn_kind_code.Lbb12
 __ml_fn_kind_code.Lbb16:
     mov rax, 6
-    mov qword ptr [rsp + 168], rax
+    mov qword ptr [rsp + 128], rax
     jmp __ml_fn_kind_code.Lbb18
 __ml_fn_kind_code.Lbb17:
     mov rax, 0
-    mov qword ptr [rsp + 168], rax
+    mov qword ptr [rsp + 128], rax
     jmp __ml_fn_kind_code.Lbb18
 __ml_fn_kind_code.Lbb18:
-    mov rax, qword ptr [rsp + 168]
-    mov qword ptr [rsp + 144], rax
+    mov rax, qword ptr [rsp + 128]
+    mov qword ptr [rsp + 112], rax
     jmp __ml_fn_kind_code.Lbb15
 __ml_fn___priv_811ad09817485e06_kind_from_code:
-    sub rsp, 200
+    sub rsp, 152
     mov qword ptr [rsp + 40], rcx
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb0
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb0:
@@ -506,7 +506,7 @@ __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb0:
     jne __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb1
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb2
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb1:
-    mov rax, qword ptr [rsp + 64]
+    mov rax, 1
     mov qword ptr [rsp + 48], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb3
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb2:
@@ -515,8 +515,8 @@ __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb2:
     cmp rax, rcx
     sete al
     movzx eax, al
-    mov qword ptr [rsp + 80], rax
-    mov rax, qword ptr [rsp + 80]
+    mov qword ptr [rsp + 72], rax
+    mov rax, qword ptr [rsp + 72]
     cmp rax, 0
     jne __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb4
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb5
@@ -524,11 +524,11 @@ __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb3:
     mov rax, qword ptr [rsp + 48]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
-    add rsp, 200
+    add rsp, 152
     ret
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb4:
-    mov rax, qword ptr [rsp + 88]
-    mov qword ptr [rsp + 72], rax
+    mov rax, 2
+    mov qword ptr [rsp + 64], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb6
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb5:
     mov rax, qword ptr [rsp + 40]
@@ -536,18 +536,18 @@ __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb5:
     cmp rax, rcx
     sete al
     movzx eax, al
-    mov qword ptr [rsp + 104], rax
-    mov rax, qword ptr [rsp + 104]
+    mov qword ptr [rsp + 88], rax
+    mov rax, qword ptr [rsp + 88]
     cmp rax, 0
     jne __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb7
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb8
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb6:
-    mov rax, qword ptr [rsp + 72]
+    mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 48], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb3
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb7:
-    mov rax, qword ptr [rsp + 112]
-    mov qword ptr [rsp + 96], rax
+    mov rax, 3
+    mov qword ptr [rsp + 80], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb9
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb8:
     mov rax, qword ptr [rsp + 40]
@@ -555,18 +555,18 @@ __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb8:
     cmp rax, rcx
     sete al
     movzx eax, al
-    mov qword ptr [rsp + 128], rax
-    mov rax, qword ptr [rsp + 128]
+    mov qword ptr [rsp + 104], rax
+    mov rax, qword ptr [rsp + 104]
     cmp rax, 0
     jne __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb10
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb11
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb9:
-    mov rax, qword ptr [rsp + 96]
-    mov qword ptr [rsp + 72], rax
+    mov rax, qword ptr [rsp + 80]
+    mov qword ptr [rsp + 64], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb6
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb10:
-    mov rax, qword ptr [rsp + 136]
-    mov qword ptr [rsp + 120], rax
+    mov rax, 4
+    mov qword ptr [rsp + 96], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb12
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb11:
     mov rax, qword ptr [rsp + 40]
@@ -574,18 +574,18 @@ __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb11:
     cmp rax, rcx
     sete al
     movzx eax, al
-    mov qword ptr [rsp + 152], rax
-    mov rax, qword ptr [rsp + 152]
+    mov qword ptr [rsp + 120], rax
+    mov rax, qword ptr [rsp + 120]
     cmp rax, 0
     jne __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb13
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb14
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb12:
-    mov rax, qword ptr [rsp + 120]
-    mov qword ptr [rsp + 96], rax
+    mov rax, qword ptr [rsp + 96]
+    mov qword ptr [rsp + 80], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb9
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb13:
-    mov rax, qword ptr [rsp + 160]
-    mov qword ptr [rsp + 144], rax
+    mov rax, 5
+    mov qword ptr [rsp + 112], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb15
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb14:
     mov rax, qword ptr [rsp + 40]
@@ -593,26 +593,26 @@ __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb14:
     cmp rax, rcx
     sete al
     movzx eax, al
-    mov qword ptr [rsp + 176], rax
-    mov rax, qword ptr [rsp + 176]
+    mov qword ptr [rsp + 136], rax
+    mov rax, qword ptr [rsp + 136]
     cmp rax, 0
     jne __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb16
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb17
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb15:
-    mov rax, qword ptr [rsp + 144]
-    mov qword ptr [rsp + 120], rax
+    mov rax, qword ptr [rsp + 112]
+    mov qword ptr [rsp + 96], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb12
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb16:
-    mov rax, qword ptr [rsp + 184]
-    mov qword ptr [rsp + 168], rax
+    mov rax, 6
+    mov qword ptr [rsp + 128], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb18
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb17:
-    mov rax, qword ptr [rsp + 192]
-    mov qword ptr [rsp + 168], rax
+    mov rax, 0
+    mov qword ptr [rsp + 128], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb18
 __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb18:
-    mov rax, qword ptr [rsp + 168]
-    mov qword ptr [rsp + 144], rax
+    mov rax, qword ptr [rsp + 128]
+    mov qword ptr [rsp + 112], rax
     jmp __ml_fn___priv_811ad09817485e06_kind_from_code.Lbb15
 __ml_fn___priv_811ad09817485e06_ok_result:
     sub rsp, 88
@@ -713,7 +713,7 @@ __ml_fn_result_ok.Lbb0:
     add rsp, 56
     ret
 __ml_fn_result_kind:
-    sub rsp, 136
+    sub rsp, 120
     mov qword ptr [rsp + 40], rcx
     jmp __ml_fn_result_kind.Lbb0
 __ml_fn_result_kind.Lbb0:
@@ -732,14 +732,14 @@ __ml_fn_result_kind.Lbb2:
     mov qword ptr [rsp + 72], rax
     jmp __ml_fn_result_kind.Lbb5
 __ml_fn_result_kind.Lbb3:
-    mov rax, qword ptr [rsp + 120]
+    mov rax, 0
     mov qword ptr [rsp + 48], rax
     jmp __ml_fn_result_kind.Lbb4
 __ml_fn_result_kind.Lbb4:
     mov rax, qword ptr [rsp + 48]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
-    add rsp, 136
+    add rsp, 120
     ret
 __ml_fn_result_kind.Lbb5:
     mov rax, qword ptr [rsp + 72]
@@ -865,7 +865,7 @@ __ml_fn___priv_811ad09817485e06_has_quote.Lbb3:
     mov qword ptr [rsp + 80], rax
     jmp __ml_fn___priv_811ad09817485e06_has_quote.Lbb5
 __ml_fn___priv_811ad09817485e06_has_quote.Lbb4:
-    mov rax, 1
+    mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 104
@@ -964,7 +964,10 @@ __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb3:
     mov qword ptr [rsp + 64], rax
     jmp __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb4
 __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb4:
-    jmp __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb7
+    mov rax, qword ptr [rsp + 64]
+    cmp rax, 0
+    jne __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb7
+    jmp __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb8
 __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb5:
     mov rcx, qword ptr [rsp + 80]
     call __ml_fn_is_space
@@ -976,14 +979,28 @@ __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb6:
     jmp __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb4
 __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb7:
     mov rax, qword ptr [rsp + 48]
-    mov qword ptr [rsp + 56], rax
-    jmp __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb8
+    mov rcx, 1
+    add rax, rcx
+    mov qword ptr [rsp + 96], rax
+    mov rcx, qword ptr [rsp + 40]
+    mov rdx, qword ptr [rsp + 96]
+    call __ml_fn___priv_811ad09817485e06_skip_whitespace
+    mov qword ptr [rsp + 104], rax
+    jmp __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb10
 __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb8:
+    mov rax, qword ptr [rsp + 48]
+    mov qword ptr [rsp + 56], rax
+    jmp __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb9
+__ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb9:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 120
     ret
+__ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb10:
+    mov rax, qword ptr [rsp + 104]
+    mov qword ptr [rsp + 56], rax
+    jmp __ml_fn___priv_811ad09817485e06_skip_whitespace.Lbb9
 __ml_fn_parse_document:
     sub rsp, 152
     mov qword ptr [rsp + 40], rcx
@@ -1462,7 +1479,7 @@ __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb3:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn___priv_811ad09817485e06_parse_string_body_after_quote
-    mov qword ptr [rsp + 96], rax
+    mov qword ptr [rsp + 88], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb7
 __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb4:
     mov rax, qword ptr [rsp + 56]
@@ -1472,16 +1489,16 @@ __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb4:
     ret
 __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb5:
     mov rcx, qword ptr [rsp + 72]
-    mov rdx, qword ptr [rsp + 80]
+    mov rdx, 3
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 88], rax
+    mov qword ptr [rsp + 80], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb6
 __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb6:
-    mov rax, qword ptr [rsp + 88]
+    mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb4
 __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb7:
-    mov rax, qword ptr [rsp + 96]
+    mov rax, qword ptr [rsp + 88]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_string_body.Lbb4
 __ml_fn___priv_811ad09817485e06_parse_string_body_after_quote:
@@ -1886,7 +1903,7 @@ __ml_fn___priv_811ad09817485e06_parse_unicode_escape.Lbb30:
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_unicode_escape.Lbb4
 __ml_fn___priv_811ad09817485e06_parse_true:
-    sub rsp, 184
+    sub rsp, 168
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
     jmp __ml_fn___priv_811ad09817485e06_parse_true.Lbb0
@@ -1980,27 +1997,27 @@ __ml_fn___priv_811ad09817485e06_parse_true.Lbb14:
     add rax, rcx
     mov qword ptr [rsp + 144], rax
     mov rcx, qword ptr [rsp + 144]
-    mov rdx, qword ptr [rsp + 152]
+    mov rdx, 5
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 160], rax
+    mov qword ptr [rsp + 152], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_true.Lbb17
 __ml_fn___priv_811ad09817485e06_parse_true.Lbb15:
     mov rcx, qword ptr [rsp + 48]
     call __ml_fn___priv_811ad09817485e06_error_result
-    mov qword ptr [rsp + 168], rax
+    mov qword ptr [rsp + 160], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_true.Lbb18
 __ml_fn___priv_811ad09817485e06_parse_true.Lbb16:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
-    add rsp, 184
+    add rsp, 168
     ret
 __ml_fn___priv_811ad09817485e06_parse_true.Lbb17:
-    mov rax, qword ptr [rsp + 160]
+    mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_true.Lbb16
 __ml_fn___priv_811ad09817485e06_parse_true.Lbb18:
-    mov rax, qword ptr [rsp + 168]
+    mov rax, qword ptr [rsp + 160]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_true.Lbb16
 __ml_fn___priv_811ad09817485e06_parse_false:
@@ -2122,14 +2139,14 @@ __ml_fn___priv_811ad09817485e06_parse_false.Lbb18:
     add rax, rcx
     mov qword ptr [rsp + 168], rax
     mov rcx, qword ptr [rsp + 168]
-    mov rdx, qword ptr [rsp + 176]
+    mov rdx, 5
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 184], rax
+    mov qword ptr [rsp + 176], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_false.Lbb21
 __ml_fn___priv_811ad09817485e06_parse_false.Lbb19:
     mov rcx, qword ptr [rsp + 48]
     call __ml_fn___priv_811ad09817485e06_error_result
-    mov qword ptr [rsp + 192], rax
+    mov qword ptr [rsp + 184], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_false.Lbb22
 __ml_fn___priv_811ad09817485e06_parse_false.Lbb20:
     mov rax, qword ptr [rsp + 56]
@@ -2138,15 +2155,15 @@ __ml_fn___priv_811ad09817485e06_parse_false.Lbb20:
     add rsp, 200
     ret
 __ml_fn___priv_811ad09817485e06_parse_false.Lbb21:
-    mov rax, qword ptr [rsp + 184]
+    mov rax, qword ptr [rsp + 176]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_false.Lbb20
 __ml_fn___priv_811ad09817485e06_parse_false.Lbb22:
-    mov rax, qword ptr [rsp + 192]
+    mov rax, qword ptr [rsp + 184]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_false.Lbb20
 __ml_fn___priv_811ad09817485e06_parse_null:
-    sub rsp, 184
+    sub rsp, 168
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
     jmp __ml_fn___priv_811ad09817485e06_parse_null.Lbb0
@@ -2240,27 +2257,27 @@ __ml_fn___priv_811ad09817485e06_parse_null.Lbb14:
     add rax, rcx
     mov qword ptr [rsp + 144], rax
     mov rcx, qword ptr [rsp + 144]
-    mov rdx, qword ptr [rsp + 152]
+    mov rdx, 6
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 160], rax
+    mov qword ptr [rsp + 152], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_null.Lbb17
 __ml_fn___priv_811ad09817485e06_parse_null.Lbb15:
     mov rcx, qword ptr [rsp + 48]
     call __ml_fn___priv_811ad09817485e06_error_result
-    mov qword ptr [rsp + 168], rax
+    mov qword ptr [rsp + 160], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_null.Lbb18
 __ml_fn___priv_811ad09817485e06_parse_null.Lbb16:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
-    add rsp, 184
+    add rsp, 168
     ret
 __ml_fn___priv_811ad09817485e06_parse_null.Lbb17:
-    mov rax, qword ptr [rsp + 160]
+    mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_null.Lbb16
 __ml_fn___priv_811ad09817485e06_parse_null.Lbb18:
-    mov rax, qword ptr [rsp + 168]
+    mov rax, qword ptr [rsp + 160]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_null.Lbb16
 __ml_fn___priv_811ad09817485e06_parse_number:
@@ -2407,7 +2424,7 @@ __ml_fn___priv_811ad09817485e06_parse_number_digit.Lbb7:
     mov qword ptr [rsp + 64], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_number_digit.Lbb5
 __ml_fn___priv_811ad09817485e06_parse_number_tail:
-    sub rsp, 152
+    sub rsp, 136
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
     jmp __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb0
@@ -2430,15 +2447,15 @@ __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb2:
     jmp __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb5
 __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb3:
     mov rcx, qword ptr [rsp + 48]
-    mov rdx, qword ptr [rsp + 128]
+    mov rdx, 4
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 136], rax
+    mov qword ptr [rsp + 120], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb12
 __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb4:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
-    add rsp, 152
+    add rsp, 136
     ret
 __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb5:
     mov rcx, qword ptr [rsp + 80]
@@ -2462,9 +2479,9 @@ __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb7:
     jmp __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb10
 __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb8:
     mov rcx, qword ptr [rsp + 48]
-    mov rdx, qword ptr [rsp + 112]
+    mov rdx, 4
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 120], rax
+    mov qword ptr [rsp + 112], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb11
 __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb9:
     mov rax, qword ptr [rsp + 72]
@@ -2475,15 +2492,15 @@ __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb10:
     mov qword ptr [rsp + 72], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb9
 __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb11:
-    mov rax, qword ptr [rsp + 120]
+    mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 72], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb9
 __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb12:
-    mov rax, qword ptr [rsp + 136]
+    mov rax, qword ptr [rsp + 120]
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_number_tail.Lbb4
 __ml_fn___priv_811ad09817485e06_parse_array:
-    sub rsp, 184
+    sub rsp, 168
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb0
@@ -2517,65 +2534,65 @@ __ml_fn___priv_811ad09817485e06_parse_array.Lbb3:
     add rax, rcx
     mov qword ptr [rsp + 96], rax
     mov rcx, qword ptr [rsp + 96]
-    mov rdx, qword ptr [rsp + 104]
+    mov rdx, 2
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 112], rax
+    mov qword ptr [rsp + 104], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb6
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb4:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     call __ml_fn___priv_811ad09817485e06_parse_value
-    mov qword ptr [rsp + 128], rax
+    mov qword ptr [rsp + 120], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb7
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb5:
     mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
-    add rsp, 184
+    add rsp, 168
     ret
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb6:
-    mov rax, qword ptr [rsp + 112]
+    mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 80], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb5
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb7:
-    mov rax, qword ptr [rsp + 128]
-    mov qword ptr [rsp + 120], rax
-    mov rcx, qword ptr [rsp + 120]
+    mov rax, qword ptr [rsp + 120]
+    mov qword ptr [rsp + 112], rax
+    mov rcx, qword ptr [rsp + 112]
     call __ml_fn_result_ok
-    mov qword ptr [rsp + 144], rax
+    mov qword ptr [rsp + 136], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb8
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb8:
-    mov rax, qword ptr [rsp + 144]
+    mov rax, qword ptr [rsp + 136]
     cmp rax, 0
     jne __ml_fn___priv_811ad09817485e06_parse_array.Lbb9
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb10
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb9:
-    mov rcx, qword ptr [rsp + 120]
+    mov rcx, qword ptr [rsp + 112]
     call __ml_fn___priv_811ad09817485e06_result_next
-    mov qword ptr [rsp + 152], rax
+    mov qword ptr [rsp + 144], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb12
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb10:
     mov rcx, qword ptr [rsp + 56]
     call __ml_fn___priv_811ad09817485e06_error_result
-    mov qword ptr [rsp + 168], rax
+    mov qword ptr [rsp + 160], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb14
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb11:
-    mov rax, qword ptr [rsp + 136]
+    mov rax, qword ptr [rsp + 128]
     mov qword ptr [rsp + 80], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb5
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb12:
     mov rcx, qword ptr [rsp + 40]
-    mov rdx, qword ptr [rsp + 152]
+    mov rdx, qword ptr [rsp + 144]
     call __ml_fn___priv_811ad09817485e06_parse_array_after_value
-    mov qword ptr [rsp + 160], rax
+    mov qword ptr [rsp + 152], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb13
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb13:
-    mov rax, qword ptr [rsp + 160]
-    mov qword ptr [rsp + 136], rax
+    mov rax, qword ptr [rsp + 152]
+    mov qword ptr [rsp + 128], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb11
 __ml_fn___priv_811ad09817485e06_parse_array.Lbb14:
-    mov rax, qword ptr [rsp + 168]
-    mov qword ptr [rsp + 136], rax
+    mov rax, qword ptr [rsp + 160]
+    mov qword ptr [rsp + 128], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array.Lbb11
 __ml_fn___priv_811ad09817485e06_parse_array_after_value:
     sub rsp, 200
@@ -2676,29 +2693,29 @@ __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb15:
     add rax, rcx
     mov qword ptr [rsp + 168], rax
     mov rcx, qword ptr [rsp + 168]
-    mov rdx, qword ptr [rsp + 176]
+    mov rdx, 2
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 184], rax
+    mov qword ptr [rsp + 176], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb18
 __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb16:
     mov rcx, qword ptr [rsp + 56]
     call __ml_fn___priv_811ad09817485e06_error_result
-    mov qword ptr [rsp + 192], rax
+    mov qword ptr [rsp + 184], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb19
 __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb17:
     mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 72], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb5
 __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb18:
-    mov rax, qword ptr [rsp + 184]
+    mov rax, qword ptr [rsp + 176]
     mov qword ptr [rsp + 152], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb17
 __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb19:
-    mov rax, qword ptr [rsp + 192]
+    mov rax, qword ptr [rsp + 184]
     mov qword ptr [rsp + 152], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_array_after_value.Lbb17
 __ml_fn___priv_811ad09817485e06_parse_object:
-    sub rsp, 184
+    sub rsp, 168
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb0
@@ -2732,65 +2749,65 @@ __ml_fn___priv_811ad09817485e06_parse_object.Lbb3:
     add rax, rcx
     mov qword ptr [rsp + 96], rax
     mov rcx, qword ptr [rsp + 96]
-    mov rdx, qword ptr [rsp + 104]
+    mov rdx, 1
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 112], rax
+    mov qword ptr [rsp + 104], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb6
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb4:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     call __ml_fn___priv_811ad09817485e06_parse_string
-    mov qword ptr [rsp + 128], rax
+    mov qword ptr [rsp + 120], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb7
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb5:
     mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
-    add rsp, 184
+    add rsp, 168
     ret
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb6:
-    mov rax, qword ptr [rsp + 112]
+    mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 80], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb5
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb7:
-    mov rax, qword ptr [rsp + 128]
-    mov qword ptr [rsp + 120], rax
-    mov rcx, qword ptr [rsp + 120]
+    mov rax, qword ptr [rsp + 120]
+    mov qword ptr [rsp + 112], rax
+    mov rcx, qword ptr [rsp + 112]
     call __ml_fn_result_ok
-    mov qword ptr [rsp + 144], rax
+    mov qword ptr [rsp + 136], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb8
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb8:
-    mov rax, qword ptr [rsp + 144]
+    mov rax, qword ptr [rsp + 136]
     cmp rax, 0
     jne __ml_fn___priv_811ad09817485e06_parse_object.Lbb9
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb10
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb9:
-    mov rcx, qword ptr [rsp + 120]
+    mov rcx, qword ptr [rsp + 112]
     call __ml_fn___priv_811ad09817485e06_result_next
-    mov qword ptr [rsp + 152], rax
+    mov qword ptr [rsp + 144], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb12
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb10:
     mov rcx, qword ptr [rsp + 56]
     call __ml_fn___priv_811ad09817485e06_error_result
-    mov qword ptr [rsp + 168], rax
+    mov qword ptr [rsp + 160], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb14
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb11:
-    mov rax, qword ptr [rsp + 136]
+    mov rax, qword ptr [rsp + 128]
     mov qword ptr [rsp + 80], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb5
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb12:
     mov rcx, qword ptr [rsp + 40]
-    mov rdx, qword ptr [rsp + 152]
+    mov rdx, qword ptr [rsp + 144]
     call __ml_fn___priv_811ad09817485e06_parse_object_after_key
-    mov qword ptr [rsp + 160], rax
+    mov qword ptr [rsp + 152], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb13
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb13:
-    mov rax, qword ptr [rsp + 160]
-    mov qword ptr [rsp + 136], rax
+    mov rax, qword ptr [rsp + 152]
+    mov qword ptr [rsp + 128], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb11
 __ml_fn___priv_811ad09817485e06_parse_object.Lbb14:
-    mov rax, qword ptr [rsp + 168]
-    mov qword ptr [rsp + 136], rax
+    mov rax, qword ptr [rsp + 160]
+    mov qword ptr [rsp + 128], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object.Lbb11
 __ml_fn___priv_811ad09817485e06_parse_object_after_key:
     sub rsp, 168
@@ -2981,25 +2998,25 @@ __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb15:
     add rax, rcx
     mov qword ptr [rsp + 168], rax
     mov rcx, qword ptr [rsp + 168]
-    mov rdx, qword ptr [rsp + 176]
+    mov rdx, 1
     call __ml_fn___priv_811ad09817485e06_ok_result
-    mov qword ptr [rsp + 184], rax
+    mov qword ptr [rsp + 176], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb18
 __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb16:
     mov rcx, qword ptr [rsp + 56]
     call __ml_fn___priv_811ad09817485e06_error_result
-    mov qword ptr [rsp + 192], rax
+    mov qword ptr [rsp + 184], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb19
 __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb17:
     mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 72], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb5
 __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb18:
-    mov rax, qword ptr [rsp + 184]
+    mov rax, qword ptr [rsp + 176]
     mov qword ptr [rsp + 152], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb17
 __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb19:
-    mov rax, qword ptr [rsp + 192]
+    mov rax, qword ptr [rsp + 184]
     mov qword ptr [rsp + 152], rax
     jmp __ml_fn___priv_811ad09817485e06_parse_object_after_value.Lbb17
 __ml_fn_print_int:

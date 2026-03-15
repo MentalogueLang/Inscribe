@@ -19,6 +19,7 @@ pub fn fold_block_constants(block: &mut BasicBlockData) {
 
 pub fn fold_function_constants(function: &mut MirFunction) {
     let local_count = function.locals.len();
+    let original_blocks = function.blocks.clone();
     let mut incoming = vec![None; function.blocks.len()];
     let mut queue = VecDeque::new();
 
@@ -30,8 +31,9 @@ pub fn fold_function_constants(function: &mut MirFunction) {
             continue;
         };
 
-        let block = &mut function.blocks[block_id.0];
-        fold_block_with_env(block, &mut env);
+        let mut block = original_blocks[block_id.0].clone();
+        fold_block_with_env(&mut block, &mut env);
+        function.blocks[block_id.0] = block.clone();
 
         for successor in successor_blocks(&block.terminator) {
             if merge_env(&mut incoming[successor.0], &env) {

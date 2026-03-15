@@ -2291,12 +2291,12 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Bool,
-                                            value: Bool(
-                                                true,
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                2,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -2439,12 +2439,12 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Bool,
-                                            value: Bool(
-                                                true,
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                4,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -3902,12 +3902,12 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Bool,
-                                            value: Bool(
-                                                true,
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                2,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -4222,12 +4222,12 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Bool,
-                                            value: Bool(
-                                                true,
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                6,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -4705,29 +4705,6 @@ MirProgram {
                         3,
                     ),
                     name: "_tmp3",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 841,
-                            line: 14,
-                            column: 16,
-                        },
-                        end: Position {
-                            offset: 852,
-                            line: 14,
-                            column: 27,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        4,
-                    ),
-                    name: "_tmp4",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -4746,9 +4723,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        5,
+                        4,
                     ),
-                    name: "_tmp5",
+                    name: "_tmp4",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -4767,32 +4744,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        6,
+                        5,
                     ),
-                    name: "_tmp6",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 897,
-                            line: 17,
-                            column: 20,
-                        },
-                        end: Position {
-                            offset: 907,
-                            line: 17,
-                            column: 30,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        7,
-                    ),
-                    name: "_tmp7",
+                    name: "_tmp5",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -4811,9 +4765,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        8,
+                        6,
                     ),
-                    name: "_tmp8",
+                    name: "_tmp6",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -4832,32 +4786,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        9,
+                        7,
                     ),
-                    name: "_tmp9",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 964,
-                            line: 20,
-                            column: 24,
-                        },
-                        end: Position {
-                            offset: 975,
-                            line: 20,
-                            column: 35,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        10,
-                    ),
-                    name: "_tmp10",
+                    name: "_tmp7",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -4876,9 +4807,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        11,
+                        8,
                     ),
-                    name: "_tmp11",
+                    name: "_tmp8",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -4897,32 +4828,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        12,
+                        9,
                     ),
-                    name: "_tmp12",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 1044,
-                            line: 23,
-                            column: 28,
-                        },
-                        end: Position {
-                            offset: 1055,
-                            line: 23,
-                            column: 39,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        13,
-                    ),
-                    name: "_tmp13",
+                    name: "_tmp9",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -4941,9 +4849,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        14,
+                        10,
                     ),
-                    name: "_tmp14",
+                    name: "_tmp10",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -4962,32 +4870,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        15,
+                        11,
                     ),
-                    name: "_tmp15",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 1136,
-                            line: 26,
-                            column: 32,
-                        },
-                        end: Position {
-                            offset: 1145,
-                            line: 26,
-                            column: 41,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        16,
-                    ),
-                    name: "_tmp16",
+                    name: "_tmp11",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -5006,9 +4891,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        17,
+                        12,
                     ),
-                    name: "_tmp17",
+                    name: "_tmp12",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -5027,32 +4912,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        18,
+                        13,
                     ),
-                    name: "_tmp18",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 1238,
-                            line: 29,
-                            column: 36,
-                        },
-                        end: Position {
-                            offset: 1247,
-                            line: 29,
-                            column: 45,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        19,
-                    ),
-                    name: "_tmp19",
+                    name: "_tmp13",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -5141,25 +5003,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 841,
-                                    line: 14,
-                                    column: 16,
-                                },
-                                end: Position {
-                                    offset: 852,
-                                    line: 14,
-                                    column: 27,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    4,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 833,
                                     line: 14,
                                     column: 8,
@@ -5175,7 +5018,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        4,
+                                        3,
                                     ),
                                     projection: [],
                                 },
@@ -5189,12 +5032,14 @@ MirProgram {
                                             projection: [],
                                         },
                                     ),
-                                    right: Copy(
-                                        Place {
-                                            local: LocalId(
-                                                3,
+                                    right: Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "1",
+                                            ),
                                         },
                                     ),
                                 },
@@ -5215,7 +5060,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    5,
+                                    4,
                                 ),
                             ),
                             span: Span {
@@ -5234,26 +5079,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    6,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 897,
-                                    line: 17,
-                                    column: 20,
-                                },
-                                end: Position {
-                                    offset: 907,
-                                    line: 17,
-                                    column: 30,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    7,
+                                    5,
                                 ),
                             ),
                             span: Span {
@@ -5272,7 +5098,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    8,
+                                    6,
                                 ),
                             ),
                             span: Span {
@@ -5291,26 +5117,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    9,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 964,
-                                    line: 20,
-                                    column: 24,
-                                },
-                                end: Position {
-                                    offset: 975,
-                                    line: 20,
-                                    column: 35,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    10,
+                                    7,
                                 ),
                             ),
                             span: Span {
@@ -5329,7 +5136,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    11,
+                                    8,
                                 ),
                             ),
                             span: Span {
@@ -5348,26 +5155,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    12,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 1044,
-                                    line: 23,
-                                    column: 28,
-                                },
-                                end: Position {
-                                    offset: 1055,
-                                    line: 23,
-                                    column: 39,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    13,
+                                    9,
                                 ),
                             ),
                             span: Span {
@@ -5386,7 +5174,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    14,
+                                    10,
                                 ),
                             ),
                             span: Span {
@@ -5405,26 +5193,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    15,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 1136,
-                                    line: 26,
-                                    column: 32,
-                                },
-                                end: Position {
-                                    offset: 1145,
-                                    line: 26,
-                                    column: 41,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    16,
+                                    11,
                                 ),
                             ),
                             span: Span {
@@ -5443,7 +5212,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    17,
+                                    12,
                                 ),
                             ),
                             span: Span {
@@ -5462,26 +5231,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    18,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 1238,
-                                    line: 29,
-                                    column: 36,
-                                },
-                                end: Position {
-                                    offset: 1247,
-                                    line: 29,
-                                    column: 45,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    19,
+                                    13,
                                 ),
                             ),
                             span: Span {
@@ -5502,7 +5252,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    4,
+                                    3,
                                 ),
                                 projection: [],
                             },
@@ -5568,7 +5318,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        7,
+                                        5,
                                     ),
                                     projection: [],
                                 },
@@ -5582,12 +5332,14 @@ MirProgram {
                                             projection: [],
                                         },
                                     ),
-                                    right: Copy(
-                                        Place {
-                                            local: LocalId(
-                                                6,
+                                    right: Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "2",
+                                            ),
                                         },
                                     ),
                                 },
@@ -5610,7 +5362,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    7,
+                                    5,
                                 ),
                                 projection: [],
                             },
@@ -5637,12 +5389,12 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Int,
-                                            value: Integer(
-                                                "1",
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                2,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -5672,7 +5424,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        5,
+                                        4,
                                     ),
                                     projection: [],
                                 },
@@ -5716,7 +5468,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        10,
+                                        7,
                                     ),
                                     projection: [],
                                 },
@@ -5730,12 +5482,14 @@ MirProgram {
                                             projection: [],
                                         },
                                     ),
-                                    right: Copy(
-                                        Place {
-                                            local: LocalId(
-                                                9,
+                                    right: Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "3",
+                                            ),
                                         },
                                     ),
                                 },
@@ -5758,7 +5512,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    10,
+                                    7,
                                 ),
                                 projection: [],
                             },
@@ -5785,12 +5539,12 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Int,
-                                            value: Integer(
-                                                "2",
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                4,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -5824,7 +5578,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        8,
+                                        6,
                                     ),
                                     projection: [],
                                 },
@@ -5868,7 +5622,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        13,
+                                        9,
                                     ),
                                     projection: [],
                                 },
@@ -5882,12 +5636,14 @@ MirProgram {
                                             projection: [],
                                         },
                                     ),
-                                    right: Copy(
-                                        Place {
-                                            local: LocalId(
-                                                12,
+                                    right: Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "4",
+                                            ),
                                         },
                                     ),
                                 },
@@ -5910,7 +5666,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    13,
+                                    9,
                                 ),
                                 projection: [],
                             },
@@ -5932,17 +5688,17 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        5,
+                                        4,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Int,
-                                            value: Integer(
-                                                "3",
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                6,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -5976,7 +5732,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        8,
                                     ),
                                     projection: [],
                                 },
@@ -6020,7 +5776,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        16,
+                                        11,
                                     ),
                                     projection: [],
                                 },
@@ -6034,12 +5790,14 @@ MirProgram {
                                             projection: [],
                                         },
                                     ),
-                                    right: Copy(
-                                        Place {
-                                            local: LocalId(
-                                                15,
+                                    right: Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "5",
+                                            ),
                                         },
                                     ),
                                 },
@@ -6062,7 +5820,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    16,
+                                    11,
                                 ),
                                 projection: [],
                             },
@@ -6084,17 +5842,17 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        8,
+                                        6,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Int,
-                                            value: Integer(
-                                                "4",
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                8,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -6128,7 +5886,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        14,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -6172,7 +5930,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        19,
+                                        13,
                                     ),
                                     projection: [],
                                 },
@@ -6186,12 +5944,14 @@ MirProgram {
                                             projection: [],
                                         },
                                     ),
-                                    right: Copy(
-                                        Place {
-                                            local: LocalId(
-                                                18,
+                                    right: Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "6",
+                                            ),
                                         },
                                     ),
                                 },
@@ -6214,7 +5974,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    19,
+                                    13,
                                 ),
                                 projection: [],
                             },
@@ -6236,17 +5996,17 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        8,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Int,
-                                            value: Integer(
-                                                "5",
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                10,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -6280,7 +6040,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        17,
+                                        12,
                                     ),
                                     projection: [],
                                 },
@@ -6324,7 +6084,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        17,
+                                        12,
                                     ),
                                     projection: [],
                                 },
@@ -6368,7 +6128,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        14,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -6376,7 +6136,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                17,
+                                                12,
                                             ),
                                             projection: [],
                                         },
@@ -6540,29 +6300,6 @@ MirProgram {
                     temp: true,
                     span: Span {
                         start: Position {
-                            offset: 1513,
-                            line: 43,
-                            column: 9,
-                        },
-                        end: Position {
-                            offset: 1524,
-                            line: 43,
-                            column: 20,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        5,
-                    ),
-                    name: "_tmp5",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
                             offset: 1546,
                             line: 45,
                             column: 9,
@@ -6576,9 +6313,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        6,
+                        5,
                     ),
-                    name: "_tmp6",
+                    name: "_tmp5",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -6597,32 +6334,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        7,
+                        6,
                     ),
-                    name: "_tmp7",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 1573,
-                            line: 46,
-                            column: 13,
-                        },
-                        end: Position {
-                            offset: 1583,
-                            line: 46,
-                            column: 23,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        8,
-                    ),
-                    name: "_tmp8",
+                    name: "_tmp6",
                     ty: Enum(
                         "Kind",
                     ),
@@ -6643,9 +6357,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        9,
+                        7,
                     ),
-                    name: "_tmp9",
+                    name: "_tmp7",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -6664,32 +6378,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        10,
+                        8,
                     ),
-                    name: "_tmp10",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 1644,
-                            line: 49,
-                            column: 17,
-                        },
-                        end: Position {
-                            offset: 1655,
-                            line: 49,
-                            column: 28,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        11,
-                    ),
-                    name: "_tmp11",
+                    name: "_tmp8",
                     ty: Enum(
                         "Kind",
                     ),
@@ -6710,9 +6401,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        12,
+                        9,
                     ),
-                    name: "_tmp12",
+                    name: "_tmp9",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -6731,32 +6422,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        13,
+                        10,
                     ),
-                    name: "_tmp13",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 1728,
-                            line: 52,
-                            column: 21,
-                        },
-                        end: Position {
-                            offset: 1739,
-                            line: 52,
-                            column: 32,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        14,
-                    ),
-                    name: "_tmp14",
+                    name: "_tmp10",
                     ty: Enum(
                         "Kind",
                     ),
@@ -6777,9 +6445,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        15,
+                        11,
                     ),
-                    name: "_tmp15",
+                    name: "_tmp11",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -6798,32 +6466,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        16,
+                        12,
                     ),
-                    name: "_tmp16",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 1824,
-                            line: 55,
-                            column: 25,
-                        },
-                        end: Position {
-                            offset: 1833,
-                            line: 55,
-                            column: 34,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        17,
-                    ),
-                    name: "_tmp17",
+                    name: "_tmp12",
                     ty: Enum(
                         "Kind",
                     ),
@@ -6844,9 +6489,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        18,
+                        13,
                     ),
-                    name: "_tmp18",
+                    name: "_tmp13",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -6860,52 +6505,6 @@ MirProgram {
                             offset: 1899,
                             line: 57,
                             column: 37,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        19,
-                    ),
-                    name: "_tmp19",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 1930,
-                            line: 58,
-                            column: 29,
-                        },
-                        end: Position {
-                            offset: 1939,
-                            line: 58,
-                            column: 38,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        20,
-                    ),
-                    name: "_tmp20",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 2001,
-                            line: 60,
-                            column: 29,
-                        },
-                        end: Position {
-                            offset: 2013,
-                            line: 60,
-                            column: 41,
                         },
                     },
                 },
@@ -7041,25 +6640,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 1513,
-                                    line: 43,
-                                    column: 9,
-                                },
-                                end: Position {
-                                    offset: 1524,
-                                    line: 43,
-                                    column: 20,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    5,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 1546,
                                     line: 45,
                                     column: 9,
@@ -7074,7 +6654,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    6,
+                                    5,
                                 ),
                             ),
                             span: Span {
@@ -7093,26 +6673,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    7,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 1573,
-                                    line: 46,
-                                    column: 13,
-                                },
-                                end: Position {
-                                    offset: 1583,
-                                    line: 46,
-                                    column: 23,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    8,
+                                    6,
                                 ),
                             ),
                             span: Span {
@@ -7131,7 +6692,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    9,
+                                    7,
                                 ),
                             ),
                             span: Span {
@@ -7150,26 +6711,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    10,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 1644,
-                                    line: 49,
-                                    column: 17,
-                                },
-                                end: Position {
-                                    offset: 1655,
-                                    line: 49,
-                                    column: 28,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    11,
+                                    8,
                                 ),
                             ),
                             span: Span {
@@ -7188,7 +6730,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    12,
+                                    9,
                                 ),
                             ),
                             span: Span {
@@ -7207,26 +6749,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    13,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 1728,
-                                    line: 52,
-                                    column: 21,
-                                },
-                                end: Position {
-                                    offset: 1739,
-                                    line: 52,
-                                    column: 32,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    14,
+                                    10,
                                 ),
                             ),
                             span: Span {
@@ -7245,7 +6768,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    15,
+                                    11,
                                 ),
                             ),
                             span: Span {
@@ -7264,26 +6787,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    16,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 1824,
-                                    line: 55,
-                                    column: 25,
-                                },
-                                end: Position {
-                                    offset: 1833,
-                                    line: 55,
-                                    column: 34,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    17,
+                                    12,
                                 ),
                             ),
                             span: Span {
@@ -7302,7 +6806,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    18,
+                                    13,
                                 ),
                             ),
                             span: Span {
@@ -7315,44 +6819,6 @@ MirProgram {
                                     offset: 1899,
                                     line: 57,
                                     column: 37,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    19,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 1930,
-                                    line: 58,
-                                    column: 29,
-                                },
-                                end: Position {
-                                    offset: 1939,
-                                    line: 58,
-                                    column: 38,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    20,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 2001,
-                                    line: 60,
-                                    column: 29,
-                                },
-                                end: Position {
-                                    offset: 2013,
-                                    line: 60,
-                                    column: 41,
                                 },
                             },
                         },
@@ -7388,12 +6854,14 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Copy(
-                                        Place {
-                                            local: LocalId(
-                                                4,
+                                    Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "1",
+                                            ),
                                         },
                                     ),
                                 ),
@@ -7427,7 +6895,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        6,
+                                        5,
                                     ),
                                     projection: [],
                                 },
@@ -7469,7 +6937,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    6,
+                                    5,
                                 ),
                                 projection: [],
                             },
@@ -7531,17 +6999,19 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        5,
+                                        4,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Copy(
-                                        Place {
-                                            local: LocalId(
-                                                7,
+                                    Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "2",
+                                            ),
                                         },
                                     ),
                                 ),
@@ -7575,7 +7045,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        9,
+                                        7,
                                     ),
                                     projection: [],
                                 },
@@ -7617,7 +7087,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    9,
+                                    7,
                                 ),
                                 projection: [],
                             },
@@ -7647,7 +7117,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                5,
+                                                4,
                                             ),
                                             projection: [],
                                         },
@@ -7683,17 +7153,19 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        8,
+                                        6,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Copy(
-                                        Place {
-                                            local: LocalId(
-                                                10,
+                                    Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "3",
+                                            ),
                                         },
                                     ),
                                 ),
@@ -7727,7 +7199,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        12,
+                                        9,
                                     ),
                                     projection: [],
                                 },
@@ -7769,7 +7241,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    12,
+                                    9,
                                 ),
                                 projection: [],
                             },
@@ -7791,7 +7263,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        5,
+                                        4,
                                     ),
                                     projection: [],
                                 },
@@ -7799,7 +7271,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                8,
+                                                6,
                                             ),
                                             projection: [],
                                         },
@@ -7835,17 +7307,19 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        8,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Copy(
-                                        Place {
-                                            local: LocalId(
-                                                13,
+                                    Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "4",
+                                            ),
                                         },
                                     ),
                                 ),
@@ -7879,7 +7353,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        15,
+                                        11,
                                     ),
                                     projection: [],
                                 },
@@ -7921,7 +7395,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    15,
+                                    11,
                                 ),
                                 projection: [],
                             },
@@ -7943,7 +7417,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        8,
+                                        6,
                                     ),
                                     projection: [],
                                 },
@@ -7951,7 +7425,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                11,
+                                                8,
                                             ),
                                             projection: [],
                                         },
@@ -7987,17 +7461,19 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        14,
+                                        10,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Copy(
-                                        Place {
-                                            local: LocalId(
-                                                16,
+                                    Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "5",
+                                            ),
                                         },
                                     ),
                                 ),
@@ -8031,7 +7507,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        18,
+                                        13,
                                     ),
                                     projection: [],
                                 },
@@ -8073,7 +7549,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    18,
+                                    13,
                                 ),
                                 projection: [],
                             },
@@ -8095,7 +7571,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        8,
                                     ),
                                     projection: [],
                                 },
@@ -8103,7 +7579,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                14,
+                                                10,
                                             ),
                                             projection: [],
                                         },
@@ -8139,17 +7615,19 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        17,
+                                        12,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Copy(
-                                        Place {
-                                            local: LocalId(
-                                                19,
+                                    Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "6",
+                                            ),
                                         },
                                     ),
                                 ),
@@ -8183,17 +7661,19 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        17,
+                                        12,
                                     ),
                                     projection: [],
                                 },
                                 Use(
-                                    Copy(
-                                        Place {
-                                            local: LocalId(
-                                                20,
+                                    Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "0",
+                                            ),
                                         },
                                     ),
                                 ),
@@ -8227,7 +7707,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        14,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -8235,7 +7715,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                17,
+                                                12,
                                             ),
                                             projection: [],
                                         },
@@ -10172,29 +9652,6 @@ MirProgram {
                         },
                     },
                 },
-                LocalDecl {
-                    id: LocalId(
-                        11,
-                    ),
-                    name: "_tmp11",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 2624,
-                            line: 94,
-                            column: 9,
-                        },
-                        end: Position {
-                            offset: 2636,
-                            line: 94,
-                            column: 21,
-                        },
-                    },
-                },
             ],
             blocks: [
                 BasicBlockData {
@@ -10392,25 +9849,6 @@ MirProgram {
                                 },
                             },
                         },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    11,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 2624,
-                                    line: 94,
-                                    column: 9,
-                                },
-                                end: Position {
-                                    offset: 2636,
-                                    line: 94,
-                                    column: 21,
-                                },
-                            },
-                        },
                     ],
                     terminator: Call {
                         callee: Constant(
@@ -10559,12 +9997,14 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Copy(
-                                        Place {
-                                            local: LocalId(
-                                                11,
+                                    Constant(
+                                        Constant {
+                                            ty: Enum(
+                                                "Kind",
                                             ),
-                                            projection: [],
+                                            value: Integer(
+                                                "0",
+                                            ),
                                         },
                                     ),
                                 ),
@@ -12604,12 +12044,12 @@ MirProgram {
                                     projection: [],
                                 },
                                 Use(
-                                    Constant(
-                                        Constant {
-                                            ty: Bool,
-                                            value: Bool(
-                                                true,
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                3,
                                             ),
+                                            projection: [],
                                         },
                                     ),
                                 ),
@@ -14133,9 +13573,20 @@ MirProgram {
                         4,
                     ),
                     statements: [],
-                    terminator: Goto {
-                        target: BasicBlockId(
+                    terminator: Branch {
+                        condition: Move(
+                            Place {
+                                local: LocalId(
+                                    4,
+                                ),
+                                projection: [],
+                            },
+                        ),
+                        then_bb: BasicBlockId(
                             7,
+                        ),
+                        else_bb: BasicBlockId(
+                            8,
                         ),
                     },
                 },
@@ -14240,6 +13691,105 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
+                                        8,
+                                    ),
+                                    projection: [],
+                                },
+                                BinaryOp {
+                                    op: "Add",
+                                    left: Copy(
+                                        Place {
+                                            local: LocalId(
+                                                2,
+                                            ),
+                                            projection: [],
+                                        },
+                                    ),
+                                    right: Constant(
+                                        Constant {
+                                            ty: Int,
+                                            value: Integer(
+                                                "1",
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 3343,
+                                    line: 120,
+                                    column: 33,
+                                },
+                                end: Position {
+                                    offset: 3352,
+                                    line: 120,
+                                    column: 42,
+                                },
+                            },
+                        },
+                    ],
+                    terminator: Call {
+                        callee: Constant(
+                            Constant {
+                                ty: Function(
+                                    FunctionSignature {
+                                        key: FunctionKey {
+                                            receiver: None,
+                                            name: "__priv_811ad09817485e06_skip_whitespace",
+                                        },
+                                        params: [
+                                            String,
+                                            Int,
+                                        ],
+                                        return_type: Int,
+                                    },
+                                ),
+                                value: Function(
+                                    "__priv_811ad09817485e06_skip_whitespace",
+                                ),
+                            },
+                        ),
+                        args: [
+                            Copy(
+                                Place {
+                                    local: LocalId(
+                                        1,
+                                    ),
+                                    projection: [],
+                                },
+                            ),
+                            Move(
+                                Place {
+                                    local: LocalId(
+                                        8,
+                                    ),
+                                    projection: [],
+                                },
+                            ),
+                        ],
+                        destination: Some(
+                            Place {
+                                local: LocalId(
+                                    9,
+                                ),
+                                projection: [],
+                            },
+                        ),
+                        target: BasicBlockId(
+                            10,
+                        ),
+                    },
+                },
+                BasicBlockData {
+                    id: BasicBlockId(
+                        8,
+                    ),
+                    statements: [
+                        Statement {
+                            kind: Assign(
+                                Place {
+                                    local: LocalId(
                                         3,
                                     ),
                                     projection: [],
@@ -14271,13 +13821,13 @@ MirProgram {
                     ],
                     terminator: Goto {
                         target: BasicBlockId(
-                            8,
+                            9,
                         ),
                     },
                 },
                 BasicBlockData {
                     id: BasicBlockId(
-                        8,
+                        9,
                     ),
                     statements: [
                         Statement {
@@ -14314,6 +13864,50 @@ MirProgram {
                         },
                     ],
                     terminator: Return,
+                },
+                BasicBlockData {
+                    id: BasicBlockId(
+                        10,
+                    ),
+                    statements: [
+                        Statement {
+                            kind: Assign(
+                                Place {
+                                    local: LocalId(
+                                        3,
+                                    ),
+                                    projection: [],
+                                },
+                                Use(
+                                    Move(
+                                        Place {
+                                            local: LocalId(
+                                                9,
+                                            ),
+                                            projection: [],
+                                        },
+                                    ),
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 3309,
+                                    line: 119,
+                                    column: 69,
+                                },
+                                end: Position {
+                                    offset: 3359,
+                                    line: 121,
+                                    column: 6,
+                                },
+                            },
+                        },
+                    ],
+                    terminator: Goto {
+                        target: BasicBlockId(
+                            9,
+                        ),
+                    },
                 },
             ],
             entry: BasicBlockId(
@@ -21583,29 +21177,6 @@ MirProgram {
                         6,
                     ),
                     name: "_tmp6",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 5589,
-                            line: 208,
-                            column: 49,
-                        },
-                        end: Position {
-                            offset: 5600,
-                            line: 208,
-                            column: 60,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        7,
-                    ),
-                    name: "_tmp7",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -21624,9 +21195,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        8,
+                        7,
                     ),
-                    name: "_tmp8",
+                    name: "_tmp7",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -21772,25 +21343,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 5589,
-                                    line: 208,
-                                    column: 49,
-                                },
-                                end: Position {
-                                    offset: 5600,
-                                    line: 208,
-                                    column: 60,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    7,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 5549,
                                     line: 208,
                                     column: 9,
@@ -21805,7 +21357,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    8,
+                                    7,
                                 ),
                             ),
                             span: Span {
@@ -22000,7 +21552,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    8,
+                                    7,
                                 ),
                                 projection: [],
                             },
@@ -22087,19 +21639,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        6,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "3",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    7,
+                                    6,
                                 ),
                                 projection: [],
                             },
@@ -22126,7 +21680,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                7,
+                                                6,
                                             ),
                                             projection: [],
                                         },
@@ -22170,7 +21724,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                8,
+                                                7,
                                             ),
                                             projection: [],
                                         },
@@ -28736,29 +28290,6 @@ MirProgram {
                         15,
                     ),
                     name: "_tmp15",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 7639,
-                            line: 276,
-                            column: 30,
-                        },
-                        end: Position {
-                            offset: 7648,
-                            line: 276,
-                            column: 39,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        16,
-                    ),
-                    name: "_tmp16",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -28777,9 +28308,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        17,
+                        16,
                     ),
-                    name: "_tmp17",
+                    name: "_tmp16",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -29096,25 +28627,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 7639,
-                                    line: 276,
-                                    column: 30,
-                                },
-                                end: Position {
-                                    offset: 7648,
-                                    line: 276,
-                                    column: 39,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    16,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 7618,
                                     line: 276,
                                     column: 9,
@@ -29129,7 +28641,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    17,
+                                    16,
                                 ),
                             ),
                             span: Span {
@@ -29962,19 +29474,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        15,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "5",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    16,
+                                    15,
                                 ),
                                 projection: [],
                             },
@@ -30022,7 +29536,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    17,
+                                    16,
                                 ),
                                 projection: [],
                             },
@@ -30089,7 +29603,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                16,
+                                                15,
                                             ),
                                             projection: [],
                                         },
@@ -30133,7 +29647,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                17,
+                                                16,
                                             ),
                                             projection: [],
                                         },
@@ -30579,29 +30093,6 @@ MirProgram {
                         18,
                     ),
                     name: "_tmp18",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 7967,
-                            line: 284,
-                            column: 30,
-                        },
-                        end: Position {
-                            offset: 7976,
-                            line: 284,
-                            column: 39,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        19,
-                    ),
-                    name: "_tmp19",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -30620,9 +30111,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        20,
+                        19,
                     ),
-                    name: "_tmp20",
+                    name: "_tmp19",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -30996,25 +30487,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 7967,
-                                    line: 284,
-                                    column: 30,
-                                },
-                                end: Position {
-                                    offset: 7976,
-                                    line: 284,
-                                    column: 39,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    19,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 7946,
                                     line: 284,
                                     column: 9,
@@ -31029,7 +30501,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    20,
+                                    19,
                                 ),
                             ),
                             span: Span {
@@ -32080,19 +31552,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        18,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "5",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    19,
+                                    18,
                                 ),
                                 projection: [],
                             },
@@ -32140,7 +31614,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    20,
+                                    19,
                                 ),
                                 projection: [],
                             },
@@ -32207,7 +31681,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                19,
+                                                18,
                                             ),
                                             projection: [],
                                         },
@@ -32251,7 +31725,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                20,
+                                                19,
                                             ),
                                             projection: [],
                                         },
@@ -32634,29 +32108,6 @@ MirProgram {
                         15,
                     ),
                     name: "_tmp15",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 8259,
-                            line: 292,
-                            column: 30,
-                        },
-                        end: Position {
-                            offset: 8268,
-                            line: 292,
-                            column: 39,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        16,
-                    ),
-                    name: "_tmp16",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -32675,9 +32126,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        17,
+                        16,
                     ),
-                    name: "_tmp17",
+                    name: "_tmp16",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -32994,25 +32445,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 8259,
-                                    line: 292,
-                                    column: 30,
-                                },
-                                end: Position {
-                                    offset: 8268,
-                                    line: 292,
-                                    column: 39,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    16,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 8238,
                                     line: 292,
                                     column: 9,
@@ -33027,7 +32459,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    17,
+                                    16,
                                 ),
                             ),
                             span: Span {
@@ -33860,19 +33292,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        15,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "6",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    16,
+                                    15,
                                 ),
                                 projection: [],
                             },
@@ -33920,7 +33354,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    17,
+                                    16,
                                 ),
                                 projection: [],
                             },
@@ -33987,7 +33421,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                16,
+                                                15,
                                             ),
                                             projection: [],
                                         },
@@ -34031,7 +33465,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                17,
+                                                16,
                                             ),
                                             projection: [],
                                         },
@@ -36581,29 +36015,6 @@ MirProgram {
                         10,
                     ),
                     name: "_tmp10",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 9226,
-                            line: 327,
-                            column: 30,
-                        },
-                        end: Position {
-                            offset: 9237,
-                            line: 327,
-                            column: 41,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        11,
-                    ),
-                    name: "_tmp11",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -36622,32 +36033,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        12,
+                        11,
                     ),
-                    name: "_tmp12",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 9287,
-                            line: 330,
-                            column: 26,
-                        },
-                        end: Position {
-                            offset: 9298,
-                            line: 330,
-                            column: 37,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        13,
-                    ),
-                    name: "_tmp13",
+                    name: "_tmp11",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -36869,25 +36257,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 9226,
-                                    line: 327,
-                                    column: 30,
-                                },
-                                end: Position {
-                                    offset: 9237,
-                                    line: 327,
-                                    column: 41,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    11,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 9209,
                                     line: 327,
                                     column: 13,
@@ -36902,26 +36271,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    12,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
-                                    offset: 9287,
-                                    line: 330,
-                                    column: 26,
-                                },
-                                end: Position {
-                                    offset: 9298,
-                                    line: 330,
-                                    column: 37,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    13,
+                                    11,
                                 ),
                             ),
                             span: Span {
@@ -37106,19 +36456,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        12,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "4",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    13,
+                                    11,
                                 ),
                                 projection: [],
                             },
@@ -37374,19 +36726,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        10,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "4",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    11,
+                                    10,
                                 ),
                                 projection: [],
                             },
@@ -37501,7 +36855,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                11,
+                                                10,
                                             ),
                                             projection: [],
                                         },
@@ -37545,7 +36899,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                13,
+                                                11,
                                             ),
                                             projection: [],
                                         },
@@ -37802,29 +37156,6 @@ MirProgram {
                         9,
                     ),
                     name: "_tmp9",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 9486,
-                            line: 337,
-                            column: 31,
-                        },
-                        end: Position {
-                            offset: 9496,
-                            line: 337,
-                            column: 41,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        10,
-                    ),
-                    name: "_tmp10",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -37843,7 +37174,7 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        11,
+                        10,
                     ),
                     name: "value",
                     ty: Int,
@@ -37864,9 +37195,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        12,
+                        11,
                     ),
-                    name: "_tmp12",
+                    name: "_tmp11",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -37885,9 +37216,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        13,
+                        12,
                     ),
-                    name: "_tmp13",
+                    name: "_tmp12",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -37906,9 +37237,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        14,
+                        13,
                     ),
-                    name: "_tmp14",
+                    name: "_tmp13",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -37927,9 +37258,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        15,
+                        14,
                     ),
-                    name: "_tmp15",
+                    name: "_tmp14",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -37948,9 +37279,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        16,
+                        15,
                     ),
-                    name: "_tmp16",
+                    name: "_tmp15",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -37969,9 +37300,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        17,
+                        16,
                     ),
-                    name: "_tmp17",
+                    name: "_tmp16",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -38215,25 +37546,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 9486,
-                                    line: 337,
-                                    column: 31,
-                                },
-                                end: Position {
-                                    offset: 9496,
-                                    line: 337,
-                                    column: 41,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    10,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 9464,
                                     line: 337,
                                     column: 9,
@@ -38248,7 +37560,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    12,
+                                    11,
                                 ),
                             ),
                             span: Span {
@@ -38267,7 +37579,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    13,
+                                    12,
                                 ),
                             ),
                             span: Span {
@@ -38286,7 +37598,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    14,
+                                    13,
                                 ),
                             ),
                             span: Span {
@@ -38305,7 +37617,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    15,
+                                    14,
                                 ),
                             ),
                             span: Span {
@@ -38324,7 +37636,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    16,
+                                    15,
                                 ),
                             ),
                             span: Span {
@@ -38343,7 +37655,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    17,
+                                    16,
                                 ),
                             ),
                             span: Span {
@@ -38612,19 +37924,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        9,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "2",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    10,
+                                    9,
                                 ),
                                 projection: [],
                             },
@@ -38642,7 +37956,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    11,
+                                    10,
                                 ),
                             ),
                             span: Span {
@@ -38701,7 +38015,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    12,
+                                    11,
                                 ),
                                 projection: [],
                             },
@@ -38768,7 +38082,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                10,
+                                                9,
                                             ),
                                             projection: [],
                                         },
@@ -38804,7 +38118,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -38812,7 +38126,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                12,
+                                                11,
                                             ),
                                             projection: [],
                                         },
@@ -38857,7 +38171,7 @@ MirProgram {
                             Copy(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -38866,7 +38180,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    14,
+                                    13,
                                 ),
                                 projection: [],
                             },
@@ -38885,7 +38199,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    14,
+                                    13,
                                 ),
                                 projection: [],
                             },
@@ -38927,7 +38241,7 @@ MirProgram {
                             Copy(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -38936,7 +38250,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    15,
+                                    14,
                                 ),
                                 projection: [],
                             },
@@ -38984,7 +38298,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    17,
+                                    16,
                                 ),
                                 projection: [],
                             },
@@ -39011,7 +38325,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                13,
+                                                12,
                                             ),
                                             projection: [],
                                         },
@@ -39076,7 +38390,7 @@ MirProgram {
                             Move(
                                 Place {
                                     local: LocalId(
-                                        15,
+                                        14,
                                     ),
                                     projection: [],
                                 },
@@ -39085,7 +38399,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    16,
+                                    15,
                                 ),
                                 projection: [],
                             },
@@ -39104,7 +38418,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        13,
+                                        12,
                                     ),
                                     projection: [],
                                 },
@@ -39112,7 +38426,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                16,
+                                                15,
                                             ),
                                             projection: [],
                                         },
@@ -39148,7 +38462,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        13,
+                                        12,
                                     ),
                                     projection: [],
                                 },
@@ -39156,7 +38470,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                17,
+                                                16,
                                             ),
                                             projection: [],
                                         },
@@ -39602,29 +38916,6 @@ MirProgram {
                         18,
                     ),
                     name: "_tmp18",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 10172,
-                            line: 359,
-                            column: 35,
-                        },
-                        end: Position {
-                            offset: 10182,
-                            line: 359,
-                            column: 45,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        19,
-                    ),
-                    name: "_tmp19",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -39643,9 +38934,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        20,
+                        19,
                     ),
-                    name: "_tmp20",
+                    name: "_tmp19",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -40000,25 +39291,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 10172,
-                                    line: 359,
-                                    column: 35,
-                                },
-                                end: Position {
-                                    offset: 10182,
-                                    line: 359,
-                                    column: 45,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    19,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 10150,
                                     line: 359,
                                     column: 13,
@@ -40033,7 +39305,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    20,
+                                    19,
                                 ),
                             ),
                             span: Span {
@@ -40936,19 +40208,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        18,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "2",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    19,
+                                    18,
                                 ),
                                 projection: [],
                             },
@@ -40996,7 +40270,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    20,
+                                    19,
                                 ),
                                 projection: [],
                             },
@@ -41067,7 +40341,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                19,
+                                                18,
                                             ),
                                             projection: [],
                                         },
@@ -41111,7 +40385,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                20,
+                                                19,
                                             ),
                                             projection: [],
                                         },
@@ -41368,29 +40642,6 @@ MirProgram {
                         9,
                     ),
                     name: "_tmp9",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 10432,
-                            line: 369,
-                            column: 31,
-                        },
-                        end: Position {
-                            offset: 10443,
-                            line: 369,
-                            column: 42,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        10,
-                    ),
-                    name: "_tmp10",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -41409,7 +40660,7 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        11,
+                        10,
                     ),
                     name: "key",
                     ty: Int,
@@ -41430,9 +40681,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        12,
+                        11,
                     ),
-                    name: "_tmp12",
+                    name: "_tmp11",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -41451,9 +40702,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        13,
+                        12,
                     ),
-                    name: "_tmp13",
+                    name: "_tmp12",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -41472,9 +40723,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        14,
+                        13,
                     ),
-                    name: "_tmp14",
+                    name: "_tmp13",
                     ty: Bool,
                     mutable: true,
                     temp: true,
@@ -41493,9 +40744,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        15,
+                        14,
                     ),
-                    name: "_tmp15",
+                    name: "_tmp14",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -41514,9 +40765,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        16,
+                        15,
                     ),
-                    name: "_tmp16",
+                    name: "_tmp15",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -41535,9 +40786,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        17,
+                        16,
                     ),
-                    name: "_tmp17",
+                    name: "_tmp16",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -41781,25 +41032,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 10432,
-                                    line: 369,
-                                    column: 31,
-                                },
-                                end: Position {
-                                    offset: 10443,
-                                    line: 369,
-                                    column: 42,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    10,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 10410,
                                     line: 369,
                                     column: 9,
@@ -41814,7 +41046,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    12,
+                                    11,
                                 ),
                             ),
                             span: Span {
@@ -41833,7 +41065,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    13,
+                                    12,
                                 ),
                             ),
                             span: Span {
@@ -41852,7 +41084,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    14,
+                                    13,
                                 ),
                             ),
                             span: Span {
@@ -41871,7 +41103,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    15,
+                                    14,
                                 ),
                             ),
                             span: Span {
@@ -41890,7 +41122,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    16,
+                                    15,
                                 ),
                             ),
                             span: Span {
@@ -41909,7 +41141,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    17,
+                                    16,
                                 ),
                             ),
                             span: Span {
@@ -42178,19 +41410,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        9,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "1",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    10,
+                                    9,
                                 ),
                                 projection: [],
                             },
@@ -42208,7 +41442,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    11,
+                                    10,
                                 ),
                             ),
                             span: Span {
@@ -42267,7 +41501,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    12,
+                                    11,
                                 ),
                                 projection: [],
                             },
@@ -42334,7 +41568,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                10,
+                                                9,
                                             ),
                                             projection: [],
                                         },
@@ -42370,7 +41604,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -42378,7 +41612,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                12,
+                                                11,
                                             ),
                                             projection: [],
                                         },
@@ -42423,7 +41657,7 @@ MirProgram {
                             Copy(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -42432,7 +41666,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    14,
+                                    13,
                                 ),
                                 projection: [],
                             },
@@ -42451,7 +41685,7 @@ MirProgram {
                         condition: Move(
                             Place {
                                 local: LocalId(
-                                    14,
+                                    13,
                                 ),
                                 projection: [],
                             },
@@ -42493,7 +41727,7 @@ MirProgram {
                             Copy(
                                 Place {
                                     local: LocalId(
-                                        11,
+                                        10,
                                     ),
                                     projection: [],
                                 },
@@ -42502,7 +41736,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    15,
+                                    14,
                                 ),
                                 projection: [],
                             },
@@ -42550,7 +41784,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    17,
+                                    16,
                                 ),
                                 projection: [],
                             },
@@ -42577,7 +41811,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                13,
+                                                12,
                                             ),
                                             projection: [],
                                         },
@@ -42642,7 +41876,7 @@ MirProgram {
                             Move(
                                 Place {
                                     local: LocalId(
-                                        15,
+                                        14,
                                     ),
                                     projection: [],
                                 },
@@ -42651,7 +41885,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    16,
+                                    15,
                                 ),
                                 projection: [],
                             },
@@ -42670,7 +41904,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        13,
+                                        12,
                                     ),
                                     projection: [],
                                 },
@@ -42678,7 +41912,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                16,
+                                                15,
                                             ),
                                             projection: [],
                                         },
@@ -42714,7 +41948,7 @@ MirProgram {
                             kind: Assign(
                                 Place {
                                     local: LocalId(
-                                        13,
+                                        12,
                                     ),
                                     projection: [],
                                 },
@@ -42722,7 +41956,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                17,
+                                                16,
                                             ),
                                             projection: [],
                                         },
@@ -44644,29 +43878,6 @@ MirProgram {
                         18,
                     ),
                     name: "_tmp18",
-                    ty: Enum(
-                        "Kind",
-                    ),
-                    mutable: true,
-                    temp: true,
-                    span: Span {
-                        start: Position {
-                            offset: 11521,
-                            line: 405,
-                            column: 35,
-                        },
-                        end: Position {
-                            offset: 11532,
-                            line: 405,
-                            column: 46,
-                        },
-                    },
-                },
-                LocalDecl {
-                    id: LocalId(
-                        19,
-                    ),
-                    name: "_tmp19",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -44685,9 +43896,9 @@ MirProgram {
                 },
                 LocalDecl {
                     id: LocalId(
-                        20,
+                        19,
                     ),
-                    name: "_tmp20",
+                    name: "_tmp19",
                     ty: Int,
                     mutable: true,
                     temp: true,
@@ -45042,25 +44253,6 @@ MirProgram {
                             ),
                             span: Span {
                                 start: Position {
-                                    offset: 11521,
-                                    line: 405,
-                                    column: 35,
-                                },
-                                end: Position {
-                                    offset: 11532,
-                                    line: 405,
-                                    column: 46,
-                                },
-                            },
-                        },
-                        Statement {
-                            kind: StorageLive(
-                                LocalId(
-                                    19,
-                                ),
-                            ),
-                            span: Span {
-                                start: Position {
                                     offset: 11499,
                                     line: 405,
                                     column: 13,
@@ -45075,7 +44267,7 @@ MirProgram {
                         Statement {
                             kind: StorageLive(
                                 LocalId(
-                                    20,
+                                    19,
                                 ),
                             ),
                             span: Span {
@@ -45978,19 +45170,21 @@ MirProgram {
                                     projection: [],
                                 },
                             ),
-                            Copy(
-                                Place {
-                                    local: LocalId(
-                                        18,
+                            Constant(
+                                Constant {
+                                    ty: Enum(
+                                        "Kind",
                                     ),
-                                    projection: [],
+                                    value: Integer(
+                                        "1",
+                                    ),
                                 },
                             ),
                         ],
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    19,
+                                    18,
                                 ),
                                 projection: [],
                             },
@@ -46038,7 +45232,7 @@ MirProgram {
                         destination: Some(
                             Place {
                                 local: LocalId(
-                                    20,
+                                    19,
                                 ),
                                 projection: [],
                             },
@@ -46109,7 +45303,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                19,
+                                                18,
                                             ),
                                             projection: [],
                                         },
@@ -46153,7 +45347,7 @@ MirProgram {
                                     Move(
                                         Place {
                                             local: LocalId(
-                                                20,
+                                                19,
                                             ),
                                             projection: [],
                                         },

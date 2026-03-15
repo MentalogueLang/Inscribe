@@ -185,6 +185,45 @@ fn main() -> int {
     }
 
     #[test]
+    fn constant_folding_preserves_join_values() {
+        let source = r#"
+fn pick(flag: bool) -> int {
+    if flag {
+        1
+    } else {
+        2
+    }
+}
+"#;
+
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&module, &resolved, &typed);
+        let mut mir = lower_program(&hir);
+
+        let function = mir
+            .functions
+            .iter_mut()
+            .find(|function| function.name == "pick")
+            .expect("pick function should exist");
+        optimize_function(function);
+
+        assert!(function.blocks.iter().all(|block| {
+            block.statements.iter().all(|statement| {
+                !matches!(
+                    &statement.kind,
+                    StatementKind::Assign(place, Rvalue::Use(Operand::Constant(Constant {
+                        value: ConstantValue::Integer(value),
+                        ..
+                    }))) if place.local.0 == function.return_local.0 && (value == "1" || value == "2")
+                )
+            })
+        }));
+    }
+
+    #[test]
     fn optimizer_removes_unreachable_blocks() {
         let source = r#"
 fn main() -> int {
