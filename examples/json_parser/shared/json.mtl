@@ -15,30 +15,14 @@ fn kind_code(kind: Kind) -> int {
 }
 
 priv fn kind_from_code(code: int) -> Kind {
-    if code == 1 {
-        Kind.Object
+    let kind_from_code_table: [Kind; 7] = [
+        Kind.Invalid, Kind.Object, Kind.Array, Kind.String, Kind.Number, Kind.Bool, Kind.Null
+    ]
+
+    if code >= 0 && code < 7 {
+        kind_from_code_table[code]
     } else {
-        if code == 2 {
-            Kind.Array
-        } else {
-            if code == 3 {
-                Kind.String
-            } else {
-                if code == 4 {
-                    Kind.Number
-                } else {
-                    if code == 5 {
-                        Kind.Bool
-                    } else {
-                        if code == 6 {
-                            Kind.Null
-                        } else {
-                            Kind.Invalid
-                        }
-                    }
-                }
-            }
-        }
+        Kind.Invalid
     }
 }
 
