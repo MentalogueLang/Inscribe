@@ -122,6 +122,29 @@ fn main() -> int {
     }
 
     #[test]
+    fn flags_stdin_runtime_capabilities() {
+        let source = r#"
+fn read_int() -> int
+
+fn main() -> int {
+    read_int()
+}
+"#;
+
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&module, &resolved, &typed);
+        let mir = lower_program(&hir);
+
+        let issues = find_nondeterministic_calls(&mir);
+        assert_eq!(issues.len(), 1);
+        assert_eq!(issues[0].function, "main");
+        assert_eq!(issues[0].callee, "read_int");
+    }
+
+    #[test]
     fn folds_constants_across_cfg_edges() {
         let source = r#"
 fn main() -> int {

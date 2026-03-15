@@ -1,0 +1,4 @@
+fn main -> int
+  let start: int = 5: int
+  let bonus: int = 2: int
+  if ...: int

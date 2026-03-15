@@ -79,6 +79,7 @@ dependencies = [
  "inscribe-lexer",
  "inscribe-parser",
  "inscribe-resolve",
+ "inscribe-session",
  "inscribe-typeck",
 ]
 

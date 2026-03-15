@@ -458,7 +458,12 @@ fn is_supported_runtime_declaration(function: &MirFunction) -> bool {
     function.receiver.is_none()
         && matches!(
             function.name.as_str(),
-            "print_int" | "print_bool" | "print_string" | "print_newline" | "flush_stdout"
+            "print_int"
+                | "print_bool"
+                | "print_string"
+                | "print_newline"
+                | "flush_stdout"
+                | "read_int"
         )
 }
 
@@ -481,6 +486,7 @@ fn emit_runtime_function(
         "print_string" => emit_runtime_print_string(function, target, state, instructions),
         "print_newline" => emit_runtime_print_newline(function, target, state, instructions),
         "flush_stdout" => emit_runtime_flush_stdout(function, target, state, instructions),
+        "read_int" => emit_runtime_read_int(function, target, state, instructions),
         _ => Err(CodegenError::new(format!(
             "native codegen does not yet implement declared runtime function `{}`",
             callable_name(function)
@@ -641,6 +647,158 @@ fn emit_runtime_flush_stdout(
     Ok(())
 }
 
+fn emit_runtime_read_int(
+    function: &MirFunction,
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let zero_label = state.fresh_runtime_label("read_int_zero");
+    let read_label = state.fresh_runtime_label("read_int_read");
+    let check_started_label = state.fresh_runtime_label("read_int_check_started");
+    let skip_space_label = state.fresh_runtime_label("read_int_skip_space");
+    let mark_negative_label = state.fresh_runtime_label("read_int_negative");
+    let first_digit_label = state.fresh_runtime_label("read_int_first_digit");
+    let digit_loop_label = state.fresh_runtime_label("read_int_digit_loop");
+    let finish_label = state.fresh_runtime_label("read_int_finish");
+    let return_label = state.fresh_runtime_label("read_int_return");
+    let frame = runtime_frame_size(target);
+
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+    instructions.push(Instruction::MovStackReg(
+        runtime_accumulator_offset(target),
+        Register::Rax,
+    ));
+    instructions.push(Instruction::MovStackReg(
+        runtime_negative_offset(target),
+        Register::Rax,
+    ));
+    instructions.push(Instruction::MovStackReg(
+        runtime_started_offset(target),
+        Register::Rax,
+    ));
+
+    instructions.push(Instruction::Label(read_label.clone()));
+    emit_read_stdin_byte(target, state, instructions);
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+    instructions.push(Instruction::JumpIf(Condition::LessEqual, check_started_label.clone()));
+
+    instructions.push(Instruction::LeaRegRspOffset(
+        Register::R10,
+        runtime_input_buffer_offset(target),
+    ));
+    instructions.push(Instruction::MovzxRegMem8(
+        Register::Rax,
+        Register::R10,
+    ));
+    instructions.push(Instruction::MovRegStack(
+        Register::R9,
+        runtime_started_offset(target),
+    ));
+    instructions.push(Instruction::CmpRegImm(Register::R9, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, skip_space_label.clone()));
+
+    instructions.push(Instruction::Jump(digit_loop_label.clone()));
+
+    instructions.push(Instruction::Label(skip_space_label));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 32));
+    instructions.push(Instruction::JumpIf(Condition::Equal, read_label.clone()));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 9));
+    instructions.push(Instruction::JumpIf(Condition::Equal, read_label.clone()));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 10));
+    instructions.push(Instruction::JumpIf(Condition::Equal, read_label.clone()));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 13));
+    instructions.push(Instruction::JumpIf(Condition::Equal, read_label.clone()));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 45));
+    instructions.push(Instruction::JumpIf(Condition::Equal, mark_negative_label.clone()));
+    instructions.push(Instruction::Jump(first_digit_label.clone()));
+
+    instructions.push(Instruction::Label(mark_negative_label));
+    instructions.push(Instruction::MovRegImm64(Register::R8, 1));
+    instructions.push(Instruction::MovStackReg(
+        runtime_negative_offset(target),
+        Register::R8,
+    ));
+    instructions.push(Instruction::MovStackReg(
+        runtime_started_offset(target),
+        Register::R8,
+    ));
+    instructions.push(Instruction::Jump(read_label.clone()));
+
+    instructions.push(Instruction::Label(first_digit_label));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 48));
+    instructions.push(Instruction::JumpIf(Condition::Less, read_label.clone()));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 57));
+    instructions.push(Instruction::JumpIf(Condition::Greater, read_label.clone()));
+    instructions.push(Instruction::MovRegImm64(Register::R8, 1));
+    instructions.push(Instruction::MovStackReg(
+        runtime_started_offset(target),
+        Register::R8,
+    ));
+
+    instructions.push(Instruction::Label(digit_loop_label.clone()));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 48));
+    instructions.push(Instruction::JumpIf(Condition::Less, finish_label.clone()));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 57));
+    instructions.push(Instruction::JumpIf(Condition::Greater, finish_label.clone()));
+    instructions.push(Instruction::SubRegImm(Register::Rax, 48));
+    instructions.push(Instruction::MovRegStack(
+        Register::R9,
+        runtime_accumulator_offset(target),
+    ));
+    instructions.push(Instruction::MovRegImm64(Register::Rcx, 10));
+    instructions.push(Instruction::IMulRegReg(Register::R9, Register::Rcx));
+    instructions.push(Instruction::AddRegReg(Register::R9, Register::Rax));
+    instructions.push(Instruction::MovStackReg(
+        runtime_accumulator_offset(target),
+        Register::R9,
+    ));
+    instructions.push(Instruction::Jump(read_label.clone()));
+
+    instructions.push(Instruction::Label(check_started_label));
+    instructions.push(Instruction::MovRegStack(
+        Register::R9,
+        runtime_started_offset(target),
+    ));
+    instructions.push(Instruction::CmpRegImm(Register::R9, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, zero_label.clone()));
+    instructions.push(Instruction::Jump(return_label.clone()));
+
+    instructions.push(Instruction::Label(finish_label));
+    instructions.push(Instruction::MovRegStack(
+        Register::R8,
+        runtime_negative_offset(target),
+    ));
+    instructions.push(Instruction::CmpRegImm(Register::R8, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, return_label.clone()));
+    instructions.push(Instruction::MovRegStack(
+        Register::R9,
+        runtime_accumulator_offset(target),
+    ));
+    instructions.push(Instruction::NegReg(Register::R9));
+    instructions.push(Instruction::MovStackReg(
+        runtime_accumulator_offset(target),
+        Register::R9,
+    ));
+    instructions.push(Instruction::Jump(return_label.clone()));
+
+    instructions.push(Instruction::Label(return_label));
+    instructions.push(Instruction::MovRegStack(
+        Register::Rax,
+        runtime_accumulator_offset(target),
+    ));
+    instructions.push(Instruction::AddRsp(frame));
+    instructions.push(Instruction::Ret);
+
+    instructions.push(Instruction::Label(zero_label));
+    instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+    instructions.push(Instruction::AddRsp(frame));
+    instructions.push(Instruction::Ret);
+    Ok(())
+}
+
 fn emit_runtime_return(target: Target, frame: u32, instructions: &mut Vec<Instruction>) {
     let _ = target;
     instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
@@ -681,17 +839,69 @@ fn emit_write_stdout(
     }
 }
 
+fn emit_read_stdin_byte(
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) {
+    match target.os {
+        OperatingSystem::Linux => {
+            instructions.push(Instruction::LeaRegRspOffset(
+                Register::R10,
+                runtime_input_buffer_offset(target),
+            ));
+            instructions.push(Instruction::LeaRegRspOffset(
+                Register::Rsi,
+                runtime_input_buffer_offset(target),
+            ));
+            instructions.push(Instruction::MovRegImm64(Register::Rdx, 1));
+            instructions.push(Instruction::MovRegImm64(Register::Rdi, 0));
+            instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+            instructions.push(Instruction::Syscall);
+        }
+        OperatingSystem::Windows => {
+            state.uses_windows_runtime_imports = true;
+            instructions.push(Instruction::MovRegImm64(Register::Rcx, -10));
+            instructions.push(Instruction::CallImport(WIN_IMPORT_GET_STD_HANDLE.to_string()));
+            instructions.push(Instruction::MovRegReg(Register::Rcx, Register::Rax));
+            instructions.push(Instruction::LeaRegRspOffset(
+                Register::R10,
+                runtime_input_buffer_offset(target),
+            ));
+            instructions.push(Instruction::LeaRegRspOffset(
+                Register::Rdx,
+                runtime_input_buffer_offset(target),
+            ));
+            instructions.push(Instruction::MovRegImm64(Register::R8, 1));
+            instructions.push(Instruction::LeaRegRspOffset(
+                Register::R9,
+                runtime_written_offset(target),
+            ));
+            instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+            instructions.push(Instruction::MovStackReg(
+                runtime_windows_arg5_offset(target),
+                Register::Rax,
+            ));
+            instructions.push(Instruction::CallImport(WIN_IMPORT_READ_FILE.to_string()));
+            instructions.push(Instruction::MovRegStack(
+                Register::Rax,
+                runtime_written_offset(target),
+            ));
+        }
+    }
+}
+
 fn runtime_frame_size(target: Target) -> u32 {
     match target.os {
-        OperatingSystem::Linux => 40,
-        OperatingSystem::Windows => 88,
+        OperatingSystem::Linux => 128,
+        OperatingSystem::Windows => 176,
     }
 }
 
 fn runtime_buffer_end_offset(target: Target) -> i32 {
     match target.os {
-        OperatingSystem::Linux => 31,
-        OperatingSystem::Windows => 87,
+        OperatingSystem::Linux => 127,
+        OperatingSystem::Windows => 175,
     }
 }
 
@@ -702,10 +912,38 @@ fn runtime_written_offset(target: Target) -> i32 {
     }
 }
 
+fn runtime_accumulator_offset(target: Target) -> i32 {
+    match target.os {
+        OperatingSystem::Linux => 0,
+        OperatingSystem::Windows => 48,
+    }
+}
+
+fn runtime_negative_offset(target: Target) -> i32 {
+    match target.os {
+        OperatingSystem::Linux => 8,
+        OperatingSystem::Windows => 56,
+    }
+}
+
+fn runtime_started_offset(target: Target) -> i32 {
+    match target.os {
+        OperatingSystem::Linux => 16,
+        OperatingSystem::Windows => 64,
+    }
+}
+
 fn runtime_windows_arg5_offset(target: Target) -> i32 {
     match target.os {
         OperatingSystem::Linux => 0,
         OperatingSystem::Windows => 32,
+    }
+}
+
+fn runtime_input_buffer_offset(target: Target) -> i32 {
+    match target.os {
+        OperatingSystem::Linux => 24,
+        OperatingSystem::Windows => 72,
     }
 }
 
@@ -715,6 +953,7 @@ fn first_argument_register(target: Target) -> Register {
 
 const WIN_IMPORT_GET_STD_HANDLE: &str = "__ml_iat_GetStdHandle";
 const WIN_IMPORT_WRITE_FILE: &str = "__ml_iat_WriteFile";
+const WIN_IMPORT_READ_FILE: &str = "__ml_iat_ReadFile";
 
 fn argument_registers(target: Target) -> &'static [Register] {
     match target.os {
@@ -891,6 +1130,8 @@ fn render_assembly(program: &LoweredProgram, _target: Target) -> String {
             out.push_str(WIN_IMPORT_GET_STD_HANDLE);
             out.push_str(":\n    .quad 0\n");
             out.push_str(WIN_IMPORT_WRITE_FILE);
+            out.push_str(":\n    .quad 0\n");
+            out.push_str(WIN_IMPORT_READ_FILE);
             out.push_str(":\n    .quad 0\n");
         }
     }
@@ -1128,26 +1369,36 @@ fn build_windows_import_layout(
     bytes.extend_from_slice(&0u16.to_le_bytes());
     bytes.extend_from_slice(b"WriteFile\0");
 
+    let hint_read_offset = bytes.len();
+    bytes.extend_from_slice(&0u16.to_le_bytes());
+    bytes.extend_from_slice(b"ReadFile\0");
+
     while bytes.len() % 8 != 0 {
         bytes.push(0);
     }
 
     let ilt_offset = bytes.len();
-    bytes.resize(ilt_offset + 24, 0);
+    bytes.resize(ilt_offset + 32, 0);
 
     let iat_offset = bytes.len();
     label_offsets.insert(WIN_IMPORT_GET_STD_HANDLE.to_string(), base + iat_offset);
     label_offsets.insert(WIN_IMPORT_WRITE_FILE.to_string(), base + iat_offset + 8);
-    bytes.resize(iat_offset + 24, 0);
+    label_offsets.insert(WIN_IMPORT_READ_FILE.to_string(), base + iat_offset + 16);
+    bytes.resize(iat_offset + 32, 0);
 
     let ilt_get_rva = section_rva + base as u32 + hint_get_offset as u32;
     let ilt_write_rva = section_rva + base as u32 + hint_write_offset as u32;
+    let ilt_read_rva = section_rva + base as u32 + hint_read_offset as u32;
     bytes[ilt_offset..ilt_offset + 8].copy_from_slice(&(ilt_get_rva as u64).to_le_bytes());
     bytes[ilt_offset + 8..ilt_offset + 16]
         .copy_from_slice(&(ilt_write_rva as u64).to_le_bytes());
+    bytes[ilt_offset + 16..ilt_offset + 24]
+        .copy_from_slice(&(ilt_read_rva as u64).to_le_bytes());
     bytes[iat_offset..iat_offset + 8].copy_from_slice(&(ilt_get_rva as u64).to_le_bytes());
     bytes[iat_offset + 8..iat_offset + 16]
         .copy_from_slice(&(ilt_write_rva as u64).to_le_bytes());
+    bytes[iat_offset + 16..iat_offset + 24]
+        .copy_from_slice(&(ilt_read_rva as u64).to_le_bytes());
 
     let descriptor_rva = section_rva + base as u32 + descriptor_offset as u32;
     let ilt_rva = section_rva + base as u32 + ilt_offset as u32;
@@ -1168,7 +1419,7 @@ fn build_windows_import_layout(
             size: 40,
         },
         start_offset: base,
-        end_offset: base + (iat_offset + 24),
+        end_offset: base + (iat_offset + 32),
     })
 }
 

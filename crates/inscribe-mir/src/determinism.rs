@@ -121,6 +121,7 @@ fn runtime_capabilities(name: &str) -> &'static [Capability] {
         "print_int" | "print_bool" | "print_string" | "print_newline" | "flush_stdout" => {
             &[Capability::Filesystem]
         }
+        "read_int" => &[Capability::Stdin],
         _ => &[Capability::ForeignHost],
     }
 }
@@ -128,11 +129,12 @@ fn runtime_capabilities(name: &str) -> &'static [Capability] {
 #[derive(Clone, Copy)]
 enum Capability {
     Filesystem,
+    Stdin,
     ForeignHost,
 }
 
 impl Capability {
     fn breaks_determinism(self) -> bool {
-        matches!(self, Self::ForeignHost)
+        matches!(self, Self::Stdin | Self::ForeignHost)
     }
 }

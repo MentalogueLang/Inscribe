@@ -46,8 +46,9 @@ pub fn emit_native_executable(
 #[cfg(test)]
 mod tests {
     use std::fs;
+    use std::io::Write;
     use std::path::PathBuf;
-    use std::process::Command;
+    use std::process::{Command, Stdio};
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use inscribe_hir::lower_module;
@@ -278,6 +279,26 @@ fn main() -> int {
             .contains("does not yet implement declared runtime function `host_magic`"));
     }
 
+    #[test]
+    fn accepts_runtime_read_int_declaration() {
+        let mir = compile_source(
+            r#"
+fn read_int() -> int
+
+fn main() -> int {
+    let value = read_int()
+    value + 1
+}
+"#,
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("call __ml_fn_read_int"));
+        assert!(assembly.contains("__ml_fn_read_int"));
+    }
+
     #[cfg(windows)]
     #[test]
     fn generated_pe_runtime_prints_int() {
@@ -304,5 +325,50 @@ fn main() -> int {
         let _ = fs::remove_file(&path);
         assert_eq!(output.status.code(), Some(0));
         assert_eq!(String::from_utf8_lossy(&output.stdout), "81");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn generated_pe_runtime_reads_int() {
+        let mir = compile_source(
+            r#"
+fn read_int() -> int
+fn print_int(value: int)
+fn print_newline()
+
+fn main() -> int {
+    let left = read_int()
+    let right = read_int()
+    print_int(left / right)
+    print_newline()
+    0
+}
+"#,
+        );
+
+        let bytes = emit_native_executable(&mir, Target::windows_x86_64())
+            .expect("pe emission should work");
+        let path = temp_output("inscribe_codegen_read_int.exe");
+        fs::write(&path, bytes).expect("should write executable");
+
+        let mut child = Command::new(&path)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("generated executable should run");
+        child
+            .stdin
+            .as_mut()
+            .expect("stdin should be available")
+            .write_all(b"81\n81\n")
+            .expect("should feed stdin");
+
+        let output = child
+            .wait_with_output()
+            .expect("generated executable should finish");
+
+        let _ = fs::remove_file(&path);
+        assert_eq!(output.status.code(), Some(0));
+        assert_eq!(String::from_utf8_lossy(&output.stdout), "1\n");
     }
 }

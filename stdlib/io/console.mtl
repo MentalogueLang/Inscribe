@@ -21,6 +21,10 @@ fn flush() {
     flush_stdout()
 }
 
+fn read_line_int() -> int {
+    read_int()
+}
+
 fn write_line_int(value: int) {
     write_int(value)
     newline()

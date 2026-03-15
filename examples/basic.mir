@@ -1,0 +1,443 @@
+MirProgram {
+    functions: [
+        MirFunction {
+            receiver: None,
+            name: "main",
+            signature: FunctionSignature {
+                key: FunctionKey {
+                    receiver: None,
+                    name: "main",
+                },
+                params: [],
+                return_type: Int,
+            },
+            is_declaration: false,
+            locals: [
+                LocalDecl {
+                    id: LocalId(
+                        0,
+                    ),
+                    name: "_return",
+                    ty: Int,
+                    mutable: true,
+                    temp: true,
+                    span: Span {
+                        start: Position {
+                            offset: 0,
+                            line: 1,
+                            column: 1,
+                        },
+                        end: Position {
+                            offset: 122,
+                            line: 10,
+                            column: 2,
+                        },
+                    },
+                },
+                LocalDecl {
+                    id: LocalId(
+                        1,
+                    ),
+                    name: "start",
+                    ty: Int,
+                    mutable: true,
+                    temp: false,
+                    span: Span {
+                        start: Position {
+                            offset: 23,
+                            line: 2,
+                            column: 5,
+                        },
+                        end: Position {
+                            offset: 36,
+                            line: 2,
+                            column: 18,
+                        },
+                    },
+                },
+                LocalDecl {
+                    id: LocalId(
+                        2,
+                    ),
+                    name: "bonus",
+                    ty: Int,
+                    mutable: true,
+                    temp: false,
+                    span: Span {
+                        start: Position {
+                            offset: 41,
+                            line: 3,
+                            column: 5,
+                        },
+                        end: Position {
+                            offset: 54,
+                            line: 3,
+                            column: 18,
+                        },
+                    },
+                },
+                LocalDecl {
+                    id: LocalId(
+                        3,
+                    ),
+                    name: "_tmp3",
+                    ty: Int,
+                    mutable: true,
+                    temp: true,
+                    span: Span {
+                        start: Position {
+                            offset: 60,
+                            line: 5,
+                            column: 5,
+                        },
+                        end: Position {
+                            offset: 120,
+                            line: 9,
+                            column: 6,
+                        },
+                    },
+                },
+                LocalDecl {
+                    id: LocalId(
+                        4,
+                    ),
+                    name: "_tmp4",
+                    ty: Int,
+                    mutable: true,
+                    temp: true,
+                    span: Span {
+                        start: Position {
+                            offset: 78,
+                            line: 6,
+                            column: 9,
+                        },
+                        end: Position {
+                            offset: 91,
+                            line: 6,
+                            column: 22,
+                        },
+                    },
+                },
+            ],
+            blocks: [
+                BasicBlockData {
+                    id: BasicBlockId(
+                        0,
+                    ),
+                    statements: [
+                        Statement {
+                            kind: StorageLive(
+                                LocalId(
+                                    0,
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 0,
+                                    line: 1,
+                                    column: 1,
+                                },
+                                end: Position {
+                                    offset: 122,
+                                    line: 10,
+                                    column: 2,
+                                },
+                            },
+                        },
+                        Statement {
+                            kind: StorageLive(
+                                LocalId(
+                                    1,
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 23,
+                                    line: 2,
+                                    column: 5,
+                                },
+                                end: Position {
+                                    offset: 36,
+                                    line: 2,
+                                    column: 18,
+                                },
+                            },
+                        },
+                        Statement {
+                            kind: Assign(
+                                Place {
+                                    local: LocalId(
+                                        1,
+                                    ),
+                                    projection: [],
+                                },
+                                Use(
+                                    Constant(
+                                        Constant {
+                                            ty: Int,
+                                            value: Integer(
+                                                "5",
+                                            ),
+                                        },
+                                    ),
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 23,
+                                    line: 2,
+                                    column: 5,
+                                },
+                                end: Position {
+                                    offset: 36,
+                                    line: 2,
+                                    column: 18,
+                                },
+                            },
+                        },
+                        Statement {
+                            kind: StorageLive(
+                                LocalId(
+                                    2,
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 41,
+                                    line: 3,
+                                    column: 5,
+                                },
+                                end: Position {
+                                    offset: 54,
+                                    line: 3,
+                                    column: 18,
+                                },
+                            },
+                        },
+                        Statement {
+                            kind: Assign(
+                                Place {
+                                    local: LocalId(
+                                        2,
+                                    ),
+                                    projection: [],
+                                },
+                                Use(
+                                    Constant(
+                                        Constant {
+                                            ty: Int,
+                                            value: Integer(
+                                                "2",
+                                            ),
+                                        },
+                                    ),
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 41,
+                                    line: 3,
+                                    column: 5,
+                                },
+                                end: Position {
+                                    offset: 54,
+                                    line: 3,
+                                    column: 18,
+                                },
+                            },
+                        },
+                        Statement {
+                            kind: StorageLive(
+                                LocalId(
+                                    3,
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 60,
+                                    line: 5,
+                                    column: 5,
+                                },
+                                end: Position {
+                                    offset: 120,
+                                    line: 9,
+                                    column: 6,
+                                },
+                            },
+                        },
+                        Statement {
+                            kind: StorageLive(
+                                LocalId(
+                                    4,
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 78,
+                                    line: 6,
+                                    column: 9,
+                                },
+                                end: Position {
+                                    offset: 91,
+                                    line: 6,
+                                    column: 22,
+                                },
+                            },
+                        },
+                    ],
+                    terminator: Goto {
+                        target: BasicBlockId(
+                            1,
+                        ),
+                    },
+                },
+                BasicBlockData {
+                    id: BasicBlockId(
+                        1,
+                    ),
+                    statements: [
+                        Statement {
+                            kind: Assign(
+                                Place {
+                                    local: LocalId(
+                                        4,
+                                    ),
+                                    projection: [],
+                                },
+                                Use(
+                                    Constant(
+                                        Constant {
+                                            ty: Int,
+                                            value: Integer(
+                                                "7",
+                                            ),
+                                        },
+                                    ),
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 78,
+                                    line: 6,
+                                    column: 9,
+                                },
+                                end: Position {
+                                    offset: 91,
+                                    line: 6,
+                                    column: 22,
+                                },
+                            },
+                        },
+                        Statement {
+                            kind: Assign(
+                                Place {
+                                    local: LocalId(
+                                        3,
+                                    ),
+                                    projection: [],
+                                },
+                                Use(
+                                    Constant(
+                                        Constant {
+                                            ty: Int,
+                                            value: Integer(
+                                                "7",
+                                            ),
+                                        },
+                                    ),
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 68,
+                                    line: 5,
+                                    column: 13,
+                                },
+                                end: Position {
+                                    offset: 97,
+                                    line: 7,
+                                    column: 6,
+                                },
+                            },
+                        },
+                    ],
+                    terminator: Goto {
+                        target: BasicBlockId(
+                            2,
+                        ),
+                    },
+                },
+                BasicBlockData {
+                    id: BasicBlockId(
+                        2,
+                    ),
+                    statements: [
+                        Statement {
+                            kind: Assign(
+                                Place {
+                                    local: LocalId(
+                                        0,
+                                    ),
+                                    projection: [],
+                                },
+                                Use(
+                                    Constant(
+                                        Constant {
+                                            ty: Int,
+                                            value: Integer(
+                                                "7",
+                                            ),
+                                        },
+                                    ),
+                                ),
+                            ),
+                            span: Span {
+                                start: Position {
+                                    offset: 17,
+                                    line: 1,
+                                    column: 18,
+                                },
+                                end: Position {
+                                    offset: 122,
+                                    line: 10,
+                                    column: 2,
+                                },
+                            },
+                        },
+                    ],
+                    terminator: Return,
+                },
+            ],
+            entry: BasicBlockId(
+                0,
+            ),
+            return_local: LocalId(
+                0,
+            ),
+            span: Span {
+                start: Position {
+                    offset: 0,
+                    line: 1,
+                    column: 1,
+                },
+                end: Position {
+                    offset: 122,
+                    line: 10,
+                    column: 2,
+                },
+            },
+        },
+    ],
+    span: Span {
+        start: Position {
+            offset: 0,
+            line: 1,
+            column: 1,
+        },
+        end: Position {
+            offset: 123,
+            line: 11,
+            column: 1,
+        },
+    },
+}

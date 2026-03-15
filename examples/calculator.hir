@@ -1,0 +1,30 @@
+fn read_int -> int
+  <declaration>
+fn print_int -> ()
+  <declaration>
+fn print_string -> ()
+  <declaration>
+fn print_newline -> ()
+  <declaration>
+fn write_line_string -> ()
+  print_string: ()(value: string): ()
+  print_newline: ()(): ()
+fn write_line_int -> ()
+  print_int: ()(value: int): ()
+  print_newline: ()(): ()
+fn read_line_int -> int
+  read_int: int(): int
+fn safe_divide -> int
+  if ...: int
+fn calculate -> int
+  (((if ...: int Add if ...: int): int Add if ...: int): int Add if ...: int): int
+fn main -> int
+  write_line_string: ()("left": string): ()
+  let left: int = read_line_int: int(): int
+  write_line_string: ()("right": string): ()
+  let right: int = read_line_int: int(): int
+  write_line_string: ()("op: 0 add, 1 subtract, 2 multiply, 3 divide": string): ()
+  let op: int = read_line_int: int(): int
+  write_line_string: ()("result": string): ()
+  write_line_int: ()(calculate: int(left: int, right: int, op: int): int): ()
+  0: int

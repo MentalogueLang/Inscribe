@@ -1,0 +1,62 @@
+fn read_int() -> int
+fn print_int(value: int)
+fn print_string(value: string)
+fn print_newline()
+
+fn write_line_string(value: string) {
+    print_string(value)
+    print_newline()
+}
+
+fn write_line_int(value: int) {
+    print_int(value)
+    print_newline()
+}
+
+fn read_line_int() -> int {
+    read_int()
+}
+
+fn safe_divide(left: int, right: int) -> int {
+    if right == 0 {
+        0
+    } else {
+        left / right
+    }
+}
+
+fn calculate(left: int, right: int, op: int) -> int {
+    (if op == 0 {
+        left + right
+    } else {
+        0
+    }) + (if op == 1 {
+        left - right
+    } else {
+        0
+    }) + (if op == 2 {
+        left * right
+    } else {
+        0
+    }) + (if op == 3 {
+        safe_divide(left, right)
+    } else {
+        0
+    })
+}
+
+fn main() -> int {
+    write_line_string("left")
+    let left = read_line_int()
+
+    write_line_string("right")
+    let right = read_line_int()
+
+    write_line_string("op: 0 add, 1 subtract, 2 multiply, 3 divide")
+    let op = read_line_int()
+
+    write_line_string("result")
+    write_line_int(calculate(left, right, op))
+
+    0
+}
