@@ -464,6 +464,8 @@ fn is_supported_runtime_declaration(function: &MirFunction) -> bool {
                 | "print_newline"
                 | "flush_stdout"
                 | "read_int"
+                | "string_length"
+                | "string_byte_at"
         )
 }
 
@@ -487,6 +489,8 @@ fn emit_runtime_function(
         "print_newline" => emit_runtime_print_newline(function, target, state, instructions),
         "flush_stdout" => emit_runtime_flush_stdout(function, target, state, instructions),
         "read_int" => emit_runtime_read_int(function, target, state, instructions),
+        "string_length" => emit_runtime_string_length(function, target, instructions),
+        "string_byte_at" => emit_runtime_string_byte_at(function, target, instructions),
         _ => Err(CodegenError::new(format!(
             "native codegen does not yet implement declared runtime function `{}`",
             callable_name(function)
@@ -799,6 +803,83 @@ fn emit_runtime_read_int(
     Ok(())
 }
 
+fn emit_runtime_string_length(
+    function: &MirFunction,
+    target: Target,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let loop_label = function_label(function) + ".len_loop";
+    let done_label = function_label(function) + ".len_done";
+    let frame = runtime_frame_size(target);
+
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    instructions.push(Instruction::MovRegReg(
+        Register::R10,
+        first_argument_register(target),
+    ));
+    instructions.push(Instruction::MovRegReg(
+        Register::R11,
+        first_argument_register(target),
+    ));
+    instructions.push(Instruction::Label(loop_label.clone()));
+    instructions.push(Instruction::MovzxRegMem8(Register::Rax, Register::R11));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, done_label.clone()));
+    instructions.push(Instruction::AddRegImm(Register::R11, 1));
+    instructions.push(Instruction::Jump(loop_label));
+    instructions.push(Instruction::Label(done_label));
+    instructions.push(Instruction::MovRegReg(Register::Rax, Register::R11));
+    instructions.push(Instruction::SubRegReg(Register::Rax, Register::R10));
+    instructions.push(Instruction::AddRsp(frame));
+    instructions.push(Instruction::Ret);
+    Ok(())
+}
+
+fn emit_runtime_string_byte_at(
+    function: &MirFunction,
+    target: Target,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let loop_label = function_label(function) + ".byte_loop";
+    let at_index_label = function_label(function) + ".byte_at_index";
+    let zero_label = function_label(function) + ".byte_zero";
+    let frame = runtime_frame_size(target);
+
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    instructions.push(Instruction::MovRegReg(
+        Register::R10,
+        first_argument_register(target),
+    ));
+    instructions.push(Instruction::MovRegReg(
+        Register::R11,
+        second_argument_register(target),
+    ));
+    instructions.push(Instruction::CmpRegImm(Register::R11, 0));
+    instructions.push(Instruction::JumpIf(Condition::Less, zero_label.clone()));
+    instructions.push(Instruction::Label(loop_label.clone()));
+    instructions.push(Instruction::CmpRegImm(Register::R11, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, at_index_label.clone()));
+    instructions.push(Instruction::MovzxRegMem8(Register::Rax, Register::R10));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, zero_label.clone()));
+    instructions.push(Instruction::AddRegImm(Register::R10, 1));
+    instructions.push(Instruction::SubRegImm(Register::R11, 1));
+    instructions.push(Instruction::Jump(loop_label));
+    instructions.push(Instruction::Label(at_index_label));
+    instructions.push(Instruction::MovzxRegMem8(Register::Rax, Register::R10));
+    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+    instructions.push(Instruction::JumpIf(Condition::Equal, zero_label.clone()));
+    instructions.push(Instruction::AddRsp(frame));
+    instructions.push(Instruction::Ret);
+    instructions.push(Instruction::Label(zero_label));
+    instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+    instructions.push(Instruction::AddRsp(frame));
+    instructions.push(Instruction::Ret);
+    Ok(())
+}
+
 fn emit_runtime_return(target: Target, frame: u32, instructions: &mut Vec<Instruction>) {
     let _ = target;
     instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
@@ -949,6 +1030,10 @@ fn runtime_input_buffer_offset(target: Target) -> i32 {
 
 fn first_argument_register(target: Target) -> Register {
     argument_registers(target)[0]
+}
+
+fn second_argument_register(target: Target) -> Register {
+    argument_registers(target)[1]
 }
 
 const WIN_IMPORT_GET_STD_HANDLE: &str = "__ml_iat_GetStdHandle";

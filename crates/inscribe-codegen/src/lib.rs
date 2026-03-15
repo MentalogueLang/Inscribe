@@ -299,6 +299,60 @@ fn main() -> int {
         assert!(assembly.contains("__ml_fn_read_int"));
     }
 
+    #[test]
+    fn accepts_runtime_string_helpers() {
+        let mir = compile_source(
+            r#"
+fn string_length(value: string) -> int
+fn string_byte_at(value: string, index: int) -> int
+
+fn main() -> int {
+    string_length("json") + string_byte_at("AZ", 1)
+}
+"#,
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("call __ml_fn_string_length"));
+        assert!(assembly.contains("call __ml_fn_string_byte_at"));
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn generated_pe_runtime_string_helpers_work() {
+        let mir = compile_source(
+            r#"
+fn string_length(value: string) -> int
+fn string_byte_at(value: string, index: int) -> int
+fn print_int(value: int)
+fn print_newline()
+
+fn main() -> int {
+    print_int(string_length("json"))
+    print_newline()
+    print_int(string_byte_at("AZ", 1))
+    print_newline()
+    0
+}
+"#,
+        );
+
+        let bytes = emit_native_executable(&mir, Target::windows_x86_64())
+            .expect("pe emission should work");
+        let path = temp_output("inscribe_codegen_string_helpers.exe");
+        fs::write(&path, bytes).expect("should write executable");
+
+        let output = Command::new(&path)
+            .output()
+            .expect("generated executable should run");
+
+        let _ = fs::remove_file(&path);
+        assert_eq!(output.status.code(), Some(0));
+        assert_eq!(String::from_utf8_lossy(&output.stdout), "4\n90\n");
+    }
+
     #[cfg(windows)]
     #[test]
     fn generated_pe_runtime_prints_int() {

@@ -121,6 +121,7 @@ fn runtime_capabilities(name: &str) -> &'static [Capability] {
         "print_int" | "print_bool" | "print_string" | "print_newline" | "flush_stdout" => {
             &[Capability::Filesystem]
         }
+        "string_length" | "string_byte_at" => &[],
         "read_int" => &[Capability::Stdin],
         _ => &[Capability::ForeignHost],
     }

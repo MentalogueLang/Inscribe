@@ -1,0 +1,2 @@
+fn string_length(value: string) -> int
+fn string_byte_at(value: string, index: int) -> int

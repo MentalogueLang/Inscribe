@@ -1,0 +1,25 @@
+import runtime.string
+
+fn len(value: string) -> int {
+    string_length(value)
+}
+
+fn byte_at(value: string, index: int) -> int {
+    string_byte_at(value, index)
+}
+
+fn in_bounds(value: string, index: int) -> bool {
+    index >= 0 && index < len(value)
+}
+
+fn is_space(code: int) -> bool {
+    code == 32 || code == 10 || code == 13 || code == 9
+}
+
+fn is_digit(code: int) -> bool {
+    code >= 48 && code <= 57
+}
+
+fn is_hex_digit(code: int) -> bool {
+    is_digit(code) || (code >= 65 && code <= 70) || (code >= 97 && code <= 102)
+}

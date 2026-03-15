@@ -1,0 +1,115 @@
+fn bool_to_int -> int
+  if ...: int
+fn select_int -> int
+  if ...: int
+fn string_length -> int
+  <declaration>
+fn string_byte_at -> int
+  <declaration>
+fn len -> int
+  string_length: int(value: string): int
+fn byte_at -> int
+  string_byte_at: int(value: string, index: int): int
+fn in_bounds -> bool
+  if ...: bool
+fn is_space -> bool
+  if ...: bool
+fn is_digit -> bool
+  if ...: bool
+fn is_hex_digit -> bool
+  if ...: bool
+fn kind_invalid -> int
+  0: int
+fn kind_object -> int
+  1: int
+fn kind_array -> int
+  2: int
+fn kind_string -> int
+  3: int
+fn kind_number -> int
+  4: int
+fn kind_bool -> int
+  5: int
+fn kind_null -> int
+  6: int
+fn ok_result -> int
+  (((next: int Multiply 10: int): int Add kind: int): int Add 1: int): int
+fn error_result -> int
+  (0: int Subtract ((next: int Multiply 10: int): int Add 1: int): int): int
+fn result_encoded -> int
+  if ...: int
+fn result_ok -> bool
+  (value: bool Greater 0: int): bool
+fn result_kind -> int
+  if ...: int
+fn result_next -> int
+  ((result_encoded: int(value: int): int Subtract 1: int): int Divide 10: int): int
+fn has_byte -> bool
+  if ...: bool
+fn has_quote -> bool
+  if ...: bool
+fn advance_quote -> int
+  if ...: int
+fn skip_whitespace -> int
+  if ...: int
+fn parse_document -> int
+  let value: int = parse_value: int(source: string, 0: int): int
+  if ...: int
+fn parse_value -> int
+  let cursor: int = skip_whitespace: int(source: string, index: int): int
+  if ...: int
+fn parse_string -> int
+  if ...: int
+fn parse_string_body -> int
+  if ...: int
+fn parse_string_escape -> int
+  if ...: int
+fn parse_unicode_escape -> int
+  if ...: int
+fn parse_true -> int
+  if ...: int
+fn parse_false -> int
+  if ...: int
+fn parse_null -> int
+  if ...: int
+fn parse_number -> int
+  if ...: int
+fn parse_number_tail -> int
+  if ...: int
+fn parse_array -> int
+  let cursor: int = skip_whitespace: int(source: string, (index: int Add 1: int): int): int
+  if ...: int
+fn parse_array_after_value -> int
+  let cursor: int = skip_whitespace: int(source: string, index: int): int
+  if ...: int
+fn parse_object -> int
+  let cursor: int = skip_whitespace: int(source: string, (index: int Add 1: int): int): int
+  if ...: int
+fn parse_object_after_key -> int
+  let cursor: int = skip_whitespace: int(source: string, index: int): int
+  if ...: int
+fn parse_object_after_value -> int
+  let cursor: int = skip_whitespace: int(source: string, index: int): int
+  if ...: int
+fn print_int -> ()
+  <declaration>
+fn print_string -> ()
+  <declaration>
+fn print_newline -> ()
+  <declaration>
+fn write_line_string -> ()
+  print_string: ()(value: string): ()
+  print_newline: ()(): ()
+fn write_line_int -> ()
+  print_int: ()(value: int): ()
+  print_newline: ()(): ()
+fn print_result -> ()
+  let result: int = parse_document: int(source: string): int
+  write_line_string: ()(label: string): ()
+  write_line_int: ()(bool_to_int: int(result_ok: bool(result: int): bool): int): ()
+  write_line_int: ()(result_kind: int(result: int): int): ()
+fn main -> int
+  print_result: ()("object": string, "{\"name\":\"Ada\",\"active\":true,\"scores\":[1,2,3]}": string): ()
+  print_result: ()("array": string, "[null,false,true,{\"value\":12}]": string): ()
+  print_result: ()("invalid": string, "{\"broken\":[1,2}": string): ()
+  0: int
