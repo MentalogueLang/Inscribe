@@ -6,7 +6,7 @@ fn print_result(label: string, source: string) {
     let result = parse_document(source)
     write_line_string(label)
     write_line_int(bool_to_int(result_ok(result)))
-    write_line_int(result_kind(result))
+    write_line_int(kind_code(result_kind(result)))
 }
 
 fn main() -> int {

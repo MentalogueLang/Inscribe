@@ -9,7 +9,7 @@ fn string_byte_at -> int
 fn len -> int
   string_length: fn(string) -> int(value: string): int
 fn byte_at -> int
-  string_byte_at: fn(string, int) -> int(value: string, index: int): int
+  value: string[index: int]: byte
 fn in_bounds -> bool
   if ...: bool
 fn is_space -> bool
@@ -18,100 +18,99 @@ fn is_digit -> bool
   if ...: bool
 fn is_hex_digit -> bool
   if ...: bool
-private fn __priv_811ad09817485e06_kind_invalid -> int
-  0: int
-private fn __priv_811ad09817485e06_kind_object -> int
-  1: int
-private fn __priv_811ad09817485e06_kind_array -> int
-  2: int
-private fn __priv_811ad09817485e06_kind_string -> int
-  3: int
-private fn __priv_811ad09817485e06_kind_number -> int
-  4: int
-private fn __priv_811ad09817485e06_kind_bool -> int
-  5: int
-private fn __priv_811ad09817485e06_kind_null -> int
-  6: int
-private fn __priv_811ad09817485e06_ok_result -> int
-  (((next: int Multiply 10: int): int Add kind: int): int Add 1: int): int
-private fn __priv_811ad09817485e06_error_result -> int
+enum Kind {
+  Invalid = 0
+  Object = 1
+  Array = 2
+  String = 3
+  Number = 4
+  Bool = 5
+  Null = 6
+}
+fn kind_code -> int
+  if ...: int
+priv fn __priv_811ad09817485e06_kind_from_code -> Kind
+  if ...: Kind
+priv fn __priv_811ad09817485e06_ok_result -> int
+  (((next: int Multiply 10: int): int Add kind_code: fn(Kind) -> int(kind: Kind): int): int Add 1: int): int
+priv fn __priv_811ad09817485e06_error_result -> int
   (0: int Subtract ((next: int Multiply 10: int): int Add 1: int): int): int
-private fn __priv_811ad09817485e06_result_encoded -> int
+priv fn __priv_811ad09817485e06_result_encoded -> int
   if ...: int
 fn result_ok -> bool
   (value: int Greater 0: int): bool
-fn result_kind -> int
-  if ...: int
-private fn __priv_811ad09817485e06_result_next -> int
+fn result_kind -> Kind
+  if ...: Kind
+priv fn __priv_811ad09817485e06_result_next -> int
   ((__priv_811ad09817485e06_result_encoded: fn(int) -> int(value: int): int Subtract 1: int): int Divide 10: int): int
-private fn __priv_811ad09817485e06_has_byte -> bool
+priv fn __priv_811ad09817485e06_has_byte -> bool
   if ...: bool
-private fn __priv_811ad09817485e06_has_quote -> bool
+priv fn __priv_811ad09817485e06_has_quote -> bool
   if ...: bool
-private fn __priv_811ad09817485e06_advance_quote -> int
+priv fn __priv_811ad09817485e06_advance_quote -> int
   if ...: int
-private fn __priv_811ad09817485e06_skip_whitespace -> int
+priv fn __priv_811ad09817485e06_skip_whitespace -> int
   if ...: int
 fn parse_document -> int
   let value: int = __priv_811ad09817485e06_parse_value: fn(string, int) -> int(source: string, 0: int): int
   if ...: int
-private fn __priv_811ad09817485e06_parse_value -> int
+priv fn __priv_811ad09817485e06_parse_value -> int
   let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, index: int): int
   let code: int = __priv_811ad09817485e06_parse_value_code: fn(string, int) -> int(source: string, cursor: int): int
   if ...: int
-private fn __priv_811ad09817485e06_parse_value_code -> int
+priv fn __priv_811ad09817485e06_parse_value_code -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_value_after_string -> int
+priv fn __priv_811ad09817485e06_parse_value_after_string -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_value_after_object -> int
+priv fn __priv_811ad09817485e06_parse_value_after_object -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_value_after_array -> int
+priv fn __priv_811ad09817485e06_parse_value_after_array -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_value_after_true -> int
+priv fn __priv_811ad09817485e06_parse_value_after_true -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_value_after_false -> int
+priv fn __priv_811ad09817485e06_parse_value_after_false -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_string -> int
+priv fn __priv_811ad09817485e06_parse_string -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_string_body -> int
+priv fn __priv_811ad09817485e06_parse_string_body -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_string_body_after_quote -> int
+priv fn __priv_811ad09817485e06_parse_string_body_after_quote -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_string_body_in_bounds -> int
+priv fn __priv_811ad09817485e06_parse_string_body_in_bounds -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_string_body_after_escape -> int
+priv fn __priv_811ad09817485e06_parse_string_body_after_escape -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_string_escape -> int
+priv fn __priv_811ad09817485e06_parse_string_escape -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_unicode_escape -> int
+priv fn __priv_811ad09817485e06_parse_unicode_escape -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_true -> int
+priv fn __priv_811ad09817485e06_parse_true -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_false -> int
+priv fn __priv_811ad09817485e06_parse_false -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_null -> int
+priv fn __priv_811ad09817485e06_parse_null -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_number -> int
+priv fn __priv_811ad09817485e06_parse_number -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_number_at -> int
+priv fn __priv_811ad09817485e06_parse_number_at -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_number_digit -> int
+priv fn __priv_811ad09817485e06_parse_number_digit -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_number_tail -> int
+priv fn __priv_811ad09817485e06_parse_number_tail -> int
   if ...: int
-private fn __priv_811ad09817485e06_parse_array -> int
+priv fn __priv_811ad09817485e06_parse_array -> int
   let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, (index: int Add 1: int): int): int
   if ...: int
-private fn __priv_811ad09817485e06_parse_array_after_value -> int
+priv fn __priv_811ad09817485e06_parse_array_after_value -> int
   let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, index: int): int
   if ...: int
-private fn __priv_811ad09817485e06_parse_object -> int
+priv fn __priv_811ad09817485e06_parse_object -> int
   let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, (index: int Add 1: int): int): int
   if ...: int
-private fn __priv_811ad09817485e06_parse_object_after_key -> int
+priv fn __priv_811ad09817485e06_parse_object_after_key -> int
   let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, index: int): int
   if ...: int
-private fn __priv_811ad09817485e06_parse_object_after_value -> int
+priv fn __priv_811ad09817485e06_parse_object_after_value -> int
   let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, index: int): int
   if ...: int
 fn print_int -> ()
@@ -163,7 +162,7 @@ fn print_result -> ()
   let result: int = parse_document: fn(string) -> int(source: string): int
   write_line_string: fn(string) -> ()(label: string): ()
   write_line_int: fn(int) -> ()(bool_to_int: fn(bool) -> int(result_ok: fn(int) -> bool(result: int): bool): int): ()
-  write_line_int: fn(int) -> ()(result_kind: fn(int) -> int(result: int): int): ()
+  write_line_int: fn(int) -> ()(kind_code: fn(Kind) -> int(result_kind: fn(int) -> Kind(result: int): Kind): int): ()
 fn main -> int
   print_result: fn(string, string) -> ()(object: string, {"a":1,"b":2}: string): ()
   print_result: fn(string, string) -> ()(array: string, [null,false,true]: string): ()
