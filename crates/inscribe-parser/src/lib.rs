@@ -149,7 +149,7 @@ priv fn helper() -> int {
     fn parses_enums_arrays_and_indexing() {
         let source = r#"
 enum Kind {
-    Object
+    Object = 1
     Array
 }
 
@@ -164,6 +164,11 @@ fn main() {
             .expect("parsing should succeed");
 
         assert!(matches!(module.items[0], Item::Enum(_)));
+        let Item::Enum(kind_enum) = &module.items[0] else {
+            panic!("expected enum");
+        };
+        assert_eq!(kind_enum.variants[0].discriminant, Some(1));
+        assert_eq!(kind_enum.variants[1].discriminant, None);
         let Item::Function(main_fn) = &module.items[1] else {
             panic!("expected function");
         };

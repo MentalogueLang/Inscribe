@@ -299,8 +299,14 @@ impl Resolver {
 
         let symbol = self.push_symbol(decl.name.clone(), SymbolKind::Enum, decl.span);
         let mut variants = HashMap::new();
-        for (index, variant) in decl.variants.iter().enumerate() {
-            if variants.insert(variant.name.clone(), index).is_some() {
+        let mut next_discriminant = 0usize;
+        for variant in &decl.variants {
+            let discriminant = variant.discriminant.unwrap_or(next_discriminant);
+            next_discriminant = discriminant.saturating_add(1);
+            if variants
+                .insert(variant.name.clone(), discriminant)
+                .is_some()
+            {
                 self.errors.push(ResolveError::new(
                     format!("duplicate variant `{}` in enum `{}`", variant.name, decl.name),
                     variant.span,

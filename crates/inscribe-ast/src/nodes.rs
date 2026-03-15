@@ -89,6 +89,7 @@ impl Spanned for EnumDecl {
 pub struct EnumVariant {
     pub name: String,
     pub name_span: Span,
+    pub discriminant: Option<usize>,
     pub span: Span,
 }
 

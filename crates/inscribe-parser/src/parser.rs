@@ -151,10 +151,21 @@ impl Parser {
         while !self.check(TokenKind::RBrace) && !self.at_eof() {
             let variant_start = self.current_span().start;
             let (variant_name, variant_name_span) = self.expect_identifier()?;
+            let discriminant = if self.match_simple(TokenKind::Equal) {
+                Some(self.expect_array_length()?)
+            } else {
+                None
+            };
+            let end = if discriminant.is_some() {
+                self.previous_span().end
+            } else {
+                variant_name_span.end
+            };
             variants.push(EnumVariant {
                 name: variant_name,
                 name_span: variant_name_span,
-                span: Span::new(variant_start, variant_name_span.end),
+                discriminant,
+                span: Span::new(variant_start, end),
             });
 
             if self.check(TokenKind::RBrace) {
