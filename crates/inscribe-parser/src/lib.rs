@@ -222,4 +222,36 @@ fn main(kind: Kind) -> int {
         };
         assert_eq!(path.segments, vec!["int".to_string()]);
     }
+
+    #[test]
+    fn reports_found_tokens_in_parse_errors() {
+        let source = r#"
+fn main( -> int {
+    0
+}
+"#;
+
+        let error = parse_module(lex(source).expect("lexing should succeed"))
+            .expect_err("parsing should fail");
+        let rendered = error.to_string();
+
+        assert!(rendered.contains("expected an identifier"));
+        assert!(rendered.contains("found `->`"), "{rendered}");
+    }
+
+    #[test]
+    fn suggests_missing_delimiters_at_eof() {
+        let source = r#"
+fn main() -> int {
+    (1 + 2
+"#;
+
+        let error = parse_module(lex(source).expect("lexing should succeed"))
+            .expect_err("parsing should fail");
+        let rendered = error.to_string();
+
+        assert!(rendered.contains("expected `)`"), "{rendered}");
+        assert!(rendered.contains("found newline"), "{rendered}");
+        assert!(rendered.contains("missing a closing `)`"), "{rendered}");
+    }
 }

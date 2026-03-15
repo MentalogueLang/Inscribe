@@ -20,6 +20,8 @@ use crate::stmt::{is_statement_boundary, starts_statement};
 pub struct ParseError {
     pub message: String,
     pub span: Span,
+    pub found: Option<String>,
+    pub note: Option<String>,
 }
 
 impl ParseError {
@@ -27,7 +29,19 @@ impl ParseError {
         Self {
             message: message.into(),
             span,
+            found: None,
+            note: None,
         }
+    }
+
+    pub fn with_found(mut self, found: impl Into<String>) -> Self {
+        self.found = Some(found.into());
+        self
+    }
+
+    pub fn with_note(mut self, note: impl Into<String>) -> Self {
+        self.note = Some(note.into());
+        self
     }
 }
 
@@ -37,7 +51,14 @@ impl fmt::Display for ParseError {
             f,
             "{} at line {}, column {}",
             self.message, self.span.start.line, self.span.start.column
-        )
+        )?;
+        if let Some(found) = &self.found {
+            write!(f, "; found {found}")?;
+        }
+        if let Some(note) = &self.note {
+            write!(f, "; help: {note}")?;
+        }
+        Ok(())
     }
 }
 
@@ -869,11 +890,12 @@ impl Parser {
                         format!("invalid array length `{value}`"),
                         convert_span(self.current().span),
                     )
+                    .with_found(describe_token(&self.current().kind))
                 })?;
                 let _ = self.advance();
                 Ok(parsed)
             }
-            _ => Err(self.error_here("expected an integer array length")),
+            _ => Err(self.expected_here("expected an integer array length")),
         }
     }
 
@@ -931,7 +953,7 @@ impl Parser {
                 let span = convert_span(self.advance().span);
                 Ok((value, span))
             }
-            _ => Err(self.error_here("expected an identifier")),
+            _ => Err(self.expected_here("expected an identifier")),
         }
     }
 
@@ -939,10 +961,7 @@ impl Parser {
         if self.check(expected.clone()) {
             Ok(self.advance())
         } else {
-            Err(ParseError::new(
-                format!("expected {}", expected.describe()),
-                self.current_span(),
-            ))
+            Err(self.expected_token(expected))
         }
     }
 
@@ -961,6 +980,10 @@ impl Parser {
 
     fn peek(&self) -> &TokenKind {
         &self.current().kind
+    }
+
+    fn peek_next(&self) -> Option<&TokenKind> {
+        self.tokens.get(self.index + 1).map(|token| &token.kind)
     }
 
     fn current(&self) -> &Token {
@@ -991,9 +1014,27 @@ impl Parser {
     }
 
     fn error_here(&mut self, message: impl Into<String>) -> ParseError {
-        let error = ParseError::new(message, self.current_span());
+        let error = self.expected_here(message);
         if !is_recovery_boundary(self.peek()) && !self.at_eof() {
             let _ = self.advance();
+        }
+        error
+    }
+
+    fn expected_here(&self, message: impl Into<String>) -> ParseError {
+        ParseError::new(message, self.current_span()).with_found(describe_token(self.peek()))
+    }
+
+    fn expected_token(&self, expected: TokenKind) -> ParseError {
+        let mut error = self
+            .expected_here(format!("expected {}", expected.describe()));
+        if matches!(self.peek(), TokenKind::Eof)
+            || (matches!(self.peek(), TokenKind::Newline)
+                && matches!(self.peek_next(), Some(TokenKind::Eof)))
+        {
+            if let Some(note) = missing_delimiter_hint(&expected) {
+                error = error.with_note(note);
+            }
         }
         error
     }
@@ -1027,4 +1068,24 @@ fn convert_span(span: TokenSpan) -> Span {
 
 fn convert_position(position: inscribe_lexer::token::Position) -> Position {
     Position::new(position.offset, position.line, position.column)
+}
+
+fn describe_token(kind: &TokenKind) -> String {
+    match kind {
+        TokenKind::Identifier(value) => format!("identifier `{value}`"),
+        TokenKind::Integer(value) => format!("integer literal `{value}`"),
+        TokenKind::Float(value) => format!("float literal `{value}`"),
+        TokenKind::String(value) => format!("string literal {:?}", value),
+        TokenKind::Eof => "end of file".to_string(),
+        other => other.describe().to_string(),
+    }
+}
+
+fn missing_delimiter_hint(expected: &TokenKind) -> Option<&'static str> {
+    match expected {
+        TokenKind::RParen => Some("this expression is likely missing a closing `)`"),
+        TokenKind::RBracket => Some("this expression is likely missing a closing `]`"),
+        TokenKind::RBrace => Some("this block or item is likely missing a closing `}`"),
+        _ => None,
+    }
 }
