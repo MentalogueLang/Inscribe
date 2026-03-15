@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without the leading v
+        required: true
+        default: 0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: linux-x64
+            target: x86_64-unknown-linux-gnu
+            binary: inscribe-cli
+            archive: tar.gz
+          - os: windows-latest
+            label: windows-x64
+            target: x86_64-pc-windows-msvc
+            binary: inscribe-cli.exe
+            archive: zip
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build -p inscribe-cli --release --target ${{ matrix.target }}
+
+      - name: Package release artifact
+        shell: pwsh
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          $label = "${{ matrix.label }}"
+          $binary = "${{ matrix.binary }}"
+          $target = "${{ matrix.target }}"
+          $archive = "${{ matrix.archive }}"
+          $staging = Join-Path $PWD "release-staging\$label"
+          New-Item -ItemType Directory -Force -Path $staging | Out-Null
+          Copy-Item "target\$target\release\$binary" $staging
+          Copy-Item "README.md" $staging
+          Copy-Item "RELEASE_NOTE.md" $staging
+
+          if ($archive -eq "zip") {
+            $outFile = Join-Path $PWD "inscribe-$version-$label.zip"
+            if (Test-Path $outFile) {
+              Remove-Item $outFile -Force
+            }
+            Compress-Archive -Path "$staging\*" -DestinationPath $outFile
+          } else {
+            $outFile = Join-Path $PWD "inscribe-$version-$label.tar.gz"
+            tar -czf $outFile -C $staging .
+          }
+
+      - name: Upload packaged artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.label }}
+          path: inscribe-${{ github.event.inputs.version }}-${{ matrix.label }}.*
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          files=$(find release-assets -type f)
+          gh release create "v${{ github.event.inputs.version }}" $files \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "Inscribe ${{ github.event.inputs.version }}" \
+            --notes-file RELEASE_NOTE.md
