@@ -25,6 +25,9 @@ pub fn render(program: &HirProgram) -> String {
                 out.push_str("}\n");
             }
             HirItem::Function(function) => {
+                if matches!(function.visibility, inscribe_ast::Visibility::Private) {
+                    out.push_str("private ");
+                }
                 out.push_str("fn ");
                 if let Some(receiver) = &function.receiver {
                     out.push_str(receiver);

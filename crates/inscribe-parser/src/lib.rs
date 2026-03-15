@@ -10,7 +10,7 @@ pub use parser::{parse_module, ParseError, Parser};
 
 #[cfg(test)]
 mod tests {
-    use inscribe_ast::nodes::{ExprKind, Item, PatternKind, Stmt};
+    use inscribe_ast::nodes::{ExprKind, Item, PatternKind, Stmt, Visibility};
     use inscribe_lexer::lex;
 
     use crate::parse_module;
@@ -125,5 +125,23 @@ fn main() {
             },
             _ => panic!("expected match statement"),
         }
+    }
+
+    #[test]
+    fn parses_private_functions() {
+        let source = r#"
+private fn helper() -> int {
+    7
+}
+"#;
+
+        let module = parse_module(lex(source).expect("lexing should succeed"))
+            .expect("parsing should succeed");
+
+        let Item::Function(function) = &module.items[0] else {
+            panic!("expected function");
+        };
+        assert_eq!(function.visibility, Visibility::Private);
+        assert_eq!(function.name, "helper");
     }
 }

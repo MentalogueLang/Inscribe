@@ -1,3 +1,4 @@
+use inscribe_ast::Visibility;
 use inscribe_ast::span::Span;
 use inscribe_typeck::{FunctionSignature, Type};
 
@@ -38,6 +39,7 @@ pub struct HirField {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirFunction {
+    pub visibility: Visibility,
     pub receiver: Option<String>,
     pub name: String,
     pub signature: FunctionSignature,

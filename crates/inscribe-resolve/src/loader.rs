@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use inscribe_ast::nodes::{Item, Module};
+use inscribe_ast::nodes::{Block, Expr, ExprKind, Item, Module, Stmt, Visibility};
 use inscribe_parser::parse_module;
 use inscribe_session::SessionError;
 
@@ -64,14 +64,7 @@ pub fn load_module_graph_with_options(
 
     for path in &order {
         let source = loaded.get(path).expect("ordered module should exist");
-        items.extend(
-            source
-                .module
-                .items
-                .iter()
-                .filter(|item| !matches!(item, Item::Import(_)))
-                .cloned(),
-        );
+        items.extend(merged_items_for_module(&entry, source));
         modules.push(source.clone());
         nodes.push(module_node(source));
     }
@@ -202,6 +195,7 @@ fn module_node(source: &SourceModule) -> ModuleNode {
                         .map(|path| path.segments.join(".")),
                     name: function.name.clone(),
                 },
+                visibility: function.visibility,
                 span: function.span,
             }),
             Item::Import(_) => None,
@@ -220,6 +214,148 @@ fn module_node(source: &SourceModule) -> ModuleNode {
         items,
         span: source.module.span,
     }
+}
+
+fn merged_items_for_module(entry: &Path, source: &SourceModule) -> Vec<Item> {
+    let mut module = source.module.clone();
+    if source.path != entry {
+        rewrite_private_functions(&mut module, &source.path);
+    }
+
+    module
+        .items
+        .into_iter()
+        .filter(|item| !matches!(item, Item::Import(_)))
+        .collect()
+}
+
+fn rewrite_private_functions(module: &mut Module, source_path: &Path) {
+    let private_names = module
+        .items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Function(function)
+                if function.visibility == Visibility::Private && function.receiver.is_none() =>
+            {
+                Some((
+                    function.name.clone(),
+                    hidden_private_name(source_path, &function.name),
+                ))
+            }
+            _ => None,
+        })
+        .collect::<HashMap<_, _>>();
+
+    if private_names.is_empty() {
+        return;
+    }
+
+    for item in &mut module.items {
+        let Item::Function(function) = item else {
+            continue;
+        };
+
+        if let Some(hidden) = private_names.get(&function.name) {
+            if function.visibility == Visibility::Private && function.receiver.is_none() {
+                function.name = hidden.clone();
+            }
+        }
+
+        if let Some(body) = &mut function.body {
+            rewrite_block_private_paths(body, &private_names);
+        }
+    }
+}
+
+fn rewrite_block_private_paths(block: &mut Block, private_names: &HashMap<String, String>) {
+    for statement in &mut block.statements {
+        rewrite_statement_private_paths(statement, private_names);
+    }
+}
+
+fn rewrite_statement_private_paths(statement: &mut Stmt, private_names: &HashMap<String, String>) {
+    match statement {
+        Stmt::Let(stmt) => rewrite_expr_private_paths(&mut stmt.value, private_names),
+        Stmt::Const(stmt) => rewrite_expr_private_paths(&mut stmt.value, private_names),
+        Stmt::For(stmt) => {
+            rewrite_expr_private_paths(&mut stmt.iterable, private_names);
+            rewrite_block_private_paths(&mut stmt.body, private_names);
+        }
+        Stmt::While(stmt) => {
+            rewrite_expr_private_paths(&mut stmt.condition, private_names);
+            rewrite_block_private_paths(&mut stmt.body, private_names);
+        }
+        Stmt::Return(stmt) => {
+            if let Some(value) = &mut stmt.value {
+                rewrite_expr_private_paths(value, private_names);
+            }
+        }
+        Stmt::Expr(expr) => rewrite_expr_private_paths(expr, private_names),
+    }
+}
+
+fn rewrite_expr_private_paths(expr: &mut Expr, private_names: &HashMap<String, String>) {
+    match &mut expr.kind {
+        ExprKind::Path(path) => {
+            if path.segments.len() == 1 {
+                if let Some(hidden) = private_names.get(&path.segments[0]) {
+                    path.segments[0] = hidden.clone();
+                }
+            }
+        }
+        ExprKind::Unary { expr: inner, .. } => rewrite_expr_private_paths(inner, private_names),
+        ExprKind::Binary { left, right, .. } => {
+            rewrite_expr_private_paths(left, private_names);
+            rewrite_expr_private_paths(right, private_names);
+        }
+        ExprKind::Call { callee, args } => {
+            rewrite_expr_private_paths(callee, private_names);
+            for arg in args {
+                rewrite_expr_private_paths(arg, private_names);
+            }
+        }
+        ExprKind::Field { base, .. } => rewrite_expr_private_paths(base, private_names),
+        ExprKind::StructLiteral { fields, .. } => {
+            for field in fields {
+                rewrite_expr_private_paths(&mut field.value, private_names);
+            }
+        }
+        ExprKind::If {
+            condition,
+            then_block,
+            else_branch,
+        } => {
+            rewrite_expr_private_paths(condition, private_names);
+            rewrite_block_private_paths(then_block, private_names);
+            if let Some(branch) = else_branch {
+                rewrite_expr_private_paths(branch, private_names);
+            }
+        }
+        ExprKind::Match { value, arms } => {
+            rewrite_expr_private_paths(value, private_names);
+            for arm in arms {
+                rewrite_expr_private_paths(&mut arm.value, private_names);
+            }
+        }
+        ExprKind::Block(block) => rewrite_block_private_paths(block, private_names),
+        ExprKind::Try(inner) => rewrite_expr_private_paths(inner, private_names),
+        ExprKind::Literal(_) => {}
+    }
+}
+
+fn hidden_private_name(source_path: &Path, name: &str) -> String {
+    format!(
+        "__priv_{}_{}",
+        sanitize_symbol(&source_path.display().to_string()),
+        sanitize_symbol(name)
+    )
+}
+
+fn sanitize_symbol(value: &str) -> String {
+    value
+        .chars()
+        .map(|ch| if ch.is_ascii_alphanumeric() { ch } else { '_' })
+        .collect()
 }
 
 fn resolve_import_path(

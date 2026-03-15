@@ -88,6 +88,7 @@ fn lower_function(function: &FunctionDecl, typed: &TypeCheckResult) -> HirFuncti
         .collect();
 
     HirFunction {
+        visibility: function.visibility,
         receiver: key.receiver.clone(),
         name: key.name,
         signature,

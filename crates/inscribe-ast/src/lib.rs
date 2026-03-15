@@ -5,7 +5,7 @@ pub mod visit;
 pub use nodes::{
     BinaryOp, Block, ConstStmt, Expr, ExprKind, ForStmt, FunctionDecl, Import, Item, LetStmt,
     Literal, MatchArm, Module, Param, Path, Pattern, PatternKind, ReturnStmt, Stmt, StructDecl,
-    StructField, StructLiteralField, TypeRef, UnaryOp, WhileStmt,
+    StructField, StructLiteralField, TypeRef, UnaryOp, Visibility, WhileStmt,
 };
 pub use span::{Position, Span, Spanned};
 pub use visit::{
@@ -38,6 +38,7 @@ mod tests {
     use super::{
         walk, walk_mut, walk_result, Expr, ExprKind, FunctionDecl, Item, Module, Param, Position,
         ResultVisitor, Span, Spanned, StructDecl, StructField, TypeRef, Visitor, VisitorMut,
+        Visibility,
     };
 
     struct ItemCounter {
@@ -115,6 +116,7 @@ mod tests {
         let span = Span::new(start, end);
         let mut module = Module {
             items: vec![Item::Function(FunctionDecl {
+                visibility: Visibility::Public,
                 receiver: None,
                 name: "measure".to_string(),
                 name_span: span,
@@ -152,6 +154,7 @@ mod tests {
         let span = Span::new(start, end);
         let module = Module {
             items: vec![Item::Function(FunctionDecl {
+                visibility: Visibility::Public,
                 receiver: None,
                 name: "sum".to_string(),
                 name_span: span,

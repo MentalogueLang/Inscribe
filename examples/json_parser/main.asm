@@ -309,66 +309,66 @@ __ml_fn_is_hex_digit.Lbb9:
     mov rax, qword ptr [rsp + 32]
     add rsp, 120
     ret
-__ml_fn_kind_invalid:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_invalid:
     sub rsp, 40
-    jmp __ml_fn_kind_invalid.Lbb0
-__ml_fn_kind_invalid.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_invalid.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_invalid.Lbb0:
     mov rax, 0
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 40
     ret
-__ml_fn_kind_object:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_object:
     sub rsp, 40
-    jmp __ml_fn_kind_object.Lbb0
-__ml_fn_kind_object.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_object.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_object.Lbb0:
     mov rax, 1
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 40
     ret
-__ml_fn_kind_array:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_array:
     sub rsp, 40
-    jmp __ml_fn_kind_array.Lbb0
-__ml_fn_kind_array.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_array.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_array.Lbb0:
     mov rax, 2
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 40
     ret
-__ml_fn_kind_string:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_string:
     sub rsp, 40
-    jmp __ml_fn_kind_string.Lbb0
-__ml_fn_kind_string.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_string.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_string.Lbb0:
     mov rax, 3
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 40
     ret
-__ml_fn_kind_bool:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_bool:
     sub rsp, 40
-    jmp __ml_fn_kind_bool.Lbb0
-__ml_fn_kind_bool.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_bool.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_bool.Lbb0:
     mov rax, 5
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 40
     ret
-__ml_fn_kind_null:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_null:
     sub rsp, 40
-    jmp __ml_fn_kind_null.Lbb0
-__ml_fn_kind_null.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_null.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_null.Lbb0:
     mov rax, 6
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 40
     ret
-__ml_fn_ok_result:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result:
     sub rsp, 88
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_ok_result.Lbb0
-__ml_fn_ok_result.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result.Lbb0:
     mov rax, qword ptr [rsp + 40]
     mov rcx, 10
     imul rax, rcx
@@ -386,11 +386,11 @@ __ml_fn_ok_result.Lbb0:
     mov rax, qword ptr [rsp + 32]
     add rsp, 88
     ret
-__ml_fn_error_result:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result:
     sub rsp, 72
     mov qword ptr [rsp + 40], rcx
-    jmp __ml_fn_error_result.Lbb0
-__ml_fn_error_result.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result.Lbb0:
     mov rax, qword ptr [rsp + 40]
     mov rcx, 10
     imul rax, rcx
@@ -408,11 +408,11 @@ __ml_fn_error_result.Lbb0:
     mov rax, qword ptr [rsp + 32]
     add rsp, 72
     ret
-__ml_fn_result_encoded:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded:
     sub rsp, 72
     mov qword ptr [rsp + 40], rcx
-    jmp __ml_fn_result_encoded.Lbb0
-__ml_fn_result_encoded.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb0:
     mov rax, qword ptr [rsp + 40]
     mov rcx, 0
     cmp rax, rcx
@@ -421,20 +421,20 @@ __ml_fn_result_encoded.Lbb0:
     mov qword ptr [rsp + 56], rax
     mov rax, qword ptr [rsp + 56]
     cmp rax, 0
-    jne __ml_fn_result_encoded.Lbb1
-    jmp __ml_fn_result_encoded.Lbb2
-__ml_fn_result_encoded.Lbb1:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb1
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb2
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb1:
     mov rax, qword ptr [rsp + 40]
     neg rax
     mov qword ptr [rsp + 64], rax
     mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 48], rax
-    jmp __ml_fn_result_encoded.Lbb3
-__ml_fn_result_encoded.Lbb2:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb2:
     mov rax, qword ptr [rsp + 40]
     mov qword ptr [rsp + 48], rax
-    jmp __ml_fn_result_encoded.Lbb3
-__ml_fn_result_encoded.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded.Lbb3:
     mov rax, qword ptr [rsp + 48]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
@@ -472,11 +472,11 @@ __ml_fn_result_kind.Lbb1:
     jmp __ml_fn_result_kind.Lbb3
 __ml_fn_result_kind.Lbb2:
     mov rcx, qword ptr [rsp + 40]
-    call __ml_fn_result_encoded
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded
     mov qword ptr [rsp + 72], rax
     jmp __ml_fn_result_kind.Lbb5
 __ml_fn_result_kind.Lbb3:
-    call __ml_fn_kind_invalid
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_invalid
     mov qword ptr [rsp + 112], rax
     jmp __ml_fn_result_kind.Lbb6
 __ml_fn_result_kind.Lbb4:
@@ -512,16 +512,16 @@ __ml_fn_result_kind.Lbb6:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 48], rax
     jmp __ml_fn_result_kind.Lbb4
-__ml_fn_result_next:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next:
     sub rsp, 72
     mov qword ptr [rsp + 40], rcx
-    jmp __ml_fn_result_next.Lbb0
-__ml_fn_result_next.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next.Lbb0:
     mov rcx, qword ptr [rsp + 40]
-    call __ml_fn_result_encoded
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded
     mov qword ptr [rsp + 48], rax
-    jmp __ml_fn_result_next.Lbb1
-__ml_fn_result_next.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next.Lbb1:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     sub rax, rcx
@@ -536,40 +536,40 @@ __ml_fn_result_next.Lbb1:
     mov rax, qword ptr [rsp + 32]
     add rsp, 72
     ret
-__ml_fn_has_byte:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte:
     sub rsp, 104
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
     mov qword ptr [rsp + 56], r8
-    jmp __ml_fn_has_byte.Lbb0
-__ml_fn_has_byte.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_in_bounds
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_has_byte.Lbb1
-__ml_fn_has_byte.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb1:
     mov rax, qword ptr [rsp + 72]
     cmp rax, 0
-    jne __ml_fn_has_byte.Lbb2
-    jmp __ml_fn_has_byte.Lbb3
-__ml_fn_has_byte.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_has_byte.Lbb5
-__ml_fn_has_byte.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb3:
     mov rax, 0
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_has_byte.Lbb4
-__ml_fn_has_byte.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb4:
     mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 104
     ret
-__ml_fn_has_byte.Lbb5:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb5:
     mov rax, qword ptr [rsp + 80]
     mov rcx, qword ptr [rsp + 56]
     cmp rax, rcx
@@ -578,47 +578,47 @@ __ml_fn_has_byte.Lbb5:
     mov qword ptr [rsp + 88], rax
     mov rax, qword ptr [rsp + 88]
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_has_byte.Lbb4
-__ml_fn_has_quote:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote:
     sub rsp, 104
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_has_quote.Lbb0
-__ml_fn_has_quote.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     mov r8, 34
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_has_quote.Lbb1
-__ml_fn_has_quote.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb1:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_has_quote.Lbb2
-    jmp __ml_fn_has_quote.Lbb3
-__ml_fn_has_quote.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb2:
     mov rax, 1
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_has_quote.Lbb4
-__ml_fn_has_quote.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb3:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     mov r8, 92
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_has_quote.Lbb5
-__ml_fn_has_quote.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb4:
     mov rax, 1
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 104
     ret
-__ml_fn_has_quote.Lbb5:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb5:
     mov rax, qword ptr [rsp + 80]
     cmp rax, 0
-    jne __ml_fn_has_quote.Lbb6
-    jmp __ml_fn_has_quote.Lbb7
-__ml_fn_has_quote.Lbb6:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb6
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb6:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
@@ -626,102 +626,102 @@ __ml_fn_has_quote.Lbb6:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 88]
     mov r8, 34
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_has_quote.Lbb9
-__ml_fn_has_quote.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb7:
     mov rax, 0
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_has_quote.Lbb8
-__ml_fn_has_quote.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb8:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_has_quote.Lbb4
-__ml_fn_has_quote.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb9:
     mov rax, qword ptr [rsp + 96]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_has_quote.Lbb8
-__ml_fn_advance_quote:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote:
     sub rsp, 88
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_advance_quote.Lbb0
-__ml_fn_advance_quote.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     mov r8, 34
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_advance_quote.Lbb1
-__ml_fn_advance_quote.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb1:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_advance_quote.Lbb2
-    jmp __ml_fn_advance_quote.Lbb3
-__ml_fn_advance_quote.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb2:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 72], rax
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_advance_quote.Lbb4
-__ml_fn_advance_quote.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb3:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 2
     add rax, rcx
     mov qword ptr [rsp + 80], rax
     mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_advance_quote.Lbb4
-__ml_fn_advance_quote.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote.Lbb4:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 88
     ret
-__ml_fn_skip_whitespace:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace:
     sub rsp, 120
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_skip_whitespace.Lbb0
-__ml_fn_skip_whitespace.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_in_bounds
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_skip_whitespace.Lbb1
-__ml_fn_skip_whitespace.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb1:
     mov rax, qword ptr [rsp + 72]
     cmp rax, 0
-    jne __ml_fn_skip_whitespace.Lbb2
-    jmp __ml_fn_skip_whitespace.Lbb3
-__ml_fn_skip_whitespace.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_skip_whitespace.Lbb5
-__ml_fn_skip_whitespace.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb3:
     mov rax, 0
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_skip_whitespace.Lbb4
-__ml_fn_skip_whitespace.Lbb4:
-    jmp __ml_fn_skip_whitespace.Lbb7
-__ml_fn_skip_whitespace.Lbb5:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb5:
     mov rcx, qword ptr [rsp + 80]
     call __ml_fn_is_space
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_skip_whitespace.Lbb6
-__ml_fn_skip_whitespace.Lbb6:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb6:
     mov rax, qword ptr [rsp + 88]
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_skip_whitespace.Lbb4
-__ml_fn_skip_whitespace.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb7:
     mov rax, qword ptr [rsp + 48]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_skip_whitespace.Lbb8
-__ml_fn_skip_whitespace.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace.Lbb8:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
@@ -734,7 +734,7 @@ __ml_fn_parse_document:
 __ml_fn_parse_document.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, 0
-    call __ml_fn_parse_value
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value
     mov qword ptr [rsp + 56], rax
     jmp __ml_fn_parse_document.Lbb1
 __ml_fn_parse_document.Lbb1:
@@ -751,7 +751,7 @@ __ml_fn_parse_document.Lbb2:
     jmp __ml_fn_parse_document.Lbb4
 __ml_fn_parse_document.Lbb3:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_result_next
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next
     mov qword ptr [rsp + 88], rax
     jmp __ml_fn_parse_document.Lbb6
 __ml_fn_parse_document.Lbb4:
@@ -767,7 +767,7 @@ __ml_fn_parse_document.Lbb5:
 __ml_fn_parse_document.Lbb6:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 88]
-    call __ml_fn_skip_whitespace
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace
     mov qword ptr [rsp + 96], rax
     jmp __ml_fn_parse_document.Lbb7
 __ml_fn_parse_document.Lbb7:
@@ -795,7 +795,7 @@ __ml_fn_parse_document.Lbb9:
     jmp __ml_fn_parse_document.Lbb12
 __ml_fn_parse_document.Lbb10:
     mov rcx, qword ptr [rsp + 80]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 144], rax
     jmp __ml_fn_parse_document.Lbb14
 __ml_fn_parse_document.Lbb11:
@@ -805,7 +805,7 @@ __ml_fn_parse_document.Lbb11:
 __ml_fn_parse_document.Lbb12:
     mov rcx, qword ptr [rsp + 80]
     mov rdx, qword ptr [rsp + 128]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 136], rax
     jmp __ml_fn_parse_document.Lbb13
 __ml_fn_parse_document.Lbb13:
@@ -816,302 +816,302 @@ __ml_fn_parse_document.Lbb14:
     mov rax, qword ptr [rsp + 144]
     mov qword ptr [rsp + 104], rax
     jmp __ml_fn_parse_document.Lbb11
-__ml_fn_parse_value:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value:
     sub rsp, 232
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_value.Lbb0
-__ml_fn_parse_value.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
-    call __ml_fn_skip_whitespace
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_value.Lbb1
-__ml_fn_parse_value.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb1:
     mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 56], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_has_quote
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_value.Lbb2
-__ml_fn_parse_value.Lbb2:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb2
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb2:
     mov rax, qword ptr [rsp + 80]
     cmp rax, 0
-    jne __ml_fn_parse_value.Lbb3
-    jmp __ml_fn_parse_value.Lbb4
-__ml_fn_parse_value.Lbb3:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb3
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb3:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_string
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_value.Lbb6
-__ml_fn_parse_value.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb4:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 123
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_value.Lbb7
-__ml_fn_parse_value.Lbb5:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb5:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 232
     ret
-__ml_fn_parse_value.Lbb6:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb6:
     mov rax, qword ptr [rsp + 88]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_value.Lbb5
-__ml_fn_parse_value.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb7:
     mov rax, qword ptr [rsp + 104]
     cmp rax, 0
-    jne __ml_fn_parse_value.Lbb8
-    jmp __ml_fn_parse_value.Lbb9
-__ml_fn_parse_value.Lbb8:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb8
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb8:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_object
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_value.Lbb11
-__ml_fn_parse_value.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb9:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 91
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_value.Lbb12
-__ml_fn_parse_value.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb10:
     mov rax, qword ptr [rsp + 96]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_value.Lbb5
-__ml_fn_parse_value.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb11:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_parse_value.Lbb10
-__ml_fn_parse_value.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb12:
     mov rax, qword ptr [rsp + 128]
     cmp rax, 0
-    jne __ml_fn_parse_value.Lbb13
-    jmp __ml_fn_parse_value.Lbb14
-__ml_fn_parse_value.Lbb13:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb13
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb13:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_array
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_value.Lbb16
-__ml_fn_parse_value.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb14:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 116
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_value.Lbb17
-__ml_fn_parse_value.Lbb15:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb15:
     mov rax, qword ptr [rsp + 120]
     mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_parse_value.Lbb10
-__ml_fn_parse_value.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb16:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_value.Lbb15
-__ml_fn_parse_value.Lbb17:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb17:
     mov rax, qword ptr [rsp + 152]
     cmp rax, 0
-    jne __ml_fn_parse_value.Lbb18
-    jmp __ml_fn_parse_value.Lbb19
-__ml_fn_parse_value.Lbb18:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb18
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb18:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_true
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_value.Lbb21
-__ml_fn_parse_value.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb21
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb19:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 102
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 176], rax
-    jmp __ml_fn_parse_value.Lbb22
-__ml_fn_parse_value.Lbb20:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb22
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb20:
     mov rax, qword ptr [rsp + 144]
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_value.Lbb15
-__ml_fn_parse_value.Lbb21:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb21:
     mov rax, qword ptr [rsp + 160]
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_value.Lbb20
-__ml_fn_parse_value.Lbb22:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb22:
     mov rax, qword ptr [rsp + 176]
     cmp rax, 0
-    jne __ml_fn_parse_value.Lbb23
-    jmp __ml_fn_parse_value.Lbb24
-__ml_fn_parse_value.Lbb23:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb23
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb24
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb23:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_false
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false
     mov qword ptr [rsp + 184], rax
-    jmp __ml_fn_parse_value.Lbb26
-__ml_fn_parse_value.Lbb24:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb26
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb24:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 110
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 200], rax
-    jmp __ml_fn_parse_value.Lbb27
-__ml_fn_parse_value.Lbb25:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb27
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb25:
     mov rax, qword ptr [rsp + 168]
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_value.Lbb20
-__ml_fn_parse_value.Lbb26:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb26:
     mov rax, qword ptr [rsp + 184]
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_value.Lbb25
-__ml_fn_parse_value.Lbb27:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb25
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb27:
     mov rax, qword ptr [rsp + 200]
     cmp rax, 0
-    jne __ml_fn_parse_value.Lbb28
-    jmp __ml_fn_parse_value.Lbb29
-__ml_fn_parse_value.Lbb28:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb28
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb29
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb28:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_null
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null
     mov qword ptr [rsp + 208], rax
-    jmp __ml_fn_parse_value.Lbb31
-__ml_fn_parse_value.Lbb29:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb31
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb29:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_number
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number
     mov qword ptr [rsp + 216], rax
-    jmp __ml_fn_parse_value.Lbb32
-__ml_fn_parse_value.Lbb30:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb32
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb30:
     mov rax, qword ptr [rsp + 192]
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_value.Lbb25
-__ml_fn_parse_value.Lbb31:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb25
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb31:
     mov rax, qword ptr [rsp + 208]
     mov qword ptr [rsp + 192], rax
-    jmp __ml_fn_parse_value.Lbb30
-__ml_fn_parse_value.Lbb32:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb30
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb32:
     mov rax, qword ptr [rsp + 216]
     mov qword ptr [rsp + 192], rax
-    jmp __ml_fn_parse_value.Lbb30
-__ml_fn_parse_string:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value.Lbb30
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string:
     sub rsp, 104
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_string.Lbb0
-__ml_fn_parse_string.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
-    call __ml_fn_has_quote
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_string.Lbb1
-__ml_fn_parse_string.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb1:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_parse_string.Lbb2
-    jmp __ml_fn_parse_string.Lbb3
-__ml_fn_parse_string.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
-    call __ml_fn_advance_quote
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_string.Lbb5
-__ml_fn_parse_string.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb3:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_string.Lbb7
-__ml_fn_parse_string.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb4:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 104
     ret
-__ml_fn_parse_string.Lbb5:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb5:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 72]
-    call __ml_fn_parse_string_body
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_string.Lbb6
-__ml_fn_parse_string.Lbb6:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb6:
     mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_string.Lbb4
-__ml_fn_parse_string.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb7:
     mov rax, qword ptr [rsp + 88]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_string.Lbb4
-__ml_fn_parse_string_body:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body:
     sub rsp, 216
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_string_body.Lbb0
-__ml_fn_parse_string_body.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
-    call __ml_fn_has_quote
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_string_body.Lbb1
-__ml_fn_parse_string_body.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb1:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_parse_string_body.Lbb2
-    jmp __ml_fn_parse_string_body.Lbb3
-__ml_fn_parse_string_body.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
-    call __ml_fn_advance_quote
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_string_body.Lbb5
-__ml_fn_parse_string_body.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb3:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_in_bounds
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_string_body.Lbb8
-__ml_fn_parse_string_body.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb4:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 216
     ret
-__ml_fn_parse_string_body.Lbb5:
-    call __ml_fn_kind_string
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb5:
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_string
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_string_body.Lbb6
-__ml_fn_parse_string_body.Lbb6:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb6:
     mov rcx, qword ptr [rsp + 72]
     mov rdx, qword ptr [rsp + 80]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_string_body.Lbb7
-__ml_fn_parse_string_body.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb7:
     mov rax, qword ptr [rsp + 88]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_string_body.Lbb4
-__ml_fn_parse_string_body.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb8:
     mov rax, qword ptr [rsp + 104]
     cmp rax, 0
-    jne __ml_fn_parse_string_body.Lbb9
-    jmp __ml_fn_parse_string_body.Lbb10
-__ml_fn_parse_string_body.Lbb9:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb9
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb9:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_string_body.Lbb12
-__ml_fn_parse_string_body.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb10:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 200], rax
-    jmp __ml_fn_parse_string_body.Lbb23
-__ml_fn_parse_string_body.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb23
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb11:
     mov rax, qword ptr [rsp + 96]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_string_body.Lbb4
-__ml_fn_parse_string_body.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb12:
     mov rax, qword ptr [rsp + 120]
     mov rcx, 92
     cmp rax, rcx
@@ -1120,33 +1120,33 @@ __ml_fn_parse_string_body.Lbb12:
     mov qword ptr [rsp + 128], rax
     mov rax, qword ptr [rsp + 128]
     cmp rax, 0
-    jne __ml_fn_parse_string_body.Lbb13
-    jmp __ml_fn_parse_string_body.Lbb14
-__ml_fn_parse_string_body.Lbb13:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb13
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb13:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 136], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 136]
-    call __ml_fn_parse_string_escape
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_string_body.Lbb16
-__ml_fn_parse_string_body.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb14:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_string_body.Lbb17
-__ml_fn_parse_string_body.Lbb15:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb15:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_parse_string_body.Lbb11
-__ml_fn_parse_string_body.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb16:
     mov rax, qword ptr [rsp + 144]
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_string_body.Lbb15
-__ml_fn_parse_string_body.Lbb17:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb17:
     mov rax, qword ptr [rsp + 160]
     mov rcx, 32
     cmp rax, rcx
@@ -1155,73 +1155,73 @@ __ml_fn_parse_string_body.Lbb17:
     mov qword ptr [rsp + 168], rax
     mov rax, qword ptr [rsp + 168]
     cmp rax, 0
-    jne __ml_fn_parse_string_body.Lbb18
-    jmp __ml_fn_parse_string_body.Lbb19
-__ml_fn_parse_string_body.Lbb18:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb18
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb18:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 176], rax
-    jmp __ml_fn_parse_string_body.Lbb21
-__ml_fn_parse_string_body.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb21
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb19:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 184], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 184]
-    call __ml_fn_parse_string_body
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body
     mov qword ptr [rsp + 192], rax
-    jmp __ml_fn_parse_string_body.Lbb22
-__ml_fn_parse_string_body.Lbb20:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb22
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb20:
     mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_string_body.Lbb15
-__ml_fn_parse_string_body.Lbb21:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb21:
     mov rax, qword ptr [rsp + 176]
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_string_body.Lbb20
-__ml_fn_parse_string_body.Lbb22:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb22:
     mov rax, qword ptr [rsp + 192]
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_string_body.Lbb20
-__ml_fn_parse_string_body.Lbb23:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb23:
     mov rax, qword ptr [rsp + 200]
     mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_parse_string_body.Lbb11
-__ml_fn_parse_string_escape:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape:
     sub rsp, 136
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_string_escape.Lbb0
-__ml_fn_parse_string_escape.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_in_bounds
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_string_escape.Lbb1
-__ml_fn_parse_string_escape.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb1:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_parse_string_escape.Lbb2
-    jmp __ml_fn_parse_string_escape.Lbb3
-__ml_fn_parse_string_escape.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_string_escape.Lbb5
-__ml_fn_parse_string_escape.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb3:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_string_escape.Lbb11
-__ml_fn_parse_string_escape.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb4:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 136
     ret
-__ml_fn_parse_string_escape.Lbb5:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb5:
     mov rax, qword ptr [rsp + 80]
     mov rcx, 117
     cmp rax, rcx
@@ -1230,50 +1230,50 @@ __ml_fn_parse_string_escape.Lbb5:
     mov qword ptr [rsp + 88], rax
     mov rax, qword ptr [rsp + 88]
     cmp rax, 0
-    jne __ml_fn_parse_string_escape.Lbb6
-    jmp __ml_fn_parse_string_escape.Lbb7
-__ml_fn_parse_string_escape.Lbb6:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb6
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb6:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 96], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 96]
-    call __ml_fn_parse_unicode_escape
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_string_escape.Lbb9
-__ml_fn_parse_string_escape.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb7:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 112], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 112]
-    call __ml_fn_parse_string_body
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_string_escape.Lbb10
-__ml_fn_parse_string_escape.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb8:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_string_escape.Lbb4
-__ml_fn_parse_string_escape.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb9:
     mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_string_escape.Lbb8
-__ml_fn_parse_string_escape.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb10:
     mov rax, qword ptr [rsp + 120]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_string_escape.Lbb8
-__ml_fn_parse_string_escape.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb11:
     mov rax, qword ptr [rsp + 128]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_string_escape.Lbb4
-__ml_fn_parse_unicode_escape:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape:
     sub rsp, 264
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_unicode_escape.Lbb0
-__ml_fn_parse_unicode_escape.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb0:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 3
     add rax, rcx
@@ -1282,40 +1282,40 @@ __ml_fn_parse_unicode_escape.Lbb0:
     mov rdx, qword ptr [rsp + 64]
     call __ml_fn_in_bounds
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb1
-__ml_fn_parse_unicode_escape.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb1:
     mov rax, qword ptr [rsp + 72]
     cmp rax, 0
-    jne __ml_fn_parse_unicode_escape.Lbb2
-    jmp __ml_fn_parse_unicode_escape.Lbb3
-__ml_fn_parse_unicode_escape.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb5
-__ml_fn_parse_unicode_escape.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb3:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 248], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb30
-__ml_fn_parse_unicode_escape.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb30
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb4:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 264
     ret
-__ml_fn_parse_unicode_escape.Lbb5:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb5:
     mov rcx, qword ptr [rsp + 88]
     call __ml_fn_is_hex_digit
     mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb6
-__ml_fn_parse_unicode_escape.Lbb6:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb6:
     mov rax, qword ptr [rsp + 96]
     cmp rax, 0
-    jne __ml_fn_parse_unicode_escape.Lbb7
-    jmp __ml_fn_parse_unicode_escape.Lbb8
-__ml_fn_parse_unicode_escape.Lbb7:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb7
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb7:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
@@ -1324,27 +1324,27 @@ __ml_fn_parse_unicode_escape.Lbb7:
     mov rdx, qword ptr [rsp + 112]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb10
-__ml_fn_parse_unicode_escape.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb8:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 240], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb29
-__ml_fn_parse_unicode_escape.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb29
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb9:
     mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb4
-__ml_fn_parse_unicode_escape.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb10:
     mov rcx, qword ptr [rsp + 120]
     call __ml_fn_is_hex_digit
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb11
-__ml_fn_parse_unicode_escape.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb11:
     mov rax, qword ptr [rsp + 128]
     cmp rax, 0
-    jne __ml_fn_parse_unicode_escape.Lbb12
-    jmp __ml_fn_parse_unicode_escape.Lbb13
-__ml_fn_parse_unicode_escape.Lbb12:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb12
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb12:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 2
     add rax, rcx
@@ -1353,27 +1353,27 @@ __ml_fn_parse_unicode_escape.Lbb12:
     mov rdx, qword ptr [rsp + 144]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb15
-__ml_fn_parse_unicode_escape.Lbb13:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb13:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 232], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb28
-__ml_fn_parse_unicode_escape.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb28
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb14:
     mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb9
-__ml_fn_parse_unicode_escape.Lbb15:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb15:
     mov rcx, qword ptr [rsp + 152]
     call __ml_fn_is_hex_digit
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb16
-__ml_fn_parse_unicode_escape.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb16:
     mov rax, qword ptr [rsp + 160]
     cmp rax, 0
-    jne __ml_fn_parse_unicode_escape.Lbb17
-    jmp __ml_fn_parse_unicode_escape.Lbb18
-__ml_fn_parse_unicode_escape.Lbb17:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb17
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb18
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb17:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 3
     add rax, rcx
@@ -1382,87 +1382,87 @@ __ml_fn_parse_unicode_escape.Lbb17:
     mov rdx, qword ptr [rsp + 176]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 184], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb20
-__ml_fn_parse_unicode_escape.Lbb18:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb18:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 224], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb27
-__ml_fn_parse_unicode_escape.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb27
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb19:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb14
-__ml_fn_parse_unicode_escape.Lbb20:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb20:
     mov rcx, qword ptr [rsp + 184]
     call __ml_fn_is_hex_digit
     mov qword ptr [rsp + 192], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb21
-__ml_fn_parse_unicode_escape.Lbb21:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb21
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb21:
     mov rax, qword ptr [rsp + 192]
     cmp rax, 0
-    jne __ml_fn_parse_unicode_escape.Lbb22
-    jmp __ml_fn_parse_unicode_escape.Lbb23
-__ml_fn_parse_unicode_escape.Lbb22:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb22
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb23
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb22:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 4
     add rax, rcx
     mov qword ptr [rsp + 200], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 200]
-    call __ml_fn_parse_string_body
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body
     mov qword ptr [rsp + 208], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb25
-__ml_fn_parse_unicode_escape.Lbb23:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb25
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb23:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 216], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb26
-__ml_fn_parse_unicode_escape.Lbb24:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb26
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb24:
     mov rax, qword ptr [rsp + 168]
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb19
-__ml_fn_parse_unicode_escape.Lbb25:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb25:
     mov rax, qword ptr [rsp + 208]
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb24
-__ml_fn_parse_unicode_escape.Lbb26:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb24
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb26:
     mov rax, qword ptr [rsp + 216]
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb24
-__ml_fn_parse_unicode_escape.Lbb27:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb24
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb27:
     mov rax, qword ptr [rsp + 224]
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb19
-__ml_fn_parse_unicode_escape.Lbb28:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb28:
     mov rax, qword ptr [rsp + 232]
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb14
-__ml_fn_parse_unicode_escape.Lbb29:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb29:
     mov rax, qword ptr [rsp + 240]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb9
-__ml_fn_parse_unicode_escape.Lbb30:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb30:
     mov rax, qword ptr [rsp + 248]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_unicode_escape.Lbb4
-__ml_fn_parse_true:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true:
     sub rsp, 184
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_true.Lbb0
-__ml_fn_parse_true.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     mov r8, 116
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_true.Lbb1
-__ml_fn_parse_true.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb1:
     mov rax, qword ptr [rsp + 88]
     cmp rax, 0
-    jne __ml_fn_parse_true.Lbb2
-    jmp __ml_fn_parse_true.Lbb3
-__ml_fn_parse_true.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb2:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
@@ -1470,23 +1470,23 @@ __ml_fn_parse_true.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 96]
     mov r8, 114
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_true.Lbb5
-__ml_fn_parse_true.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb3:
     mov rax, 0
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_true.Lbb4
-__ml_fn_parse_true.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb4:
     mov rax, qword ptr [rsp + 80]
     cmp rax, 0
-    jne __ml_fn_parse_true.Lbb6
-    jmp __ml_fn_parse_true.Lbb7
-__ml_fn_parse_true.Lbb5:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb6
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb5:
     mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_true.Lbb4
-__ml_fn_parse_true.Lbb6:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb6:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 2
     add rax, rcx
@@ -1494,23 +1494,23 @@ __ml_fn_parse_true.Lbb6:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 112]
     mov r8, 117
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_true.Lbb9
-__ml_fn_parse_true.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb7:
     mov rax, 0
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_true.Lbb8
-__ml_fn_parse_true.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb8:
     mov rax, qword ptr [rsp + 72]
     cmp rax, 0
-    jne __ml_fn_parse_true.Lbb10
-    jmp __ml_fn_parse_true.Lbb11
-__ml_fn_parse_true.Lbb9:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb10
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb9:
     mov rax, qword ptr [rsp + 120]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_true.Lbb8
-__ml_fn_parse_true.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb10:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 3
     add rax, rcx
@@ -1518,73 +1518,73 @@ __ml_fn_parse_true.Lbb10:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 128]
     mov r8, 101
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_true.Lbb13
-__ml_fn_parse_true.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb11:
     mov rax, 0
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_true.Lbb12
-__ml_fn_parse_true.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb12:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_parse_true.Lbb14
-    jmp __ml_fn_parse_true.Lbb15
-__ml_fn_parse_true.Lbb13:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb14
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb13:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_true.Lbb12
-__ml_fn_parse_true.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb14:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 4
     add rax, rcx
     mov qword ptr [rsp + 144], rax
-    call __ml_fn_kind_bool
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_bool
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_true.Lbb17
-__ml_fn_parse_true.Lbb15:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb15:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_true.Lbb19
-__ml_fn_parse_true.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb16:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 184
     ret
-__ml_fn_parse_true.Lbb17:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb17:
     mov rcx, qword ptr [rsp + 144]
     mov rdx, qword ptr [rsp + 152]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_true.Lbb18
-__ml_fn_parse_true.Lbb18:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb18
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb18:
     mov rax, qword ptr [rsp + 160]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_true.Lbb16
-__ml_fn_parse_true.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb19:
     mov rax, qword ptr [rsp + 168]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_true.Lbb16
-__ml_fn_parse_false:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false:
     sub rsp, 200
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_false.Lbb0
-__ml_fn_parse_false.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     mov r8, 102
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_parse_false.Lbb1
-__ml_fn_parse_false.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb1:
     mov rax, qword ptr [rsp + 96]
     cmp rax, 0
-    jne __ml_fn_parse_false.Lbb2
-    jmp __ml_fn_parse_false.Lbb3
-__ml_fn_parse_false.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb2:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
@@ -1592,23 +1592,23 @@ __ml_fn_parse_false.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 104]
     mov r8, 97
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_false.Lbb5
-__ml_fn_parse_false.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb3:
     mov rax, 0
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_false.Lbb4
-__ml_fn_parse_false.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb4:
     mov rax, qword ptr [rsp + 88]
     cmp rax, 0
-    jne __ml_fn_parse_false.Lbb6
-    jmp __ml_fn_parse_false.Lbb7
-__ml_fn_parse_false.Lbb5:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb6
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb5:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_false.Lbb4
-__ml_fn_parse_false.Lbb6:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb6:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 2
     add rax, rcx
@@ -1616,23 +1616,23 @@ __ml_fn_parse_false.Lbb6:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 120]
     mov r8, 108
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_false.Lbb9
-__ml_fn_parse_false.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb7:
     mov rax, 0
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_false.Lbb8
-__ml_fn_parse_false.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb8:
     mov rax, qword ptr [rsp + 80]
     cmp rax, 0
-    jne __ml_fn_parse_false.Lbb10
-    jmp __ml_fn_parse_false.Lbb11
-__ml_fn_parse_false.Lbb9:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb10
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb9:
     mov rax, qword ptr [rsp + 128]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_false.Lbb8
-__ml_fn_parse_false.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb10:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 3
     add rax, rcx
@@ -1640,23 +1640,23 @@ __ml_fn_parse_false.Lbb10:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 136]
     mov r8, 115
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_false.Lbb13
-__ml_fn_parse_false.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb11:
     mov rax, 0
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_false.Lbb12
-__ml_fn_parse_false.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb12:
     mov rax, qword ptr [rsp + 72]
     cmp rax, 0
-    jne __ml_fn_parse_false.Lbb14
-    jmp __ml_fn_parse_false.Lbb15
-__ml_fn_parse_false.Lbb13:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb14
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb13:
     mov rax, qword ptr [rsp + 144]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_false.Lbb12
-__ml_fn_parse_false.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb14:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 4
     add rax, rcx
@@ -1664,73 +1664,73 @@ __ml_fn_parse_false.Lbb14:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 152]
     mov r8, 101
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_false.Lbb17
-__ml_fn_parse_false.Lbb15:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb15:
     mov rax, 0
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_false.Lbb16
-__ml_fn_parse_false.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb16:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_parse_false.Lbb18
-    jmp __ml_fn_parse_false.Lbb19
-__ml_fn_parse_false.Lbb17:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb18
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb17:
     mov rax, qword ptr [rsp + 160]
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_false.Lbb16
-__ml_fn_parse_false.Lbb18:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb18:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 5
     add rax, rcx
     mov qword ptr [rsp + 168], rax
-    call __ml_fn_kind_bool
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_bool
     mov qword ptr [rsp + 176], rax
-    jmp __ml_fn_parse_false.Lbb21
-__ml_fn_parse_false.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb21
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb19:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 192], rax
-    jmp __ml_fn_parse_false.Lbb23
-__ml_fn_parse_false.Lbb20:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb23
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb20:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 200
     ret
-__ml_fn_parse_false.Lbb21:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb21:
     mov rcx, qword ptr [rsp + 168]
     mov rdx, qword ptr [rsp + 176]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 184], rax
-    jmp __ml_fn_parse_false.Lbb22
-__ml_fn_parse_false.Lbb22:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb22
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb22:
     mov rax, qword ptr [rsp + 184]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_false.Lbb20
-__ml_fn_parse_false.Lbb23:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb23:
     mov rax, qword ptr [rsp + 192]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_false.Lbb20
-__ml_fn_parse_null:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null:
     sub rsp, 184
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_null.Lbb0
-__ml_fn_parse_null.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     mov r8, 110
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_null.Lbb1
-__ml_fn_parse_null.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb1:
     mov rax, qword ptr [rsp + 88]
     cmp rax, 0
-    jne __ml_fn_parse_null.Lbb2
-    jmp __ml_fn_parse_null.Lbb3
-__ml_fn_parse_null.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb2:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
@@ -1738,23 +1738,23 @@ __ml_fn_parse_null.Lbb2:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 96]
     mov r8, 117
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_null.Lbb5
-__ml_fn_parse_null.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb3:
     mov rax, 0
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_null.Lbb4
-__ml_fn_parse_null.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb4:
     mov rax, qword ptr [rsp + 80]
     cmp rax, 0
-    jne __ml_fn_parse_null.Lbb6
-    jmp __ml_fn_parse_null.Lbb7
-__ml_fn_parse_null.Lbb5:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb6
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb5:
     mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_null.Lbb4
-__ml_fn_parse_null.Lbb6:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb6:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 2
     add rax, rcx
@@ -1762,23 +1762,23 @@ __ml_fn_parse_null.Lbb6:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 112]
     mov r8, 108
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_null.Lbb9
-__ml_fn_parse_null.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb7:
     mov rax, 0
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_null.Lbb8
-__ml_fn_parse_null.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb8:
     mov rax, qword ptr [rsp + 72]
     cmp rax, 0
-    jne __ml_fn_parse_null.Lbb10
-    jmp __ml_fn_parse_null.Lbb11
-__ml_fn_parse_null.Lbb9:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb10
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb9:
     mov rax, qword ptr [rsp + 120]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_null.Lbb8
-__ml_fn_parse_null.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb10:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 3
     add rax, rcx
@@ -1786,73 +1786,73 @@ __ml_fn_parse_null.Lbb10:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 128]
     mov r8, 108
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_null.Lbb13
-__ml_fn_parse_null.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb11:
     mov rax, 0
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_null.Lbb12
-__ml_fn_parse_null.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb12:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_parse_null.Lbb14
-    jmp __ml_fn_parse_null.Lbb15
-__ml_fn_parse_null.Lbb13:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb14
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb13:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_null.Lbb12
-__ml_fn_parse_null.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb14:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 4
     add rax, rcx
     mov qword ptr [rsp + 144], rax
-    call __ml_fn_kind_null
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_null
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_null.Lbb17
-__ml_fn_parse_null.Lbb15:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb15:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_null.Lbb19
-__ml_fn_parse_null.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb16:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 184
     ret
-__ml_fn_parse_null.Lbb17:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb17:
     mov rcx, qword ptr [rsp + 144]
     mov rdx, qword ptr [rsp + 152]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_null.Lbb18
-__ml_fn_parse_null.Lbb18:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb18
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb18:
     mov rax, qword ptr [rsp + 160]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_null.Lbb16
-__ml_fn_parse_null.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb19:
     mov rax, qword ptr [rsp + 168]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_null.Lbb16
-__ml_fn_parse_number:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number:
     sub rsp, 216
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_number.Lbb0
-__ml_fn_parse_number.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     mov r8, 45
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_number.Lbb1
-__ml_fn_parse_number.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb1:
     mov rax, qword ptr [rsp + 64]
     cmp rax, 0
-    jne __ml_fn_parse_number.Lbb2
-    jmp __ml_fn_parse_number.Lbb3
-__ml_fn_parse_number.Lbb2:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb2
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb3
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb2:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
@@ -1861,25 +1861,25 @@ __ml_fn_parse_number.Lbb2:
     mov rdx, qword ptr [rsp + 88]
     call __ml_fn_in_bounds
     mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_parse_number.Lbb5
-__ml_fn_parse_number.Lbb3:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb3:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_in_bounds
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_number.Lbb14
-__ml_fn_parse_number.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb4:
     mov rax, qword ptr [rsp + 56]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 216
     ret
-__ml_fn_parse_number.Lbb5:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb5:
     mov rax, qword ptr [rsp + 96]
     cmp rax, 0
-    jne __ml_fn_parse_number.Lbb6
-    jmp __ml_fn_parse_number.Lbb7
-__ml_fn_parse_number.Lbb6:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb6
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb6:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
@@ -1888,610 +1888,610 @@ __ml_fn_parse_number.Lbb6:
     mov rdx, qword ptr [rsp + 104]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_number.Lbb9
-__ml_fn_parse_number.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb7:
     mov rax, 0
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_number.Lbb8
-__ml_fn_parse_number.Lbb8:
-    jmp __ml_fn_parse_number.Lbb11
-__ml_fn_parse_number.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb9:
     mov rcx, qword ptr [rsp + 112]
     call __ml_fn_is_digit
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_number.Lbb10
-__ml_fn_parse_number.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb10:
     mov rax, qword ptr [rsp + 120]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_number.Lbb8
-__ml_fn_parse_number.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb11:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_number.Lbb13
-__ml_fn_parse_number.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb12:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_number.Lbb4
-__ml_fn_parse_number.Lbb13:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb13:
     mov rax, qword ptr [rsp + 144]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_number.Lbb12
-__ml_fn_parse_number.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb14:
     mov rax, qword ptr [rsp + 168]
     cmp rax, 0
-    jne __ml_fn_parse_number.Lbb15
-    jmp __ml_fn_parse_number.Lbb16
-__ml_fn_parse_number.Lbb15:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb15
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb15:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
     call __ml_fn_byte_at
     mov qword ptr [rsp + 176], rax
-    jmp __ml_fn_parse_number.Lbb18
-__ml_fn_parse_number.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb18
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb16:
     mov rax, 0
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_number.Lbb17
-__ml_fn_parse_number.Lbb17:
-    jmp __ml_fn_parse_number.Lbb20
-__ml_fn_parse_number.Lbb18:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb17:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb18:
     mov rcx, qword ptr [rsp + 176]
     call __ml_fn_is_digit
     mov qword ptr [rsp + 184], rax
-    jmp __ml_fn_parse_number.Lbb19
-__ml_fn_parse_number.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb19:
     mov rax, qword ptr [rsp + 184]
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_number.Lbb17
-__ml_fn_parse_number.Lbb20:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb20:
     mov rcx, qword ptr [rsp + 48]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 208], rax
-    jmp __ml_fn_parse_number.Lbb22
-__ml_fn_parse_number.Lbb21:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb22
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb21:
     mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 56], rax
-    jmp __ml_fn_parse_number.Lbb4
-__ml_fn_parse_number.Lbb22:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb22:
     mov rax, qword ptr [rsp + 208]
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_number.Lbb21
-__ml_fn_parse_array:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number.Lbb21
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array:
     sub rsp, 184
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_array.Lbb0
-__ml_fn_parse_array.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb0:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 64], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 64]
-    call __ml_fn_skip_whitespace
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_array.Lbb1
-__ml_fn_parse_array.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb1:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 56], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 93
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_array.Lbb2
-__ml_fn_parse_array.Lbb2:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb2
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb2:
     mov rax, qword ptr [rsp + 88]
     cmp rax, 0
-    jne __ml_fn_parse_array.Lbb3
-    jmp __ml_fn_parse_array.Lbb4
-__ml_fn_parse_array.Lbb3:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb3
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb3:
     mov rax, qword ptr [rsp + 56]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 96], rax
-    call __ml_fn_kind_array
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_array
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_array.Lbb6
-__ml_fn_parse_array.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb4:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_value
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_array.Lbb8
-__ml_fn_parse_array.Lbb5:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb5:
     mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 184
     ret
-__ml_fn_parse_array.Lbb6:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb6:
     mov rcx, qword ptr [rsp + 96]
     mov rdx, qword ptr [rsp + 104]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_array.Lbb7
-__ml_fn_parse_array.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb7:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_array.Lbb5
-__ml_fn_parse_array.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb8:
     mov rax, qword ptr [rsp + 128]
     mov qword ptr [rsp + 120], rax
     mov rcx, qword ptr [rsp + 120]
     call __ml_fn_result_ok
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_array.Lbb9
-__ml_fn_parse_array.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb9:
     mov rax, qword ptr [rsp + 144]
     cmp rax, 0
-    jne __ml_fn_parse_array.Lbb10
-    jmp __ml_fn_parse_array.Lbb11
-__ml_fn_parse_array.Lbb10:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb10
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb10:
     mov rcx, qword ptr [rsp + 120]
-    call __ml_fn_result_next
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_array.Lbb13
-__ml_fn_parse_array.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb11:
     mov rcx, qword ptr [rsp + 56]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_array.Lbb15
-__ml_fn_parse_array.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb12:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_array.Lbb5
-__ml_fn_parse_array.Lbb13:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb13:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 152]
-    call __ml_fn_parse_array_after_value
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_array.Lbb14
-__ml_fn_parse_array.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb14:
     mov rax, qword ptr [rsp + 160]
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_array.Lbb12
-__ml_fn_parse_array.Lbb15:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb15:
     mov rax, qword ptr [rsp + 168]
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_array.Lbb12
-__ml_fn_parse_array_after_value:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value:
     sub rsp, 200
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_array_after_value.Lbb0
-__ml_fn_parse_array_after_value.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
-    call __ml_fn_skip_whitespace
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_array_after_value.Lbb1
-__ml_fn_parse_array_after_value.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb1:
     mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 56], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 44
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_array_after_value.Lbb2
-__ml_fn_parse_array_after_value.Lbb2:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb2
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb2:
     mov rax, qword ptr [rsp + 80]
     cmp rax, 0
-    jne __ml_fn_parse_array_after_value.Lbb3
-    jmp __ml_fn_parse_array_after_value.Lbb4
-__ml_fn_parse_array_after_value.Lbb3:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb3
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb3:
     mov rax, qword ptr [rsp + 56]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 96], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 96]
-    call __ml_fn_parse_value
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_array_after_value.Lbb6
-__ml_fn_parse_array_after_value.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb4:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 93
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_array_after_value.Lbb14
-__ml_fn_parse_array_after_value.Lbb5:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb5:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 200
     ret
-__ml_fn_parse_array_after_value.Lbb6:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb6:
     mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 88], rax
     mov rcx, qword ptr [rsp + 88]
     call __ml_fn_result_ok
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_array_after_value.Lbb7
-__ml_fn_parse_array_after_value.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb7:
     mov rax, qword ptr [rsp + 120]
     cmp rax, 0
-    jne __ml_fn_parse_array_after_value.Lbb8
-    jmp __ml_fn_parse_array_after_value.Lbb9
-__ml_fn_parse_array_after_value.Lbb8:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb8
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb8:
     mov rcx, qword ptr [rsp + 88]
-    call __ml_fn_result_next
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_array_after_value.Lbb11
-__ml_fn_parse_array_after_value.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb9:
     mov rcx, qword ptr [rsp + 56]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_array_after_value.Lbb13
-__ml_fn_parse_array_after_value.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb10:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_array_after_value.Lbb5
-__ml_fn_parse_array_after_value.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb11:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 128]
-    call __ml_fn_parse_array_after_value
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_array_after_value.Lbb12
-__ml_fn_parse_array_after_value.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb12:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_array_after_value.Lbb10
-__ml_fn_parse_array_after_value.Lbb13:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb13:
     mov rax, qword ptr [rsp + 144]
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_array_after_value.Lbb10
-__ml_fn_parse_array_after_value.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb14:
     mov rax, qword ptr [rsp + 160]
     cmp rax, 0
-    jne __ml_fn_parse_array_after_value.Lbb15
-    jmp __ml_fn_parse_array_after_value.Lbb16
-__ml_fn_parse_array_after_value.Lbb15:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb15
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb15:
     mov rax, qword ptr [rsp + 56]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 168], rax
-    call __ml_fn_kind_array
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_array
     mov qword ptr [rsp + 176], rax
-    jmp __ml_fn_parse_array_after_value.Lbb18
-__ml_fn_parse_array_after_value.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb18
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb16:
     mov rcx, qword ptr [rsp + 56]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 192], rax
-    jmp __ml_fn_parse_array_after_value.Lbb20
-__ml_fn_parse_array_after_value.Lbb17:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb17:
     mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_array_after_value.Lbb5
-__ml_fn_parse_array_after_value.Lbb18:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb18:
     mov rcx, qword ptr [rsp + 168]
     mov rdx, qword ptr [rsp + 176]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 184], rax
-    jmp __ml_fn_parse_array_after_value.Lbb19
-__ml_fn_parse_array_after_value.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb19:
     mov rax, qword ptr [rsp + 184]
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_array_after_value.Lbb17
-__ml_fn_parse_array_after_value.Lbb20:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb20:
     mov rax, qword ptr [rsp + 192]
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_array_after_value.Lbb17
-__ml_fn_parse_object:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object:
     sub rsp, 184
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_object.Lbb0
-__ml_fn_parse_object.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb0:
     mov rax, qword ptr [rsp + 48]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 64], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 64]
-    call __ml_fn_skip_whitespace
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_object.Lbb1
-__ml_fn_parse_object.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb1:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 56], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 125
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 88], rax
-    jmp __ml_fn_parse_object.Lbb2
-__ml_fn_parse_object.Lbb2:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb2
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb2:
     mov rax, qword ptr [rsp + 88]
     cmp rax, 0
-    jne __ml_fn_parse_object.Lbb3
-    jmp __ml_fn_parse_object.Lbb4
-__ml_fn_parse_object.Lbb3:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb3
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb3:
     mov rax, qword ptr [rsp + 56]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 96], rax
-    call __ml_fn_kind_object
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_object
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_object.Lbb6
-__ml_fn_parse_object.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb4:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
-    call __ml_fn_parse_string
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_object.Lbb8
-__ml_fn_parse_object.Lbb5:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb8
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb5:
     mov rax, qword ptr [rsp + 80]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 184
     ret
-__ml_fn_parse_object.Lbb6:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb6:
     mov rcx, qword ptr [rsp + 96]
     mov rdx, qword ptr [rsp + 104]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_object.Lbb7
-__ml_fn_parse_object.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb7:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_object.Lbb5
-__ml_fn_parse_object.Lbb8:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb8:
     mov rax, qword ptr [rsp + 128]
     mov qword ptr [rsp + 120], rax
     mov rcx, qword ptr [rsp + 120]
     call __ml_fn_result_ok
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_object.Lbb9
-__ml_fn_parse_object.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb9:
     mov rax, qword ptr [rsp + 144]
     cmp rax, 0
-    jne __ml_fn_parse_object.Lbb10
-    jmp __ml_fn_parse_object.Lbb11
-__ml_fn_parse_object.Lbb10:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb10
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb10:
     mov rcx, qword ptr [rsp + 120]
-    call __ml_fn_result_next
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_object.Lbb13
-__ml_fn_parse_object.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb11:
     mov rcx, qword ptr [rsp + 56]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 168], rax
-    jmp __ml_fn_parse_object.Lbb15
-__ml_fn_parse_object.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb15
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb12:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_object.Lbb5
-__ml_fn_parse_object.Lbb13:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb13:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 152]
-    call __ml_fn_parse_object_after_key
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_object.Lbb14
-__ml_fn_parse_object.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb14:
     mov rax, qword ptr [rsp + 160]
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_object.Lbb12
-__ml_fn_parse_object.Lbb15:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb15:
     mov rax, qword ptr [rsp + 168]
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_object.Lbb12
-__ml_fn_parse_object_after_key:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key:
     sub rsp, 168
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_object_after_key.Lbb0
-__ml_fn_parse_object_after_key.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
-    call __ml_fn_skip_whitespace
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_object_after_key.Lbb1
-__ml_fn_parse_object_after_key.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb1:
     mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 56], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 58
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_object_after_key.Lbb2
-__ml_fn_parse_object_after_key.Lbb2:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb2
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb2:
     mov rax, qword ptr [rsp + 80]
     cmp rax, 0
-    jne __ml_fn_parse_object_after_key.Lbb3
-    jmp __ml_fn_parse_object_after_key.Lbb4
-__ml_fn_parse_object_after_key.Lbb3:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb3
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb3:
     mov rax, qword ptr [rsp + 56]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 96], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 96]
-    call __ml_fn_parse_value
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_object_after_key.Lbb6
-__ml_fn_parse_object_after_key.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb4:
     mov rcx, qword ptr [rsp + 56]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_object_after_key.Lbb14
-__ml_fn_parse_object_after_key.Lbb5:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb5:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 168
     ret
-__ml_fn_parse_object_after_key.Lbb6:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb6:
     mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 88], rax
     mov rcx, qword ptr [rsp + 88]
     call __ml_fn_result_ok
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_object_after_key.Lbb7
-__ml_fn_parse_object_after_key.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb7:
     mov rax, qword ptr [rsp + 120]
     cmp rax, 0
-    jne __ml_fn_parse_object_after_key.Lbb8
-    jmp __ml_fn_parse_object_after_key.Lbb9
-__ml_fn_parse_object_after_key.Lbb8:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb8
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb8:
     mov rcx, qword ptr [rsp + 88]
-    call __ml_fn_result_next
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_object_after_key.Lbb11
-__ml_fn_parse_object_after_key.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb9:
     mov rcx, qword ptr [rsp + 56]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_object_after_key.Lbb13
-__ml_fn_parse_object_after_key.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb10:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_object_after_key.Lbb5
-__ml_fn_parse_object_after_key.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb11:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 128]
-    call __ml_fn_parse_object_after_value
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_object_after_key.Lbb12
-__ml_fn_parse_object_after_key.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb12:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_object_after_key.Lbb10
-__ml_fn_parse_object_after_key.Lbb13:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb13:
     mov rax, qword ptr [rsp + 144]
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_object_after_key.Lbb10
-__ml_fn_parse_object_after_key.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb14:
     mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_object_after_key.Lbb5
-__ml_fn_parse_object_after_value:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value:
     sub rsp, 200
     mov qword ptr [rsp + 40], rcx
     mov qword ptr [rsp + 48], rdx
-    jmp __ml_fn_parse_object_after_value.Lbb0
-__ml_fn_parse_object_after_value.Lbb0:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb0
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb0:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 48]
-    call __ml_fn_skip_whitespace
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace
     mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_parse_object_after_value.Lbb1
-__ml_fn_parse_object_after_value.Lbb1:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb1
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb1:
     mov rax, qword ptr [rsp + 64]
     mov qword ptr [rsp + 56], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 44
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_parse_object_after_value.Lbb2
-__ml_fn_parse_object_after_value.Lbb2:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb2
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb2:
     mov rax, qword ptr [rsp + 80]
     cmp rax, 0
-    jne __ml_fn_parse_object_after_value.Lbb3
-    jmp __ml_fn_parse_object_after_value.Lbb4
-__ml_fn_parse_object_after_value.Lbb3:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb3
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb4
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb3:
     mov rax, qword ptr [rsp + 56]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 96], rax
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 96]
-    call __ml_fn_parse_string
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string
     mov qword ptr [rsp + 104], rax
-    jmp __ml_fn_parse_object_after_value.Lbb6
-__ml_fn_parse_object_after_value.Lbb4:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb6
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb4:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 56]
     mov r8, 125
-    call __ml_fn_has_byte
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte
     mov qword ptr [rsp + 160], rax
-    jmp __ml_fn_parse_object_after_value.Lbb14
-__ml_fn_parse_object_after_value.Lbb5:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb14
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb5:
     mov rax, qword ptr [rsp + 72]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
     add rsp, 200
     ret
-__ml_fn_parse_object_after_value.Lbb6:
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb6:
     mov rax, qword ptr [rsp + 104]
     mov qword ptr [rsp + 88], rax
     mov rcx, qword ptr [rsp + 88]
     call __ml_fn_result_ok
     mov qword ptr [rsp + 120], rax
-    jmp __ml_fn_parse_object_after_value.Lbb7
-__ml_fn_parse_object_after_value.Lbb7:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb7
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb7:
     mov rax, qword ptr [rsp + 120]
     cmp rax, 0
-    jne __ml_fn_parse_object_after_value.Lbb8
-    jmp __ml_fn_parse_object_after_value.Lbb9
-__ml_fn_parse_object_after_value.Lbb8:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb8
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb9
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb8:
     mov rcx, qword ptr [rsp + 88]
-    call __ml_fn_result_next
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next
     mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_parse_object_after_value.Lbb11
-__ml_fn_parse_object_after_value.Lbb9:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb11
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb9:
     mov rcx, qword ptr [rsp + 56]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 144], rax
-    jmp __ml_fn_parse_object_after_value.Lbb13
-__ml_fn_parse_object_after_value.Lbb10:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb13
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb10:
     mov rax, qword ptr [rsp + 112]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_object_after_value.Lbb5
-__ml_fn_parse_object_after_value.Lbb11:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb11:
     mov rcx, qword ptr [rsp + 40]
     mov rdx, qword ptr [rsp + 128]
-    call __ml_fn_parse_object_after_key
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key
     mov qword ptr [rsp + 136], rax
-    jmp __ml_fn_parse_object_after_value.Lbb12
-__ml_fn_parse_object_after_value.Lbb12:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb12
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb12:
     mov rax, qword ptr [rsp + 136]
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_object_after_value.Lbb10
-__ml_fn_parse_object_after_value.Lbb13:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb13:
     mov rax, qword ptr [rsp + 144]
     mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_parse_object_after_value.Lbb10
-__ml_fn_parse_object_after_value.Lbb14:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb10
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb14:
     mov rax, qword ptr [rsp + 160]
     cmp rax, 0
-    jne __ml_fn_parse_object_after_value.Lbb15
-    jmp __ml_fn_parse_object_after_value.Lbb16
-__ml_fn_parse_object_after_value.Lbb15:
+    jne __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb15
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb16
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb15:
     mov rax, qword ptr [rsp + 56]
     mov rcx, 1
     add rax, rcx
     mov qword ptr [rsp + 168], rax
-    call __ml_fn_kind_object
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_object
     mov qword ptr [rsp + 176], rax
-    jmp __ml_fn_parse_object_after_value.Lbb18
-__ml_fn_parse_object_after_value.Lbb16:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb18
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb16:
     mov rcx, qword ptr [rsp + 56]
-    call __ml_fn_error_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result
     mov qword ptr [rsp + 192], rax
-    jmp __ml_fn_parse_object_after_value.Lbb20
-__ml_fn_parse_object_after_value.Lbb17:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb20
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb17:
     mov rax, qword ptr [rsp + 152]
     mov qword ptr [rsp + 72], rax
-    jmp __ml_fn_parse_object_after_value.Lbb5
-__ml_fn_parse_object_after_value.Lbb18:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb5
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb18:
     mov rcx, qword ptr [rsp + 168]
     mov rdx, qword ptr [rsp + 176]
-    call __ml_fn_ok_result
+    call __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result
     mov qword ptr [rsp + 184], rax
-    jmp __ml_fn_parse_object_after_value.Lbb19
-__ml_fn_parse_object_after_value.Lbb19:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb19
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb19:
     mov rax, qword ptr [rsp + 184]
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_object_after_value.Lbb17
-__ml_fn_parse_object_after_value.Lbb20:
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb17
+__ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb20:
     mov rax, qword ptr [rsp + 192]
     mov qword ptr [rsp + 152], rax
-    jmp __ml_fn_parse_object_after_value.Lbb17
+    jmp __ml_fn___priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value.Lbb17
 __ml_fn_print_int:
     sub rsp, 176
     lea r10, [rsp + 175]

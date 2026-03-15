@@ -9,7 +9,7 @@ fn string_byte_at -> int
 fn len -> int
   string_length: int(value: string): int
 fn byte_at -> int
-  string_byte_at: int(value: string, index: int): int
+  string_byte_at: int(value: string, index: ()): int
 fn in_bounds -> bool
   if ...: bool
 fn is_space -> bool
@@ -18,78 +18,78 @@ fn is_digit -> bool
   if ...: bool
 fn is_hex_digit -> bool
   if ...: bool
-fn kind_invalid -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_invalid -> int
   0: int
-fn kind_object -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_object -> int
   1: int
-fn kind_array -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_array -> int
   2: int
-fn kind_string -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_string -> int
   3: int
-fn kind_number -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_number -> int
   4: int
-fn kind_bool -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_bool -> int
   5: int
-fn kind_null -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_null -> int
   6: int
-fn ok_result -> int
-  (((next: int Multiply 10: int): int Add kind: int): int Add 1: int): int
-fn error_result -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result -> int
+  (((next: int Multiply 10: int): int Add kind: string): int Add 1: int): int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result -> int
   (0: int Subtract ((next: int Multiply 10: int): int Add 1: int): int): int
-fn result_encoded -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded -> int
   if ...: int
 fn result_ok -> bool
   (value: bool Greater 0: int): bool
 fn result_kind -> int
   if ...: int
-fn result_next -> int
-  ((result_encoded: int(value: int): int Subtract 1: int): int Divide 10: int): int
-fn has_byte -> bool
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next -> int
+  ((__priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded: int(value: int): int Subtract 1: int): int Divide 10: int): int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte -> bool
   if ...: bool
-fn has_quote -> bool
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote -> bool
   if ...: bool
-fn advance_quote -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote -> int
   if ...: int
-fn skip_whitespace -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace -> int
   if ...: int
 fn parse_document -> int
-  let value: int = parse_value: int(source: string, 0: int): int
+  let value: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value: int(source: string, 0: int): int
   if ...: int
-fn parse_value -> int
-  let cursor: int = skip_whitespace: int(source: string, index: int): int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value -> int
+  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, index: int): int
   if ...: int
-fn parse_string -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string -> int
   if ...: int
-fn parse_string_body -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body -> int
   if ...: int
-fn parse_string_escape -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape -> int
   if ...: int
-fn parse_unicode_escape -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape -> int
   if ...: int
-fn parse_true -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true -> int
   if ...: int
-fn parse_false -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false -> int
   if ...: int
-fn parse_null -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null -> int
   if ...: int
-fn parse_number -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number -> int
   if ...: int
-fn parse_number_tail -> int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number_tail -> int
   if ...: int
-fn parse_array -> int
-  let cursor: int = skip_whitespace: int(source: string, (index: int Add 1: int): int): int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array -> int
+  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, (index: int Add 1: int): int): int
   if ...: int
-fn parse_array_after_value -> int
-  let cursor: int = skip_whitespace: int(source: string, index: int): int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value -> int
+  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, index: int): int
   if ...: int
-fn parse_object -> int
-  let cursor: int = skip_whitespace: int(source: string, (index: int Add 1: int): int): int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object -> int
+  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, (index: int Add 1: int): int): int
   if ...: int
-fn parse_object_after_key -> int
-  let cursor: int = skip_whitespace: int(source: string, index: int): int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key -> int
+  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, index: int): int
   if ...: int
-fn parse_object_after_value -> int
-  let cursor: int = skip_whitespace: int(source: string, index: int): int
+private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value -> int
+  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, index: int): int
   if ...: int
 fn print_int -> ()
   <declaration>

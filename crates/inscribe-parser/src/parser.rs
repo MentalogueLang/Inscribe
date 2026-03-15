@@ -2,8 +2,8 @@ use std::fmt;
 
 use inscribe_ast::nodes::{
     Block, ConstStmt, Expr, ExprKind, ForStmt, FunctionDecl, Import, Item, LetStmt, Literal,
-    MatchArm, Module, Param, Path, Pattern, PatternKind, ReturnStmt, Stmt, StructDecl, StructField,
-    StructLiteralField, TypeRef, UnaryOp, WhileStmt,
+    MatchArm, Module, Param, Path, Pattern, PatternKind, ReturnStmt, Stmt, StructDecl,
+    StructField, StructLiteralField, TypeRef, UnaryOp, Visibility, WhileStmt,
 };
 use inscribe_ast::span::{Position, Span};
 use inscribe_lexer::token::{Span as TokenSpan, Token, TokenKind};
@@ -82,9 +82,17 @@ impl Parser {
         match self.peek() {
             TokenKind::Import => self.parse_import().map(Item::Import),
             TokenKind::Struct => self.parse_struct().map(Item::Struct),
-            TokenKind::Fn => self.parse_function().map(Item::Function),
-            _ => Err(self.error_here("expected `import`, `struct`, or `fn`")),
+            TokenKind::Fn => self
+                .parse_function(Visibility::Public, None)
+                .map(Item::Function),
+            TokenKind::Private => self.parse_private_function().map(Item::Function),
+            _ => Err(self.error_here("expected `import`, `struct`, `private`, or `fn`")),
         }
+    }
+
+    fn parse_private_function(&mut self) -> Result<FunctionDecl, ParseError> {
+        let start = convert_position(self.expect_simple(TokenKind::Private)?.span.start);
+        self.parse_function(Visibility::Private, Some(start))
     }
 
     fn parse_import(&mut self) -> Result<Import, ParseError> {
@@ -131,8 +139,13 @@ impl Parser {
         })
     }
 
-    fn parse_function(&mut self) -> Result<FunctionDecl, ParseError> {
-        let start = self.expect_simple(TokenKind::Fn)?.span.start;
+    fn parse_function(
+        &mut self,
+        visibility: Visibility,
+        start_override: Option<Position>,
+    ) -> Result<FunctionDecl, ParseError> {
+        let start = start_override.unwrap_or_else(|| convert_position(self.current().span.start));
+        let _ = self.expect_simple(TokenKind::Fn)?;
         let name_path = self.parse_path()?;
         let (receiver, name, name_span) = split_function_name(name_path)?;
         self.expect_simple(TokenKind::LParen)?;
@@ -156,13 +169,14 @@ impl Parser {
             .unwrap_or_else(|| self.previous_span().end);
 
         Ok(FunctionDecl {
+            visibility,
             receiver,
             name,
             name_span,
             params,
             return_type,
             body,
-            span: Span::new(convert_position(start), end),
+            span: Span::new(start, end),
         })
     }
 

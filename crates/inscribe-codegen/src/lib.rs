@@ -55,7 +55,7 @@ mod tests {
     use inscribe_lexer::lex;
     use inscribe_mir::lower_program;
     use inscribe_parser::parse_module;
-    use inscribe_resolve::resolve_module;
+    use inscribe_resolve::{load_module_graph, resolve_module, resolve_module_graph};
     use inscribe_typeck::check_module;
 
     use crate::{emit_native_assembly, emit_native_executable, Target};
@@ -67,6 +67,31 @@ mod tests {
         let typed = check_module(&module, &resolved).expect("type checking should succeed");
         let hir = lower_module(&module, &resolved, &typed);
         lower_program(&hir)
+    }
+
+    fn compile_entry_source(entry: &str, files: &[(&str, &str)]) -> inscribe_mir::MirProgram {
+        let root = temp_dir("inscribe_codegen_imports");
+        for (path, source) in files {
+            let full = root.join(path);
+            if let Some(parent) = full.parent() {
+                fs::create_dir_all(parent).expect("should create temp source parent");
+            }
+            fs::write(&full, source).expect("should write temp source");
+        }
+
+        let graph = load_module_graph(&root.join(entry)).expect("imports should load");
+        let resolved = resolve_module_graph(&graph).expect("resolution should succeed");
+        let typed = check_module(&graph.merged, &resolved).expect("type checking should succeed");
+        let hir = lower_module(&graph.merged, &resolved, &typed);
+        lower_program(&hir)
+    }
+
+    fn temp_dir(name: &str) -> PathBuf {
+        let stamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("time should move forward")
+            .as_nanos();
+        std::env::temp_dir().join(format!("{stamp}_{name}"))
     }
 
     #[test]
@@ -317,6 +342,43 @@ fn main() -> int {
 
         assert!(assembly.contains("call __ml_fn_string_length"));
         assert!(assembly.contains("call __ml_fn_string_byte_at"));
+    }
+
+    #[test]
+    fn emits_hidden_calls_for_imported_private_helpers() {
+        let mir = compile_entry_source(
+            "main.mtl",
+            &[
+                (
+                    "main.mtl",
+                    r#"
+import shared.math
+
+fn main() -> int {
+    add_three(4)
+}
+"#,
+                ),
+                (
+                    "shared/math.mtl",
+                    r#"
+private fn plus_one(value: int) -> int {
+    value + 1
+}
+
+fn add_three(value: int) -> int {
+    plus_one(plus_one(plus_one(value)))
+}
+"#,
+                ),
+            ],
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("call __ml_fn_add_three"));
+        assert!(assembly.contains("__ml_fn___priv_"));
     }
 
     #[cfg(windows)]

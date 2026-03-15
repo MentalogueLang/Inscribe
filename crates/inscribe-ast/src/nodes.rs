@@ -71,6 +71,7 @@ impl Spanned for StructField {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FunctionDecl {
+    pub visibility: Visibility,
     pub receiver: Option<Path>,
     pub name: String,
     pub name_span: Span,
@@ -84,6 +85,12 @@ impl Spanned for FunctionDecl {
     fn span(&self) -> Span {
         self.span
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Visibility {
+    Public,
+    Private,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

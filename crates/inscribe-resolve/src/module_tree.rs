@@ -1,4 +1,4 @@
-use inscribe_ast::nodes::{Item, Module};
+use inscribe_ast::nodes::{Item, Module, Visibility};
 use inscribe_ast::span::Span;
 use std::path::PathBuf;
 
@@ -29,7 +29,11 @@ pub struct ImportNode {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ItemNode {
     Struct { name: String, span: Span },
-    Function { key: FunctionKey, span: Span },
+    Function {
+        key: FunctionKey,
+        visibility: Visibility,
+        span: Span,
+    },
 }
 
 impl ModuleTree {
@@ -63,6 +67,7 @@ impl ModuleTree {
                             .map(|path| path.segments.join(".")),
                         name: function.name.clone(),
                     },
+                    visibility: function.visibility,
                     span: function.span,
                 }),
                 Item::Import(_) => None,
