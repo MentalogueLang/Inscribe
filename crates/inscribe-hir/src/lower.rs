@@ -184,31 +184,8 @@ fn lower_expr(expr: &Expr, resolved: &ResolvedProgram, typed: &TypeCheckResult) 
     let ty = lookup_type(typed, expr.span);
     let kind = match &expr.kind {
         ExprKind::Literal(literal) => HirExprKind::Literal(literal_display(literal)),
-        ExprKind::Path(path) => {
-            if let Type::Enum(enum_name) = &ty {
-                if let Some(variant) = path.segments.last() {
-                    if path.segments.len() == 2 && &path.segments[0] == enum_name {
-                        let discriminant = resolved
-                            .enums
-                            .get(enum_name)
-                            .and_then(|info| info.variants.get(variant))
-                            .copied()
-                            .unwrap_or(0);
-                        HirExprKind::EnumVariant {
-                            enum_name: enum_name.clone(),
-                            variant: variant.clone(),
-                            discriminant,
-                        }
-                    } else {
-                        HirExprKind::Path(path.segments.clone())
-                    }
-                } else {
-                    HirExprKind::Path(path.segments.clone())
-                }
-            } else {
-                HirExprKind::Path(path.segments.clone())
-            }
-        }
+        ExprKind::Path(path) => lower_enum_variant_path(&path.segments, &ty, resolved)
+            .unwrap_or_else(|| HirExprKind::Path(path.segments.clone())),
         ExprKind::Array(items) => {
             HirExprKind::Array(
                 items
@@ -233,10 +210,11 @@ fn lower_expr(expr: &Expr, resolved: &ResolvedProgram, typed: &TypeCheckResult) 
                 .map(|arg| lower_expr(arg, resolved, typed))
                 .collect(),
         },
-        ExprKind::Field { base, field } => HirExprKind::Field {
-            base: Box::new(lower_expr(base, resolved, typed)),
-            field: field.clone(),
-        },
+        ExprKind::Field { base, field } => lower_enum_variant_field(base, field, &ty, resolved)
+            .unwrap_or_else(|| HirExprKind::Field {
+                base: Box::new(lower_expr(base, resolved, typed)),
+                field: field.clone(),
+            }),
         ExprKind::Index { target, index } => HirExprKind::Index {
             target: Box::new(lower_expr(target, resolved, typed)),
             index: Box::new(lower_expr(index, resolved, typed)),
@@ -279,6 +257,47 @@ fn lower_expr(expr: &Expr, resolved: &ResolvedProgram, typed: &TypeCheckResult) 
         ty,
         span: expr.span,
     }
+}
+
+fn lower_enum_variant_path(
+    segments: &[String],
+    ty: &Type,
+    resolved: &ResolvedProgram,
+) -> Option<HirExprKind> {
+    let Type::Enum(enum_name) = ty else {
+        return None;
+    };
+    let [head, variant] = segments else {
+        return None;
+    };
+    if head != enum_name {
+        return None;
+    }
+    let discriminant = resolved
+        .enums
+        .get(enum_name)
+        .and_then(|info| info.variants.get(variant))
+        .copied()?;
+    Some(HirExprKind::EnumVariant {
+        enum_name: enum_name.clone(),
+        variant: variant.clone(),
+        discriminant,
+    })
+}
+
+fn lower_enum_variant_field(
+    base: &Expr,
+    field: &str,
+    ty: &Type,
+    resolved: &ResolvedProgram,
+) -> Option<HirExprKind> {
+    let ExprKind::Path(path) = &base.kind else {
+        return None;
+    };
+    let [enum_name] = path.segments.as_slice() else {
+        return None;
+    };
+    lower_enum_variant_path(&[enum_name.clone(), field.to_string()], ty, resolved)
 }
 
 fn lower_binary_expr(

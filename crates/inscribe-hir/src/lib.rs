@@ -95,6 +95,30 @@ fn main() -> int {
     }
 
     #[test]
+    fn lowers_field_style_enum_variants() {
+        let source = r#"
+enum Kind {
+    Invalid
+    Object
+}
+
+fn first() -> Kind {
+    Kind.Object
+}
+
+fn second() -> Kind {
+    Kind.Invalid
+}
+"#;
+
+        let hir = lower_source(source).expect("source should lower through the facade");
+        let printed = render(&hir);
+
+        assert!(printed.contains("Kind.Object#1: Kind"), "{printed}");
+        assert!(printed.contains("Kind.Invalid#0: Kind"), "{printed}");
+    }
+
+    #[test]
     fn reports_type_errors_before_lowering() {
         let source = r#"
 fn main() -> int {
