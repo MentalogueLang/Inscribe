@@ -2,7 +2,11 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use inscribe_ast::nodes::{Block, Expr, ExprKind, Item, Module, Stmt, Visibility};
+use inscribe_ast::nodes::{
+    Block, Expr, ExprKind, FunctionDecl, Import, Item, MatchArm, Module, Param, Path as AstPath,
+    Pattern, PatternKind, Stmt, StructDecl, StructField, StructLiteralField, TypeRef, Visibility,
+};
+use inscribe_ast::span::{Position, Span};
 use inscribe_parser::parse_module;
 use inscribe_session::SessionError;
 
@@ -53,7 +57,14 @@ pub fn load_module_graph_with_options(
     })?;
     let mut loaded = HashMap::new();
     let mut stack = HashSet::new();
-    load_recursive(&entry, options, &mut loaded, &mut stack)?;
+    let mut next_span_base = 0;
+    load_recursive(
+        &entry,
+        options,
+        &mut loaded,
+        &mut stack,
+        &mut next_span_base,
+    )?;
 
     let mut order = Vec::new();
     collect_order(&entry, &loaded, &mut HashSet::new(), &mut order);
@@ -87,6 +98,7 @@ fn load_recursive(
     options: &ModuleLoadOptions,
     loaded: &mut HashMap<PathBuf, SourceModule>,
     stack: &mut HashSet<PathBuf>,
+    next_span_base: &mut usize,
 ) -> Result<(), SessionError> {
     if loaded.contains_key(path) {
         return Ok(());
@@ -107,8 +119,10 @@ fn load_recursive(
     })?;
     let tokens = inscribe_lexer::lex(&source_text)
         .map_err(|error| SessionError::new("lex", error.to_string()))?;
-    let module =
+    let mut module =
         parse_module(tokens).map_err(|error| SessionError::new("parse", error.to_string()))?;
+    rebase_module_spans(&mut module, *next_span_base);
+    *next_span_base += source_text.len().max(1) + 1;
 
     let mut imports = Vec::new();
     for item in &module.items {
@@ -118,7 +132,7 @@ fn load_recursive(
 
         let import_path = resolve_import_path(path, &import.path.segments, options)?;
         imports.push(import_path.clone());
-        load_recursive(&import_path, options, loaded, stack)?;
+        load_recursive(&import_path, options, loaded, stack, next_span_base)?;
     }
 
     stack.remove(path);
@@ -345,8 +359,8 @@ fn rewrite_expr_private_paths(expr: &mut Expr, private_names: &HashMap<String, S
 
 fn hidden_private_name(source_path: &Path, name: &str) -> String {
     format!(
-        "__priv_{}_{}",
-        sanitize_symbol(&source_path.display().to_string()),
+        "__priv_{:016x}_{}",
+        stable_symbol_hash(&source_path.display().to_string()),
         sanitize_symbol(name)
     )
 }
@@ -356,6 +370,15 @@ fn sanitize_symbol(value: &str) -> String {
         .chars()
         .map(|ch| if ch.is_ascii_alphanumeric() { ch } else { '_' })
         .collect()
+}
+
+fn stable_symbol_hash(value: &str) -> u64 {
+    let mut hash = 0xcbf29ce484222325_u64;
+    for byte in value.bytes() {
+        hash ^= u64::from(byte);
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    hash
 }
 
 fn resolve_import_path(
@@ -424,4 +447,204 @@ fn workspace_root() -> PathBuf {
         .and_then(Path::parent)
         .expect("resolve crate should live under the workspace")
         .to_path_buf()
+}
+
+fn rebase_module_spans(module: &mut Module, base_offset: usize) {
+    shift_span(&mut module.span, base_offset);
+    for item in &mut module.items {
+        rebase_item_spans(item, base_offset);
+    }
+}
+
+fn rebase_item_spans(item: &mut Item, base_offset: usize) {
+    match item {
+        Item::Import(import) => rebase_import_spans(import, base_offset),
+        Item::Struct(decl) => rebase_struct_spans(decl, base_offset),
+        Item::Function(function) => rebase_function_spans(function, base_offset),
+    }
+}
+
+fn rebase_import_spans(import: &mut Import, base_offset: usize) {
+    shift_span(&mut import.span, base_offset);
+    rebase_path_spans(&mut import.path, base_offset);
+}
+
+fn rebase_struct_spans(decl: &mut StructDecl, base_offset: usize) {
+    shift_span(&mut decl.name_span, base_offset);
+    shift_span(&mut decl.span, base_offset);
+    for field in &mut decl.fields {
+        rebase_struct_field_spans(field, base_offset);
+    }
+}
+
+fn rebase_struct_field_spans(field: &mut StructField, base_offset: usize) {
+    shift_span(&mut field.name_span, base_offset);
+    shift_span(&mut field.span, base_offset);
+    rebase_type_ref_spans(&mut field.ty, base_offset);
+}
+
+fn rebase_function_spans(function: &mut FunctionDecl, base_offset: usize) {
+    shift_span(&mut function.name_span, base_offset);
+    shift_span(&mut function.span, base_offset);
+    if let Some(receiver) = &mut function.receiver {
+        rebase_path_spans(receiver, base_offset);
+    }
+    for param in &mut function.params {
+        rebase_param_spans(param, base_offset);
+    }
+    if let Some(return_type) = &mut function.return_type {
+        rebase_type_ref_spans(return_type, base_offset);
+    }
+    if let Some(body) = &mut function.body {
+        rebase_block_spans(body, base_offset);
+    }
+}
+
+fn rebase_param_spans(param: &mut Param, base_offset: usize) {
+    shift_span(&mut param.name_span, base_offset);
+    shift_span(&mut param.span, base_offset);
+    if let Some(ty) = &mut param.ty {
+        rebase_type_ref_spans(ty, base_offset);
+    }
+}
+
+fn rebase_block_spans(block: &mut Block, base_offset: usize) {
+    shift_span(&mut block.span, base_offset);
+    for statement in &mut block.statements {
+        rebase_statement_spans(statement, base_offset);
+    }
+}
+
+fn rebase_statement_spans(statement: &mut Stmt, base_offset: usize) {
+    match statement {
+        Stmt::Let(stmt) => {
+            shift_span(&mut stmt.name_span, base_offset);
+            shift_span(&mut stmt.span, base_offset);
+            if let Some(ty) = &mut stmt.ty {
+                rebase_type_ref_spans(ty, base_offset);
+            }
+            rebase_expr_spans(&mut stmt.value, base_offset);
+        }
+        Stmt::Const(stmt) => {
+            shift_span(&mut stmt.name_span, base_offset);
+            shift_span(&mut stmt.span, base_offset);
+            if let Some(ty) = &mut stmt.ty {
+                rebase_type_ref_spans(ty, base_offset);
+            }
+            rebase_expr_spans(&mut stmt.value, base_offset);
+        }
+        Stmt::For(stmt) => {
+            shift_span(&mut stmt.span, base_offset);
+            rebase_pattern_spans(&mut stmt.pattern, base_offset);
+            rebase_expr_spans(&mut stmt.iterable, base_offset);
+            rebase_block_spans(&mut stmt.body, base_offset);
+        }
+        Stmt::While(stmt) => {
+            shift_span(&mut stmt.span, base_offset);
+            rebase_expr_spans(&mut stmt.condition, base_offset);
+            rebase_block_spans(&mut stmt.body, base_offset);
+        }
+        Stmt::Return(stmt) => {
+            shift_span(&mut stmt.span, base_offset);
+            if let Some(value) = &mut stmt.value {
+                rebase_expr_spans(value, base_offset);
+            }
+        }
+        Stmt::Expr(expr) => rebase_expr_spans(expr, base_offset),
+    }
+}
+
+fn rebase_expr_spans(expr: &mut Expr, base_offset: usize) {
+    shift_span(&mut expr.span, base_offset);
+    match &mut expr.kind {
+        ExprKind::Literal(_) => {}
+        ExprKind::Path(path) => rebase_path_spans(path, base_offset),
+        ExprKind::Unary { expr: inner, .. } => rebase_expr_spans(inner, base_offset),
+        ExprKind::Binary { left, right, .. } => {
+            rebase_expr_spans(left, base_offset);
+            rebase_expr_spans(right, base_offset);
+        }
+        ExprKind::Call { callee, args } => {
+            rebase_expr_spans(callee, base_offset);
+            for arg in args {
+                rebase_expr_spans(arg, base_offset);
+            }
+        }
+        ExprKind::Field { base, .. } => rebase_expr_spans(base, base_offset),
+        ExprKind::StructLiteral { path, fields } => {
+            rebase_path_spans(path, base_offset);
+            for field in fields {
+                rebase_struct_literal_field_spans(field, base_offset);
+            }
+        }
+        ExprKind::If {
+            condition,
+            then_block,
+            else_branch,
+        } => {
+            rebase_expr_spans(condition, base_offset);
+            rebase_block_spans(then_block, base_offset);
+            if let Some(branch) = else_branch {
+                rebase_expr_spans(branch, base_offset);
+            }
+        }
+        ExprKind::Match { value, arms } => {
+            rebase_expr_spans(value, base_offset);
+            for arm in arms {
+                rebase_match_arm_spans(arm, base_offset);
+            }
+        }
+        ExprKind::Block(block) => rebase_block_spans(block, base_offset),
+        ExprKind::Try(inner) => rebase_expr_spans(inner, base_offset),
+    }
+}
+
+fn rebase_struct_literal_field_spans(field: &mut StructLiteralField, base_offset: usize) {
+    shift_span(&mut field.name_span, base_offset);
+    shift_span(&mut field.span, base_offset);
+    rebase_expr_spans(&mut field.value, base_offset);
+}
+
+fn rebase_match_arm_spans(arm: &mut MatchArm, base_offset: usize) {
+    shift_span(&mut arm.span, base_offset);
+    rebase_pattern_spans(&mut arm.pattern, base_offset);
+    rebase_expr_spans(&mut arm.value, base_offset);
+}
+
+fn rebase_pattern_spans(pattern: &mut Pattern, base_offset: usize) {
+    shift_span(&mut pattern.span, base_offset);
+    match &mut pattern.kind {
+        PatternKind::Wildcard | PatternKind::Binding(_) | PatternKind::Literal(_) => {}
+        PatternKind::Path(path) => rebase_path_spans(path, base_offset),
+        PatternKind::Constructor { path, arguments } => {
+            rebase_path_spans(path, base_offset);
+            for argument in arguments {
+                rebase_pattern_spans(argument, base_offset);
+            }
+        }
+    }
+}
+
+fn rebase_type_ref_spans(ty: &mut TypeRef, base_offset: usize) {
+    shift_span(&mut ty.span, base_offset);
+    rebase_path_spans(&mut ty.path, base_offset);
+    for argument in &mut ty.arguments {
+        rebase_type_ref_spans(argument, base_offset);
+    }
+}
+
+fn rebase_path_spans(path: &mut AstPath, base_offset: usize) {
+    shift_span(&mut path.span, base_offset);
+    for segment_span in &mut path.segment_spans {
+        shift_span(segment_span, base_offset);
+    }
+}
+
+fn shift_span(span: &mut Span, base_offset: usize) {
+    shift_position(&mut span.start, base_offset);
+    shift_position(&mut span.end, base_offset);
+}
+
+fn shift_position(position: &mut Position, base_offset: usize) {
+    position.offset += base_offset;
 }

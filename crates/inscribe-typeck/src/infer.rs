@@ -74,11 +74,20 @@ pub struct BindingInfo {
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct TypeCheckResult {
-    pub expr_types: HashMap<usize, Type>,
+    pub expr_types: HashMap<ExprKey, Type>,
     pub function_signatures: HashMap<FunctionKey, FunctionSignature>,
     pub item_types: HashMap<String, Type>,
 }
 
-pub fn expr_key(span: Span) -> usize {
-    span.start.offset
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ExprKey {
+    pub start: usize,
+    pub end: usize,
+}
+
+pub fn expr_key(span: Span) -> ExprKey {
+    ExprKey {
+        start: span.start.offset,
+        end: span.end.offset,
+    }
 }

@@ -268,7 +268,7 @@ fn literal_display(literal: &Literal) -> String {
     match literal {
         Literal::Integer(value) => value.clone(),
         Literal::Float(value) => value.clone(),
-        Literal::String(value) => format!("{value:?}"),
+        Literal::String(value) => value.clone(),
         Literal::Bool(value) => value.to_string(),
     }
 }

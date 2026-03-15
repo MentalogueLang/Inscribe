@@ -9,17 +9,57 @@ fn byte_at(value: string, index: int) -> int {
 }
 
 fn in_bounds(value: string, index: int) -> bool {
-    index >= 0 && index < len(value)
+    if index >= 0 {
+        index < len(value)
+    } else {
+        false
+    }
 }
 
 fn is_space(code: int) -> bool {
-    code == 32 || code == 10 || code == 13 || code == 9
+    if code == 32 {
+        true
+    } else {
+        if code == 10 {
+            true
+        } else {
+            if code == 13 {
+                true
+            } else {
+                code == 9
+            }
+        }
+    }
 }
 
 fn is_digit(code: int) -> bool {
-    code >= 48 && code <= 57
+    if code >= 48 {
+        code <= 57
+    } else {
+        false
+    }
 }
 
 fn is_hex_digit(code: int) -> bool {
-    is_digit(code) || (code >= 65 && code <= 70) || (code >= 97 && code <= 102)
+    if is_digit(code) {
+        true
+    } else {
+        if code >= 65 {
+            if code <= 70 {
+                true
+            } else {
+                if code >= 97 {
+                    code <= 102
+                } else {
+                    false
+                }
+            }
+        } else {
+            if code >= 97 {
+                code <= 102
+            } else {
+                false
+            }
+        }
+    }
 }
