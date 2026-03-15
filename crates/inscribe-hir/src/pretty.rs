@@ -108,6 +108,9 @@ fn render_expr(expr: &HirExpr) -> String {
         HirExprKind::RepeatArray { value, length } => {
             format!("[{}; {length}]: {}", render_expr(value), expr.ty.display_name())
         }
+        HirExprKind::Cast { expr: inner } => {
+            format!("({} as {}): {}", render_expr(inner), expr.ty.display_name(), expr.ty.display_name())
+        }
         HirExprKind::Unary { op, expr: inner } => {
             format!("({op} {}): {}", render_expr(inner), expr.ty.display_name())
         }

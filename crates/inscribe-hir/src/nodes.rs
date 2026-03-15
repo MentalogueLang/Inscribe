@@ -126,6 +126,9 @@ pub enum HirExprKind {
         value: Box<HirExpr>,
         length: usize,
     },
+    Cast {
+        expr: Box<HirExpr>,
+    },
     Unary {
         op: String,
         expr: Box<HirExpr>,

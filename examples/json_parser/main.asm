@@ -367,129 +367,15 @@ __ml_fn_is_hex_digit.Lbb16:
     mov qword ptr [rsp + 64], rax
     jmp __ml_fn_is_hex_digit.Lbb7
 __ml_fn_kind_code:
-    sub rsp, 152
+    sub rsp, 56
     mov qword ptr [rsp + 40], rcx
     jmp __ml_fn_kind_code.Lbb0
 __ml_fn_kind_code.Lbb0:
     mov rax, qword ptr [rsp + 40]
-    mov rcx, 1
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 56], rax
-    mov rax, qword ptr [rsp + 56]
-    cmp rax, 0
-    jne __ml_fn_kind_code.Lbb1
-    jmp __ml_fn_kind_code.Lbb2
-__ml_fn_kind_code.Lbb1:
-    mov rax, 1
-    mov qword ptr [rsp + 48], rax
-    jmp __ml_fn_kind_code.Lbb3
-__ml_fn_kind_code.Lbb2:
-    mov rax, qword ptr [rsp + 40]
-    mov rcx, 2
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 72], rax
-    mov rax, qword ptr [rsp + 72]
-    cmp rax, 0
-    jne __ml_fn_kind_code.Lbb4
-    jmp __ml_fn_kind_code.Lbb5
-__ml_fn_kind_code.Lbb3:
-    mov rax, qword ptr [rsp + 48]
     mov qword ptr [rsp + 32], rax
     mov rax, qword ptr [rsp + 32]
-    add rsp, 152
+    add rsp, 56
     ret
-__ml_fn_kind_code.Lbb4:
-    mov rax, 2
-    mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_kind_code.Lbb6
-__ml_fn_kind_code.Lbb5:
-    mov rax, qword ptr [rsp + 40]
-    mov rcx, 3
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 88], rax
-    mov rax, qword ptr [rsp + 88]
-    cmp rax, 0
-    jne __ml_fn_kind_code.Lbb7
-    jmp __ml_fn_kind_code.Lbb8
-__ml_fn_kind_code.Lbb6:
-    mov rax, qword ptr [rsp + 64]
-    mov qword ptr [rsp + 48], rax
-    jmp __ml_fn_kind_code.Lbb3
-__ml_fn_kind_code.Lbb7:
-    mov rax, 3
-    mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_kind_code.Lbb9
-__ml_fn_kind_code.Lbb8:
-    mov rax, qword ptr [rsp + 40]
-    mov rcx, 4
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 104], rax
-    mov rax, qword ptr [rsp + 104]
-    cmp rax, 0
-    jne __ml_fn_kind_code.Lbb10
-    jmp __ml_fn_kind_code.Lbb11
-__ml_fn_kind_code.Lbb9:
-    mov rax, qword ptr [rsp + 80]
-    mov qword ptr [rsp + 64], rax
-    jmp __ml_fn_kind_code.Lbb6
-__ml_fn_kind_code.Lbb10:
-    mov rax, 4
-    mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_kind_code.Lbb12
-__ml_fn_kind_code.Lbb11:
-    mov rax, qword ptr [rsp + 40]
-    mov rcx, 5
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 120], rax
-    mov rax, qword ptr [rsp + 120]
-    cmp rax, 0
-    jne __ml_fn_kind_code.Lbb13
-    jmp __ml_fn_kind_code.Lbb14
-__ml_fn_kind_code.Lbb12:
-    mov rax, qword ptr [rsp + 96]
-    mov qword ptr [rsp + 80], rax
-    jmp __ml_fn_kind_code.Lbb9
-__ml_fn_kind_code.Lbb13:
-    mov rax, 5
-    mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_kind_code.Lbb15
-__ml_fn_kind_code.Lbb14:
-    mov rax, qword ptr [rsp + 40]
-    mov rcx, 6
-    cmp rax, rcx
-    sete al
-    movzx eax, al
-    mov qword ptr [rsp + 136], rax
-    mov rax, qword ptr [rsp + 136]
-    cmp rax, 0
-    jne __ml_fn_kind_code.Lbb16
-    jmp __ml_fn_kind_code.Lbb17
-__ml_fn_kind_code.Lbb15:
-    mov rax, qword ptr [rsp + 112]
-    mov qword ptr [rsp + 96], rax
-    jmp __ml_fn_kind_code.Lbb12
-__ml_fn_kind_code.Lbb16:
-    mov rax, 6
-    mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_kind_code.Lbb18
-__ml_fn_kind_code.Lbb17:
-    mov rax, 0
-    mov qword ptr [rsp + 128], rax
-    jmp __ml_fn_kind_code.Lbb18
-__ml_fn_kind_code.Lbb18:
-    mov rax, qword ptr [rsp + 128]
-    mov qword ptr [rsp + 112], rax
-    jmp __ml_fn_kind_code.Lbb15
 __ml_fn___priv_811ad09817485e06_kind_from_code:
     sub rsp, 152
     mov qword ptr [rsp + 40], rcx

@@ -51,4 +51,27 @@ fn rethrow(error: Error) -> Result<int, Error> {
 
         analyze_module(&module).expect("constructors should typecheck");
     }
+
+    #[test]
+    fn typechecks_enum_int_casts() {
+        let source = r#"
+enum Kind {
+    Invalid
+    Object
+}
+
+fn kind_code(kind: Kind) -> int {
+    kind as int
+}
+
+fn main() -> int {
+    kind_code(Kind.Object)
+}
+"#;
+
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+
+        analyze_module(&module).expect("enum casts should typecheck");
+    }
 }

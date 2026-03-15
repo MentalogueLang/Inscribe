@@ -529,6 +529,7 @@ impl Resolver {
                 }
             }
             ExprKind::RepeatArray { value, .. } => self.resolve_expr(value, scope, imports),
+            ExprKind::Cast { expr: inner, .. } => self.resolve_expr(inner, scope, imports),
             ExprKind::Unary { expr, .. } | ExprKind::Try(expr) => {
                 self.resolve_expr(expr, scope, imports);
             }

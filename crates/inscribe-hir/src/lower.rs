@@ -198,6 +198,9 @@ fn lower_expr(expr: &Expr, resolved: &ResolvedProgram, typed: &TypeCheckResult) 
             value: Box::new(lower_expr(value, resolved, typed)),
             length: *length,
         },
+        ExprKind::Cast { expr, .. } => HirExprKind::Cast {
+            expr: Box::new(lower_expr(expr, resolved, typed)),
+        },
         ExprKind::Unary { op, expr } => HirExprKind::Unary {
             op: format!("{op:?}"),
             expr: Box::new(lower_expr(expr, resolved, typed)),

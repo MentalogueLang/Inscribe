@@ -1,41 +1,17 @@
 import core.string
 
 enum Kind {
-    Invalid
-    Object
-    Array
-    String
-    Number
-    Bool
-    Null
+    Invalid = 0
+    Object  = 1
+    Array   = 2
+    String  = 3
+    Number  = 4
+    Bool    = 5
+    Null    = 6
 }
 
 fn kind_code(kind: Kind) -> int {
-    if kind == Kind.Object {
-        1
-    } else {
-        if kind == Kind.Array {
-            2
-        } else {
-            if kind == Kind.String {
-                3
-            } else {
-                if kind == Kind.Number {
-                    4
-                } else {
-                    if kind == Kind.Bool {
-                        5
-                    } else {
-                        if kind == Kind.Null {
-                            6
-                        } else {
-                            0
-                        }
-                    }
-                }
-            }
-        }
-    }
+    kind as int
 }
 
 priv fn kind_from_code(code: int) -> Kind {

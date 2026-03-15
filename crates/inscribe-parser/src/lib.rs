@@ -190,4 +190,36 @@ fn main() {
         };
         assert!(matches!(expr.kind, ExprKind::Index { .. }));
     }
+
+    #[test]
+    fn parses_as_casts() {
+        let source = r#"
+enum Kind {
+    Invalid
+    Object
+}
+
+fn main(kind: Kind) -> int {
+    kind as int
+}
+"#;
+
+        let module = parse_module(lex(source).expect("lexing should succeed"))
+            .expect("parsing should succeed");
+
+        let Item::Function(main_fn) = &module.items[1] else {
+            panic!("expected function");
+        };
+        let body = main_fn.body.as_ref().expect("main should have a body");
+        let Stmt::Expr(expr) = &body.statements[0] else {
+            panic!("expected cast expression");
+        };
+        let ExprKind::Cast { ty, .. } = &expr.kind else {
+            panic!("expected cast expression");
+        };
+        let TypeRefKind::Path { path, .. } = &ty.kind else {
+            panic!("expected cast type path");
+        };
+        assert_eq!(path.segments, vec!["int".to_string()]);
+    }
 }

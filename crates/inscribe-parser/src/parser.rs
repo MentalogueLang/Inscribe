@@ -447,6 +447,7 @@ impl Parser {
                 TokenKind::Dot => self.finish_field(expr)?,
                 TokenKind::LBracket => self.finish_index(expr)?,
                 TokenKind::Question => self.finish_try(expr),
+                TokenKind::As => self.finish_cast(expr)?,
                 TokenKind::LBrace
                     if allow_trailing_struct_literal && matches!(expr.kind, ExprKind::Path(_)) =>
                 {
@@ -826,6 +827,19 @@ impl Parser {
         let _ = self.advance();
         let span = Span::new(expr.span.start, self.previous_span().end);
         Expr::new(ExprKind::Try(Box::new(expr)), span)
+    }
+
+    fn finish_cast(&mut self, expr: Expr) -> Result<Expr, ParseError> {
+        let start = expr.span.start;
+        self.expect_simple(TokenKind::As)?;
+        let ty = self.parse_type()?;
+        Ok(Expr::new(
+            ExprKind::Cast {
+                expr: Box::new(expr),
+                ty: ty.clone(),
+            },
+            Span::new(start, ty.span.end),
+        ))
     }
 
     fn parse_path(&mut self) -> Result<Path, ParseError> {

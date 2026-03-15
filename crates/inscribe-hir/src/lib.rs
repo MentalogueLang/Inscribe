@@ -119,6 +119,25 @@ fn second() -> Kind {
     }
 
     #[test]
+    fn lowers_enum_casts() {
+        let source = r#"
+enum Kind {
+    Invalid
+    Object
+}
+
+fn kind_code(kind: Kind) -> int {
+    kind as int
+}
+"#;
+
+        let hir = lower_source(source).expect("source should lower through the facade");
+        let printed = render(&hir);
+
+        assert!(printed.contains("as int"), "{printed}");
+    }
+
+    #[test]
     fn reports_type_errors_before_lowering() {
         let source = r#"
 fn main() -> int {

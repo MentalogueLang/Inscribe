@@ -328,6 +328,7 @@ fn rewrite_expr_private_paths(expr: &mut Expr, private_names: &HashMap<String, S
             }
         }
         ExprKind::RepeatArray { value, .. } => rewrite_expr_private_paths(value, private_names),
+        ExprKind::Cast { expr: inner, .. } => rewrite_expr_private_paths(inner, private_names),
         ExprKind::Unary { expr: inner, .. } => rewrite_expr_private_paths(inner, private_names),
         ExprKind::Binary { left, right, .. } => {
             rewrite_expr_private_paths(left, private_names);
@@ -594,6 +595,10 @@ fn rebase_expr_spans(expr: &mut Expr, base_offset: usize) {
             }
         }
         ExprKind::RepeatArray { value, .. } => rebase_expr_spans(value, base_offset),
+        ExprKind::Cast { expr: inner, ty } => {
+            rebase_expr_spans(inner, base_offset);
+            rebase_type_ref_spans(ty, base_offset);
+        }
         ExprKind::Unary { expr: inner, .. } => rebase_expr_spans(inner, base_offset),
         ExprKind::Binary { left, right, .. } => {
             rebase_expr_spans(left, base_offset);

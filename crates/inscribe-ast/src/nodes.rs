@@ -268,6 +268,10 @@ pub enum ExprKind {
         value: Box<Expr>,
         length: usize,
     },
+    Cast {
+        expr: Box<Expr>,
+        ty: TypeRef,
+    },
     Unary {
         op: UnaryOp,
         expr: Box<Expr>,

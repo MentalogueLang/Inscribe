@@ -390,6 +390,28 @@ fn main() -> int {
     }
 
     #[test]
+    fn emits_enum_casts() {
+        let mir = compile_source(
+            r#"
+enum Kind {
+    Invalid
+    Object
+}
+
+fn main() -> int {
+    Kind.Object as int
+}
+"#,
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("mov rax, 1"));
+        assert!(assembly.contains("__ml_fn_main"));
+    }
+
+    #[test]
     fn emits_hidden_calls_for_imported_private_helpers() {
         let mir = compile_entry_source(
             "main.mtl",

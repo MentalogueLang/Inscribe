@@ -227,6 +227,7 @@ impl<'a> TypeChecker<'a> {
                 let item_ty = self.check_expr(value);
                 Type::Array(Box::new(item_ty), *length)
             }
+            ExprKind::Cast { expr: inner, ty } => self.check_cast(expr.span, inner, ty),
             ExprKind::Unary { op, expr } => {
                 let value_ty = self.check_expr(expr);
                 match op {
@@ -350,6 +351,34 @@ impl<'a> TypeChecker<'a> {
                 }
             }
             inscribe_ast::nodes::BinaryOp::Assign => unreachable!("assignment handled early"),
+        }
+    }
+
+    fn check_cast(
+        &mut self,
+        span: Span,
+        expr: &Expr,
+        ty: &inscribe_ast::nodes::TypeRef,
+    ) -> Type {
+        let source_ty = self.check_expr(expr);
+        let target_ty = self.type_from_ast_ref(ty);
+
+        if matches!(target_ty, Type::Unknown) {
+            self.errors
+                .push(TypeError::new("unknown cast target type", ty.span));
+            Type::Unknown
+        } else if can_cast(&source_ty, &target_ty) {
+            target_ty
+        } else {
+            self.errors.push(TypeError::new(
+                format!(
+                    "cannot cast `{}` to `{}`",
+                    source_ty.display_name(),
+                    target_ty.display_name()
+                ),
+                span,
+            ));
+            Type::Unknown
         }
     }
 
@@ -972,4 +1001,13 @@ fn display_function_name(key: &FunctionKey) -> String {
         .as_ref()
         .map(|receiver| format!("{receiver}.{}", key.name))
         .unwrap_or_else(|| key.name.clone())
+}
+
+fn can_cast(source: &Type, target: &Type) -> bool {
+    source == target
+        || matches!(
+            (source, target),
+            (Type::Enum(_), Type::Int) | (Type::Int, Type::Enum(_))
+        )
+        || matches!((source, target), (Type::Unknown, _) | (_, Type::Unknown))
 }

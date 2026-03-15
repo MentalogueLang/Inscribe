@@ -107,6 +107,7 @@ pub fn lex(source: &str) -> Result<Vec<Token>, LexError> {
                     "in" => TokenKind::In,
                     "while" => TokenKind::While,
                     "return" => TokenKind::Return,
+                    "as" => TokenKind::As,
                     "import" => TokenKind::Import,
                     "priv" => TokenKind::Private,
                     "match" => TokenKind::Match,

@@ -263,6 +263,7 @@ pub fn walk_expr<V: Visitor + ?Sized>(visitor: &mut V, expr: &Expr) {
             }
         }
         ExprKind::RepeatArray { value, .. } => visitor.visit_expr(value),
+        ExprKind::Cast { expr, .. } => visitor.visit_expr(expr),
         ExprKind::Unary { expr, .. } | ExprKind::Try(expr) => visitor.visit_expr(expr),
         ExprKind::Binary { left, right, .. } => {
             visitor.visit_expr(left);
@@ -315,6 +316,7 @@ pub fn walk_expr_mut<V: VisitorMut + ?Sized>(visitor: &mut V, expr: &mut Expr) {
             }
         }
         ExprKind::RepeatArray { value, .. } => visitor.visit_expr(value),
+        ExprKind::Cast { expr, .. } => visitor.visit_expr(expr),
         ExprKind::Unary { expr, .. } | ExprKind::Try(expr) => visitor.visit_expr(expr),
         ExprKind::Binary { left, right, .. } => {
             visitor.visit_expr(left);
@@ -371,6 +373,7 @@ pub fn walk_expr_result<V: ResultVisitor + ?Sized>(
             Ok(())
         }
         ExprKind::RepeatArray { value, .. } => visitor.visit_expr(value),
+        ExprKind::Cast { expr, .. } => visitor.visit_expr(expr),
         ExprKind::Unary { expr, .. } | ExprKind::Try(expr) => visitor.visit_expr(expr),
         ExprKind::Binary { left, right, .. } => {
             visitor.visit_expr(left)?;

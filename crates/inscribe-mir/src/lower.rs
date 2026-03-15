@@ -306,6 +306,11 @@ impl<'a> FunctionLowerer<'a> {
             HirExprKind::RepeatArray { value, length } => {
                 self.lower_repeat_array_expr(expr, value, *length, current)
             }
+            HirExprKind::Cast { expr: inner } => {
+                let (block, operand) = self.lower_expr(inner, current);
+                let operand = cast_operand(operand, &expr.ty);
+                (block, operand)
+            }
             HirExprKind::Unary { op, expr: inner } => {
                 let (block, operand) = self.lower_expr(inner, current);
                 let temp = self.alloc_temp(expr.ty.clone(), expr.span);
@@ -870,4 +875,14 @@ fn literal_operand(value: &str, ty: &Type) -> Operand {
         ty: ty.clone(),
         value: constant,
     })
+}
+
+fn cast_operand(operand: Operand, ty: &Type) -> Operand {
+    match operand {
+        Operand::Constant(mut constant) => {
+            constant.ty = ty.clone();
+            Operand::Constant(constant)
+        }
+        other => other,
+    }
 }

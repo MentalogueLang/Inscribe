@@ -28,7 +28,7 @@ enum Kind {
   Null = 6
 }
 fn kind_code -> int
-  if ...: int
+  (kind: Kind as int): int
 priv fn __priv_811ad09817485e06_kind_from_code -> Kind
   if ...: Kind
 priv fn __priv_811ad09817485e06_ok_result -> int
