@@ -266,6 +266,9 @@ impl<'a> Interpreter<'a> {
                     .map(|(name, value)| Ok((name.clone(), self.eval_operand(frame, value)?)))
                     .collect::<ComptimeResult<Vec<_>>>()?,
             ))),
+            Rvalue::AggregateArray { .. } | Rvalue::RepeatArray { .. } => Err(ComptimeError::new(
+                "compile-time execution does not yet support array aggregates",
+            )),
             Rvalue::ResultOk(operand) => {
                 Ok(ComptimeValue::ResultOk(Box::new(self.eval_operand(frame, operand)?)))
             }
@@ -354,6 +357,11 @@ fn project_value(value: &ComptimeValue, projection: &[ProjectionElem]) -> Compti
             (ProjectionElem::Field(name), ComptimeValue::Struct(value)) => value.field(name).ok_or_else(
                 || ComptimeError::new(format!("struct field `{name}` does not exist")),
             )?,
+            (ProjectionElem::Index(_), _) => {
+                return Err(ComptimeError::new(
+                    "compile-time execution does not yet support indexed projections",
+                ));
+            }
             (ProjectionElem::Field(name), other) => {
                 return Err(ComptimeError::new(format!(
                     "cannot access field `{name}` on {}",
@@ -398,6 +406,9 @@ fn assign_projection(
             })?;
             assign_projection(field, &projection[1..], value)
         }
+        (ProjectionElem::Index(_), _) => Err(ComptimeError::new(
+            "compile-time execution does not yet support indexed assignment",
+        )),
         (ProjectionElem::Field(name), other) => Err(ComptimeError::new(format!(
             "cannot assign field `{name}` on {}",
             other.kind_name()

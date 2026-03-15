@@ -24,9 +24,22 @@ pub fn render(program: &HirProgram) -> String {
                 }
                 out.push_str("}\n");
             }
+            HirItem::Enum(decl) => {
+                out.push_str("enum ");
+                out.push_str(&decl.name);
+                out.push_str(" {\n");
+                for (name, discriminant) in &decl.variants {
+                    out.push_str("  ");
+                    out.push_str(name);
+                    out.push_str(" = ");
+                    out.push_str(&discriminant.to_string());
+                    out.push('\n');
+                }
+                out.push_str("}\n");
+            }
             HirItem::Function(function) => {
                 if matches!(function.visibility, inscribe_ast::Visibility::Private) {
-                    out.push_str("private ");
+                    out.push_str("priv ");
                 }
                 out.push_str("fn ");
                 if let Some(receiver) = &function.receiver {
@@ -82,7 +95,19 @@ fn render_statement(statement: &HirStmt) -> String {
 fn render_expr(expr: &HirExpr) -> String {
     match &expr.kind {
         HirExprKind::Literal(value) => format!("{value}: {}", expr.ty.display_name()),
+        HirExprKind::EnumVariant {
+            enum_name,
+            variant,
+            discriminant,
+        } => format!("{enum_name}.{variant}#{discriminant}: {}", expr.ty.display_name()),
         HirExprKind::Path(path) => format!("{}: {}", path.join("."), expr.ty.display_name()),
+        HirExprKind::Array(items) => {
+            let items = items.iter().map(render_expr).collect::<Vec<_>>().join(", ");
+            format!("[{items}]: {}", expr.ty.display_name())
+        }
+        HirExprKind::RepeatArray { value, length } => {
+            format!("[{}; {length}]: {}", render_expr(value), expr.ty.display_name())
+        }
         HirExprKind::Unary { op, expr: inner } => {
             format!("({op} {}): {}", render_expr(inner), expr.ty.display_name())
         }
@@ -108,6 +133,12 @@ fn render_expr(expr: &HirExpr) -> String {
                 expr.ty.display_name()
             )
         }
+        HirExprKind::Index { target, index } => format!(
+            "{}[{}]: {}",
+            render_expr(target),
+            render_expr(index),
+            expr.ty.display_name()
+        ),
         HirExprKind::StructLiteral { path, .. } => {
             format!("{} {{...}}: {}", path.join("."), expr.ty.display_name())
         }

@@ -29,6 +29,7 @@ pub struct ImportNode {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ItemNode {
     Struct { name: String, span: Span },
+    Enum { name: String, span: Span },
     Function {
         key: FunctionKey,
         visibility: Visibility,
@@ -56,6 +57,10 @@ impl ModuleTree {
             .iter()
             .filter_map(|item| match item {
                 Item::Struct(decl) => Some(ItemNode::Struct {
+                    name: decl.name.clone(),
+                    span: decl.span,
+                }),
+                Item::Enum(decl) => Some(ItemNode::Enum {
                     name: decl.name.clone(),
                     span: decl.span,
                 }),

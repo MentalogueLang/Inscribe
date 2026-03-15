@@ -3,9 +3,10 @@ pub mod span;
 pub mod visit;
 
 pub use nodes::{
-    BinaryOp, Block, ConstStmt, Expr, ExprKind, ForStmt, FunctionDecl, Import, Item, LetStmt,
-    Literal, MatchArm, Module, Param, Path, Pattern, PatternKind, ReturnStmt, Stmt, StructDecl,
-    StructField, StructLiteralField, TypeRef, UnaryOp, Visibility, WhileStmt,
+    BinaryOp, Block, ConstStmt, EnumDecl, EnumVariant, Expr, ExprKind, ForStmt, FunctionDecl,
+    Import, Item, LetStmt, Literal, MatchArm, Module, Param, Path, Pattern, PatternKind,
+    ReturnStmt, Stmt, StructDecl, StructField, StructLiteralField, TypeRef, TypeRefKind,
+    UnaryOp, Visibility, WhileStmt,
 };
 pub use span::{Position, Span, Spanned};
 pub use visit::{
@@ -37,8 +38,8 @@ pub fn walk_result<V: ResultVisitor + ?Sized>(
 mod tests {
     use super::{
         walk, walk_mut, walk_result, Expr, ExprKind, FunctionDecl, Item, Module, Param, Position,
-        ResultVisitor, Span, Spanned, StructDecl, StructField, TypeRef, Visitor, VisitorMut,
-        Visibility,
+        ResultVisitor, Span, Spanned, StructDecl, StructField, TypeRef, TypeRefKind, Visitor,
+        VisitorMut, Visibility,
     };
 
     struct ItemCounter {
@@ -65,8 +66,10 @@ mod tests {
                     name: "x".to_string(),
                     name_span: span,
                     ty: TypeRef {
-                        path: super::Path::new(vec!["int".to_string()], span),
-                        arguments: Vec::new(),
+                        kind: TypeRefKind::Path {
+                            path: super::Path::new(vec!["int".to_string()], span),
+                            arguments: Vec::new(),
+                        },
                         span,
                     },
                     span,

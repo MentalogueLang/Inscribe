@@ -5,8 +5,8 @@ use inscribe_resolve::{FunctionKey, ResolvedProgram};
 use inscribe_typeck::{expr_key, FunctionSignature, Type, TypeCheckResult};
 
 use crate::nodes::{
-    HirBinding, HirBlock, HirExpr, HirExprKind, HirField, HirFor, HirFunction, HirImport, HirItem,
-    HirMatchArm, HirParam, HirProgram, HirStmt, HirStruct, HirWhile,
+    HirBinding, HirBlock, HirEnum, HirExpr, HirExprKind, HirField, HirFor, HirFunction,
+    HirImport, HirItem, HirMatchArm, HirParam, HirProgram, HirStmt, HirStruct, HirWhile,
 };
 
 pub fn lower_module(
@@ -50,11 +50,33 @@ fn lower_item(item: &Item, resolved: &ResolvedProgram, typed: &TypeCheckResult) 
                 .collect(),
             span: decl.span,
         }),
-        Item::Function(function) => HirItem::Function(lower_function(function, typed)),
+        Item::Enum(decl) => HirItem::Enum(HirEnum {
+            name: decl.name.clone(),
+            variants: resolved
+                .enums
+                .get(&decl.name)
+                .map(|info| {
+                    decl.variants
+                        .iter()
+                        .filter_map(|variant| {
+                            info.variants
+                                .get(&variant.name)
+                                .map(|discriminant| (variant.name.clone(), *discriminant))
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
+            span: decl.span,
+        }),
+        Item::Function(function) => HirItem::Function(lower_function(function, resolved, typed)),
     }
 }
 
-fn lower_function(function: &FunctionDecl, typed: &TypeCheckResult) -> HirFunction {
+fn lower_function(
+    function: &FunctionDecl,
+    resolved: &ResolvedProgram,
+    typed: &TypeCheckResult,
+) -> HirFunction {
     let key = FunctionKey {
         receiver: function
             .receiver
@@ -94,16 +116,23 @@ fn lower_function(function: &FunctionDecl, typed: &TypeCheckResult) -> HirFuncti
         signature,
         params,
         is_declaration: function.body.is_none(),
-        body: function.body.as_ref().map(|body| lower_block(body, typed)),
+        body: function
+            .body
+            .as_ref()
+            .map(|body| lower_block(body, resolved, typed)),
         span: function.span,
     }
 }
 
-fn lower_block(block: &inscribe_ast::nodes::Block, typed: &TypeCheckResult) -> HirBlock {
+fn lower_block(
+    block: &inscribe_ast::nodes::Block,
+    resolved: &ResolvedProgram,
+    typed: &TypeCheckResult,
+) -> HirBlock {
     let statements = block
         .statements
         .iter()
-        .map(|statement| lower_statement(statement, typed))
+        .map(|statement| lower_statement(statement, resolved, typed))
         .collect::<Vec<_>>();
     let ty = statements.last().map(statement_type).unwrap_or(Type::Unit);
 
@@ -114,63 +143,109 @@ fn lower_block(block: &inscribe_ast::nodes::Block, typed: &TypeCheckResult) -> H
     }
 }
 
-fn lower_statement(statement: &Stmt, typed: &TypeCheckResult) -> HirStmt {
+fn lower_statement(statement: &Stmt, resolved: &ResolvedProgram, typed: &TypeCheckResult) -> HirStmt {
     match statement {
         Stmt::Let(stmt) => HirStmt::Let(HirBinding {
             name: stmt.name.clone(),
             ty: lookup_type(typed, stmt.value.span),
-            value: lower_expr(&stmt.value, typed),
+            value: lower_expr(&stmt.value, resolved, typed),
             span: stmt.span,
         }),
         Stmt::Const(stmt) => HirStmt::Const(HirBinding {
             name: stmt.name.clone(),
             ty: lookup_type(typed, stmt.value.span),
-            value: lower_expr(&stmt.value, typed),
+            value: lower_expr(&stmt.value, resolved, typed),
             span: stmt.span,
         }),
         Stmt::For(stmt) => HirStmt::For(HirFor {
             binding: pattern_display(&stmt.pattern),
             binding_ty: lookup_type(typed, stmt.iterable.span),
-            iterable: lower_expr(&stmt.iterable, typed),
-            body: lower_block(&stmt.body, typed),
+            iterable: lower_expr(&stmt.iterable, resolved, typed),
+            body: lower_block(&stmt.body, resolved, typed),
             span: stmt.span,
         }),
         Stmt::While(stmt) => HirStmt::While(HirWhile {
-            condition: lower_expr(&stmt.condition, typed),
-            body: lower_block(&stmt.body, typed),
+            condition: lower_expr(&stmt.condition, resolved, typed),
+            body: lower_block(&stmt.body, resolved, typed),
             span: stmt.span,
         }),
         Stmt::Return(value) => HirStmt::Return(
-            value.value.as_ref().map(|expr| lower_expr(expr, typed)),
+            value
+                .value
+                .as_ref()
+                .map(|expr| lower_expr(expr, resolved, typed)),
             value.span,
         ),
-        Stmt::Expr(expr) => HirStmt::Expr(lower_expr(expr, typed)),
+        Stmt::Expr(expr) => HirStmt::Expr(lower_expr(expr, resolved, typed)),
     }
 }
 
-fn lower_expr(expr: &Expr, typed: &TypeCheckResult) -> HirExpr {
+fn lower_expr(expr: &Expr, resolved: &ResolvedProgram, typed: &TypeCheckResult) -> HirExpr {
     let ty = lookup_type(typed, expr.span);
     let kind = match &expr.kind {
         ExprKind::Literal(literal) => HirExprKind::Literal(literal_display(literal)),
-        ExprKind::Path(path) => HirExprKind::Path(path.segments.clone()),
+        ExprKind::Path(path) => {
+            if let Type::Enum(enum_name) = &ty {
+                if let Some(variant) = path.segments.last() {
+                    if path.segments.len() == 2 && &path.segments[0] == enum_name {
+                        let discriminant = resolved
+                            .enums
+                            .get(enum_name)
+                            .and_then(|info| info.variants.get(variant))
+                            .copied()
+                            .unwrap_or(0);
+                        HirExprKind::EnumVariant {
+                            enum_name: enum_name.clone(),
+                            variant: variant.clone(),
+                            discriminant,
+                        }
+                    } else {
+                        HirExprKind::Path(path.segments.clone())
+                    }
+                } else {
+                    HirExprKind::Path(path.segments.clone())
+                }
+            } else {
+                HirExprKind::Path(path.segments.clone())
+            }
+        }
+        ExprKind::Array(items) => {
+            HirExprKind::Array(
+                items
+                    .iter()
+                    .map(|item| lower_expr(item, resolved, typed))
+                    .collect(),
+            )
+        }
+        ExprKind::RepeatArray { value, length } => HirExprKind::RepeatArray {
+            value: Box::new(lower_expr(value, resolved, typed)),
+            length: *length,
+        },
         ExprKind::Unary { op, expr } => HirExprKind::Unary {
             op: format!("{op:?}"),
-            expr: Box::new(lower_expr(expr, typed)),
+            expr: Box::new(lower_expr(expr, resolved, typed)),
         },
-        ExprKind::Binary { op, left, right } => lower_binary_expr(*op, left, right, typed),
+        ExprKind::Binary { op, left, right } => lower_binary_expr(*op, left, right, resolved, typed),
         ExprKind::Call { callee, args } => HirExprKind::Call {
-            callee: Box::new(lower_expr(callee, typed)),
-            args: args.iter().map(|arg| lower_expr(arg, typed)).collect(),
+            callee: Box::new(lower_expr(callee, resolved, typed)),
+            args: args
+                .iter()
+                .map(|arg| lower_expr(arg, resolved, typed))
+                .collect(),
         },
         ExprKind::Field { base, field } => HirExprKind::Field {
-            base: Box::new(lower_expr(base, typed)),
+            base: Box::new(lower_expr(base, resolved, typed)),
             field: field.clone(),
+        },
+        ExprKind::Index { target, index } => HirExprKind::Index {
+            target: Box::new(lower_expr(target, resolved, typed)),
+            index: Box::new(lower_expr(index, resolved, typed)),
         },
         ExprKind::StructLiteral { path, fields } => HirExprKind::StructLiteral {
             path: path.segments.clone(),
             fields: fields
                 .iter()
-                .map(|field| (field.name.clone(), lower_expr(&field.value, typed)))
+                .map(|field| (field.name.clone(), lower_expr(&field.value, resolved, typed)))
                 .collect(),
         },
         ExprKind::If {
@@ -178,25 +253,25 @@ fn lower_expr(expr: &Expr, typed: &TypeCheckResult) -> HirExpr {
             then_block,
             else_branch,
         } => HirExprKind::If {
-            condition: Box::new(lower_expr(condition, typed)),
-            then_block: lower_block(then_block, typed),
+            condition: Box::new(lower_expr(condition, resolved, typed)),
+            then_block: lower_block(then_block, resolved, typed),
             else_branch: else_branch
                 .as_ref()
-                .map(|expr| Box::new(lower_expr(expr, typed))),
+                .map(|expr| Box::new(lower_expr(expr, resolved, typed))),
         },
         ExprKind::Match { value, arms } => HirExprKind::Match {
-            value: Box::new(lower_expr(value, typed)),
+            value: Box::new(lower_expr(value, resolved, typed)),
             arms: arms
                 .iter()
                 .map(|arm| HirMatchArm {
                     pattern: pattern_display(&arm.pattern),
-                    value: lower_expr(&arm.value, typed),
+                    value: lower_expr(&arm.value, resolved, typed),
                     span: arm.span,
                 })
                 .collect(),
         },
-        ExprKind::Block(block) => HirExprKind::Block(lower_block(block, typed)),
-        ExprKind::Try(inner) => HirExprKind::Try(Box::new(lower_expr(inner, typed))),
+        ExprKind::Block(block) => HirExprKind::Block(lower_block(block, resolved, typed)),
+        ExprKind::Try(inner) => HirExprKind::Try(Box::new(lower_expr(inner, resolved, typed))),
     };
 
     HirExpr {
@@ -210,23 +285,24 @@ fn lower_binary_expr(
     op: inscribe_ast::nodes::BinaryOp,
     left: &Expr,
     right: &Expr,
+    resolved: &ResolvedProgram,
     typed: &TypeCheckResult,
 ) -> HirExprKind {
     match op {
         inscribe_ast::nodes::BinaryOp::And => HirExprKind::If {
-            condition: Box::new(lower_expr(left, typed)),
-            then_block: block_with_expr(lower_expr(right, typed), right.span),
+            condition: Box::new(lower_expr(left, resolved, typed)),
+            then_block: block_with_expr(lower_expr(right, resolved, typed), right.span),
             else_branch: Some(Box::new(bool_literal_expr(false, left.span))),
         },
         inscribe_ast::nodes::BinaryOp::Or => HirExprKind::If {
-            condition: Box::new(lower_expr(left, typed)),
+            condition: Box::new(lower_expr(left, resolved, typed)),
             then_block: block_with_expr(bool_literal_expr(true, left.span), left.span),
-            else_branch: Some(Box::new(lower_expr(right, typed))),
+            else_branch: Some(Box::new(lower_expr(right, resolved, typed))),
         },
         _ => HirExprKind::Binary {
             op: format!("{op:?}"),
-            left: Box::new(lower_expr(left, typed)),
-            right: Box::new(lower_expr(right, typed)),
+            left: Box::new(lower_expr(left, resolved, typed)),
+            right: Box::new(lower_expr(right, resolved, typed)),
         },
     }
 }
@@ -291,27 +367,36 @@ fn pattern_display(pattern: &Pattern) -> String {
 }
 
 fn type_from_resolved_name(resolved: &ResolvedProgram, name: &inscribe_resolve::TypeName) -> Type {
-    let head = name.path.last().cloned().unwrap_or_default();
-    match head.as_str() {
-        "int" => Type::Int,
-        "float" => Type::Float,
-        "string" => Type::String,
-        "bool" => Type::Bool,
-        "Error" => Type::Error,
-        "Result" => {
-            let ok = name
-                .arguments
-                .first()
-                .map(|argument| type_from_resolved_name(resolved, argument))
-                .unwrap_or(Type::Unknown);
-            let err = name
-                .arguments
-                .get(1)
-                .map(|argument| type_from_resolved_name(resolved, argument))
-                .unwrap_or(Type::Error);
-            Type::Result(Box::new(ok), Box::new(err))
+    match name {
+        inscribe_resolve::TypeName::Named {
+            path, arguments, ..
+        } => {
+            let head = path.last().cloned().unwrap_or_default();
+            match head.as_str() {
+                "int" => Type::Int,
+                "byte" => Type::Byte,
+                "float" => Type::Float,
+                "string" => Type::String,
+                "bool" => Type::Bool,
+                "Error" => Type::Error,
+                "Result" => {
+                    let ok = arguments
+                        .first()
+                        .map(|argument| type_from_resolved_name(resolved, argument))
+                        .unwrap_or(Type::Unknown);
+                    let err = arguments
+                        .get(1)
+                        .map(|argument| type_from_resolved_name(resolved, argument))
+                        .unwrap_or(Type::Error);
+                    Type::Result(Box::new(ok), Box::new(err))
+                }
+                _ if resolved.structs.contains_key(&head) => Type::Struct(head),
+                _ if resolved.enums.contains_key(&head) => Type::Enum(head),
+                _ => Type::Unknown,
+            }
         }
-        _ if resolved.structs.contains_key(&head) => Type::Struct(head),
-        _ => Type::Unknown,
+        inscribe_resolve::TypeName::Array {
+            element, length, ..
+        } => Type::Array(Box::new(type_from_resolved_name(resolved, element)), *length),
     }
 }

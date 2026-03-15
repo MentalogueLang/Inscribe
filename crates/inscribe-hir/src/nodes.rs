@@ -14,6 +14,7 @@ pub struct HirProgram {
 pub enum HirItem {
     Import(HirImport),
     Struct(HirStruct),
+    Enum(HirEnum),
     Function(HirFunction),
 }
 
@@ -34,6 +35,13 @@ pub struct HirStruct {
 pub struct HirField {
     pub name: String,
     pub ty: Type,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HirEnum {
+    pub name: String,
+    pub variants: Vec<(String, usize)>,
     pub span: Span,
 }
 
@@ -107,7 +115,17 @@ pub struct HirExpr {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum HirExprKind {
     Literal(String),
+    EnumVariant {
+        enum_name: String,
+        variant: String,
+        discriminant: usize,
+    },
     Path(Vec<String>),
+    Array(Vec<HirExpr>),
+    RepeatArray {
+        value: Box<HirExpr>,
+        length: usize,
+    },
     Unary {
         op: String,
         expr: Box<HirExpr>,
@@ -124,6 +142,10 @@ pub enum HirExprKind {
     Field {
         base: Box<HirExpr>,
         field: String,
+    },
+    Index {
+        target: Box<HirExpr>,
+        index: Box<HirExpr>,
     },
     StructLiteral {
         path: Vec<String>,

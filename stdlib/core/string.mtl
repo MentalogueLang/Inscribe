@@ -5,7 +5,7 @@ fn len(value: string) -> int {
 }
 
 fn byte_at(value: string, index: int) -> int {
-    string_byte_at(value, index)
+    value[index]
 }
 
 fn in_bounds(value: string, index: int) -> bool {

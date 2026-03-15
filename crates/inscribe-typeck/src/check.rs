@@ -63,6 +63,11 @@ impl<'a> TypeChecker<'a> {
                 .item_types
                 .insert(name.clone(), Type::Struct(name.clone()));
         }
+        for name in self.resolved.enums.keys() {
+            self.result
+                .item_types
+                .insert(name.clone(), Type::Enum(name.clone()));
+        }
     }
 
     fn seed_function_signatures(&mut self) {
@@ -217,11 +222,17 @@ impl<'a> TypeChecker<'a> {
         let ty = match &expr.kind {
             ExprKind::Literal(literal) => self.type_of_literal(literal),
             ExprKind::Path(path) => self.check_path_segments(&path.segments, expr.span),
+            ExprKind::Array(items) => self.check_array(expr.span, items),
+            ExprKind::RepeatArray { value, length } => {
+                let item_ty = self.check_expr(value);
+                Type::Array(Box::new(item_ty), *length)
+            }
             ExprKind::Unary { op, expr } => {
                 let value_ty = self.check_expr(expr);
                 match op {
                     inscribe_ast::nodes::UnaryOp::Negate => {
-                        if matches!(value_ty, Type::Int | Type::Float | Type::Unknown) {
+                        if matches!(value_ty, Type::Int | Type::Byte | Type::Float | Type::Unknown)
+                        {
                             value_ty
                         } else {
                             self.errors.push(TypeError::new(
@@ -240,6 +251,7 @@ impl<'a> TypeChecker<'a> {
             ExprKind::Binary { op, left, right } => self.check_binary(expr.span, *op, left, right),
             ExprKind::Call { callee, args } => self.check_call(expr.span, callee, args),
             ExprKind::Field { base, field } => self.check_field(expr.span, base, field),
+            ExprKind::Index { target, index } => self.check_index(expr.span, target, index),
             ExprKind::StructLiteral { path, fields } => self.check_struct_literal(
                 expr.span,
                 path.segments.last().cloned().unwrap_or_default(),
@@ -283,36 +295,15 @@ impl<'a> TypeChecker<'a> {
         left: &Expr,
         right: &Expr,
     ) -> Type {
+        if matches!(op, inscribe_ast::nodes::BinaryOp::Assign) {
+            let right_ty = self.check_expr(right);
+            return self.check_assignment_target(left, &right_ty, span);
+        }
+
         let left_ty = self.check_expr(left);
         let right_ty = self.check_expr(right);
 
         match op {
-            inscribe_ast::nodes::BinaryOp::Assign => {
-                if let ExprKind::Path(path) = &left.kind {
-                    if let Some(binding) = self.lookup_binding(&path.segments[0]) {
-                        if let Err(error) = ensure_assignable(&binding, &path.segments[0], span) {
-                            self.errors.push(error);
-                        }
-                        self.expect_type(&binding.ty, &right_ty, span);
-                        binding.ty
-                    } else {
-                        self.errors.push(TypeError::new(
-                            format!(
-                                "cannot assign to unknown binding `{}`",
-                                path.segments.join(".")
-                            ),
-                            left.span,
-                        ));
-                        Type::Unknown
-                    }
-                } else {
-                    self.errors.push(TypeError::new(
-                        "left-hand side of assignment must be a binding",
-                        left.span,
-                    ));
-                    Type::Unknown
-                }
-            }
             inscribe_ast::nodes::BinaryOp::Range => {
                 self.expect_type(&Type::Int, &left_ty, left.span);
                 self.expect_type(&Type::Int, &right_ty, right.span);
@@ -336,13 +327,9 @@ impl<'a> TypeChecker<'a> {
             | inscribe_ast::nodes::BinaryOp::Subtract
             | inscribe_ast::nodes::BinaryOp::Multiply
             | inscribe_ast::nodes::BinaryOp::Divide => {
-                if matches!(
-                    left_ty,
-                    Type::Int | Type::Float | Type::String | Type::Unknown
-                ) && matches!(
-                    right_ty,
-                    Type::Int | Type::Float | Type::String | Type::Unknown
-                ) {
+                if matches!(left_ty, Type::Int | Type::Byte | Type::Float | Type::String | Type::Unknown)
+                    && matches!(right_ty, Type::Int | Type::Byte | Type::Float | Type::String | Type::Unknown)
+                {
                     match unify(&left_ty, &right_ty, span) {
                         Ok(ty) => ty,
                         Err(error) => {
@@ -362,6 +349,7 @@ impl<'a> TypeChecker<'a> {
                     Type::Unknown
                 }
             }
+            inscribe_ast::nodes::BinaryOp::Assign => unreachable!("assignment handled early"),
         }
     }
 
@@ -459,6 +447,22 @@ impl<'a> TypeChecker<'a> {
                     span,
                 ));
                 Type::Unknown
+            }
+            Type::Enum(name) => {
+                if self
+                    .resolved
+                    .enums
+                    .get(&name)
+                    .is_some_and(|info| info.variants.contains_key(field))
+                {
+                    Type::Enum(name)
+                } else {
+                    self.errors.push(TypeError::new(
+                        format!("unknown variant `{field}` on `{name}`"),
+                        span,
+                    ));
+                    Type::Unknown
+                }
             }
             other => {
                 self.errors.push(TypeError::new(
@@ -578,6 +582,100 @@ impl<'a> TypeChecker<'a> {
         }
     }
 
+    fn check_array(&mut self, _span: Span, items: &[Expr]) -> Type {
+        let mut element_ty = Type::Unknown;
+        for item in items {
+            let item_ty = self.check_expr(item);
+            element_ty = match unify(&element_ty, &item_ty, item.span) {
+                Ok(ty) => ty,
+                Err(error) => {
+                    self.errors.push(error);
+                    Type::Unknown
+                }
+            };
+        }
+        Type::Array(Box::new(element_ty), items.len())
+    }
+
+    fn check_index(&mut self, span: Span, target: &Expr, index: &Expr) -> Type {
+        let target_ty = self.check_expr(target);
+        let index_ty = self.check_expr(index);
+        self.expect_type(&Type::Int, &index_ty, index.span);
+        match target_ty {
+            Type::Array(element, _) => *element,
+            Type::String => Type::Byte,
+            Type::Unknown => Type::Unknown,
+            other => {
+                self.errors.push(TypeError::new(
+                    format!("cannot index into `{}`", other.display_name()),
+                    span,
+                ));
+                Type::Unknown
+            }
+        }
+    }
+
+    fn check_assignment_target(&mut self, left: &Expr, right_ty: &Type, span: Span) -> Type {
+        match &left.kind {
+            ExprKind::Path(path) => {
+                if let Some(binding) = self.lookup_binding(&path.segments[0]) {
+                    if let Err(error) = ensure_assignable(&binding, &path.segments[0], span) {
+                        self.errors.push(error);
+                    }
+                    self.expect_type(&binding.ty, right_ty, span);
+                    binding.ty
+                } else {
+                    self.errors.push(TypeError::new(
+                        format!("cannot assign to unknown binding `{}`", path.segments.join(".")),
+                        left.span,
+                    ));
+                    Type::Unknown
+                }
+            }
+            ExprKind::Index { target, index } => {
+                let target_ty = self.check_expr(target);
+                let index_ty = self.check_expr(index);
+                self.expect_type(&Type::Int, &index_ty, index.span);
+                match &target.kind {
+                    ExprKind::Path(path) => {
+                        if let Some(binding) = self.lookup_binding(&path.segments[0]) {
+                            if let Err(error) = ensure_assignable(&binding, &path.segments[0], span)
+                            {
+                                self.errors.push(error);
+                            }
+                        }
+                    }
+                    _ => {
+                        self.errors.push(TypeError::new(
+                            "indexed assignment requires a binding target",
+                            target.span,
+                        ));
+                    }
+                }
+                match target_ty {
+                    Type::Array(element, _) => {
+                        self.expect_type(&element, right_ty, span);
+                        *element
+                    }
+                    other => {
+                        self.errors.push(TypeError::new(
+                            format!("cannot assign through index on `{}`", other.display_name()),
+                            span,
+                        ));
+                        Type::Unknown
+                    }
+                }
+            }
+            _ => {
+                self.errors.push(TypeError::new(
+                    "left-hand side of assignment must be a binding or index expression",
+                    left.span,
+                ));
+                Type::Unknown
+            }
+        }
+    }
+
     fn bind_pattern(&mut self, pattern: &Pattern, expected: &Type) {
         match &pattern.kind {
             PatternKind::Wildcard | PatternKind::Path(_) => {}
@@ -666,54 +764,68 @@ impl<'a> TypeChecker<'a> {
     }
 
     fn type_from_name(&self, ty: &TypeName) -> Type {
-        let head = ty.path.last().cloned().unwrap_or_default();
-        match head.as_str() {
-            "int" => Type::Int,
-            "float" => Type::Float,
-            "string" => Type::String,
-            "bool" => Type::Bool,
-            "Error" => Type::Error,
-            "Result" => {
-                let ok = ty
-                    .arguments
-                    .first()
-                    .map(|argument| self.type_from_name(argument))
-                    .unwrap_or(Type::Unknown);
-                let err = ty
-                    .arguments
-                    .get(1)
-                    .map(|argument| self.type_from_name(argument))
-                    .unwrap_or(Type::Error);
-                Type::Result(Box::new(ok), Box::new(err))
+        match ty {
+            TypeName::Named { path, arguments, .. } => {
+                let head = path.last().cloned().unwrap_or_default();
+                match head.as_str() {
+                    "int" => Type::Int,
+                    "byte" => Type::Byte,
+                    "float" => Type::Float,
+                    "string" => Type::String,
+                    "bool" => Type::Bool,
+                    "Error" => Type::Error,
+                    "Result" => {
+                        let ok = arguments
+                            .first()
+                            .map(|argument| self.type_from_name(argument))
+                            .unwrap_or(Type::Unknown);
+                        let err = arguments
+                            .get(1)
+                            .map(|argument| self.type_from_name(argument))
+                            .unwrap_or(Type::Error);
+                        Type::Result(Box::new(ok), Box::new(err))
+                    }
+                    _ if self.resolved.structs.contains_key(&head) => Type::Struct(head),
+                    _ if self.resolved.enums.contains_key(&head) => Type::Enum(head),
+                    _ => Type::Unknown,
+                }
             }
-            _ if self.resolved.structs.contains_key(&head) => Type::Struct(head),
-            _ => Type::Unknown,
+            TypeName::Array {
+                element, length, ..
+            } => Type::Array(Box::new(self.type_from_name(element)), *length),
         }
     }
 
     fn type_from_ast_ref(&self, ty: &inscribe_ast::nodes::TypeRef) -> Type {
-        let head = ty.path.segments.last().cloned().unwrap_or_default();
-        match head.as_str() {
-            "int" => Type::Int,
-            "float" => Type::Float,
-            "string" => Type::String,
-            "bool" => Type::Bool,
-            "Error" => Type::Error,
-            "Result" => {
-                let ok = ty
-                    .arguments
-                    .first()
-                    .map(|argument| self.type_from_ast_ref(argument))
-                    .unwrap_or(Type::Unknown);
-                let err = ty
-                    .arguments
-                    .get(1)
-                    .map(|argument| self.type_from_ast_ref(argument))
-                    .unwrap_or(Type::Error);
-                Type::Result(Box::new(ok), Box::new(err))
+        match &ty.kind {
+            inscribe_ast::nodes::TypeRefKind::Path { path, arguments } => {
+                let head = path.segments.last().cloned().unwrap_or_default();
+                match head.as_str() {
+                    "int" => Type::Int,
+                    "byte" => Type::Byte,
+                    "float" => Type::Float,
+                    "string" => Type::String,
+                    "bool" => Type::Bool,
+                    "Error" => Type::Error,
+                    "Result" => {
+                        let ok = arguments
+                            .first()
+                            .map(|argument| self.type_from_ast_ref(argument))
+                            .unwrap_or(Type::Unknown);
+                        let err = arguments
+                            .get(1)
+                            .map(|argument| self.type_from_ast_ref(argument))
+                            .unwrap_or(Type::Error);
+                        Type::Result(Box::new(ok), Box::new(err))
+                    }
+                    _ if self.resolved.structs.contains_key(&head) => Type::Struct(head),
+                    _ if self.resolved.enums.contains_key(&head) => Type::Enum(head),
+                    _ => Type::Unknown,
+                }
             }
-            _ if self.resolved.structs.contains_key(&head) => Type::Struct(head),
-            _ => Type::Unknown,
+            inscribe_ast::nodes::TypeRefKind::Array { element, length } => {
+                Type::Array(Box::new(self.type_from_ast_ref(element)), *length)
+            }
         }
     }
 
@@ -733,6 +845,10 @@ impl<'a> TypeChecker<'a> {
 
         if self.resolved.structs.contains_key(name) {
             return Type::Struct(name.to_string());
+        }
+
+        if self.resolved.enums.contains_key(name) {
+            return Type::Enum(name.to_string());
         }
 
         if let Some(signature) = self
@@ -786,6 +902,22 @@ impl<'a> TypeChecker<'a> {
                     span,
                 ));
                 Type::Unknown
+            }
+            Type::Enum(name) => {
+                if self
+                    .resolved
+                    .enums
+                    .get(&name)
+                    .is_some_and(|info| info.variants.contains_key(member))
+                {
+                    Type::Enum(name)
+                } else {
+                    self.errors.push(TypeError::new(
+                        format!("unknown variant `{member}` on `{name}`"),
+                        span,
+                    ));
+                    Type::Unknown
+                }
             }
             Type::Unknown => Type::Unknown,
             other => {

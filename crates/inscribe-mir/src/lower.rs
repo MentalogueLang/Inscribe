@@ -20,7 +20,7 @@ pub fn lower_program(program: &HirProgram) -> MirProgram {
         .iter()
         .filter_map(|item| match item {
             HirItem::Function(function) => Some(lower_function(function)),
-            HirItem::Import(_) | HirItem::Struct(_) => None,
+            HirItem::Import(_) | HirItem::Struct(_) | HirItem::Enum(_) => None,
         })
         .collect();
 
@@ -163,8 +163,7 @@ impl<'a> FunctionLowerer<'a> {
                 );
                 self.define_binding(binding.name.clone(), local);
                 self.emit(current, StatementKind::StorageLive(local), binding.span);
-                let (block, value) = self.lower_expr(&binding.value, current);
-                self.emit_assign(block, Place::new(local), Rvalue::Use(value), binding.span);
+                let block = self.lower_initializer_into(&binding.value, Place::new(local), current);
                 (block, None)
             }
             HirStmt::Const(binding) => {
@@ -177,8 +176,7 @@ impl<'a> FunctionLowerer<'a> {
                 );
                 self.define_binding(binding.name.clone(), local);
                 self.emit(current, StatementKind::StorageLive(local), binding.span);
-                let (block, value) = self.lower_expr(&binding.value, current);
-                self.emit_assign(block, Place::new(local), Rvalue::Use(value), binding.span);
+                let block = self.lower_initializer_into(&binding.value, Place::new(local), current);
                 (block, None)
             }
             HirStmt::For(for_stmt) => {
@@ -288,6 +286,13 @@ impl<'a> FunctionLowerer<'a> {
     fn lower_expr(&mut self, expr: &HirExpr, current: BasicBlockId) -> (BasicBlockId, Operand) {
         match &expr.kind {
             HirExprKind::Literal(value) => (current, literal_operand(value, &expr.ty)),
+            HirExprKind::EnumVariant { discriminant, .. } => (
+                current,
+                Operand::Constant(Constant {
+                    ty: expr.ty.clone(),
+                    value: ConstantValue::Integer(discriminant.to_string()),
+                }),
+            ),
             HirExprKind::Path(segments) => {
                 let operand = self.path_operand(segments, &expr.ty).unwrap_or_else(|| {
                     Operand::Constant(Constant {
@@ -296,6 +301,10 @@ impl<'a> FunctionLowerer<'a> {
                     })
                 });
                 (current, operand)
+            }
+            HirExprKind::Array(items) => self.lower_array_expr(expr, items, current),
+            HirExprKind::RepeatArray { value, length } => {
+                self.lower_repeat_array_expr(expr, value, *length, current)
             }
             HirExprKind::Unary { op, expr: inner } => {
                 let (block, operand) = self.lower_expr(inner, current);
@@ -338,6 +347,18 @@ impl<'a> FunctionLowerer<'a> {
                         place.projection.push(ProjectionElem::Field(field.clone()));
                         place
                     })
+                    .unwrap_or_else(|| {
+                        let temp = self.alloc_temp(expr.ty.clone(), expr.span);
+                        Place::new(temp)
+                    });
+                (current, Operand::Copy(place))
+            }
+            HirExprKind::Index { target, index } => {
+                if matches!(target.ty, Type::String) {
+                    return self.lower_string_index(expr, target, index, current);
+                }
+                let place = self
+                    .expr_place(expr)
                     .unwrap_or_else(|| {
                         let temp = self.alloc_temp(expr.ty.clone(), expr.span);
                         Place::new(temp)
@@ -393,8 +414,7 @@ impl<'a> FunctionLowerer<'a> {
             let temp = self.alloc_temp(Type::Unknown, span);
             return (current, Operand::Move(Place::new(temp)));
         };
-        let (block, value) = self.lower_expr(right, current);
-        self.emit_assign(block, place.clone(), Rvalue::Use(value), span);
+        let block = self.lower_initializer_into(right, place.clone(), current);
         (block, Operand::Copy(place))
     }
 
@@ -607,8 +627,123 @@ impl<'a> FunctionLowerer<'a> {
                 place.projection.push(ProjectionElem::Field(field.clone()));
                 Some(place)
             }
+            HirExprKind::Index { target, index } => {
+                let mut place = self.expr_place(target)?;
+                let operand = match &index.kind {
+                    HirExprKind::Literal(value) => Operand::Constant(Constant {
+                        ty: index.ty.clone(),
+                        value: ConstantValue::Integer(value.clone()),
+                    }),
+                    HirExprKind::Path(segments) => self.path_operand(segments, &index.ty)?,
+                    _ => return None,
+                };
+                place.projection.push(ProjectionElem::Index(operand));
+                Some(place)
+            }
             _ => None,
         }
+    }
+
+    fn lower_initializer_into(
+        &mut self,
+        expr: &HirExpr,
+        place: Place,
+        current: BasicBlockId,
+    ) -> BasicBlockId {
+        match &expr.kind {
+            HirExprKind::Array(items) => {
+                let mut block = current;
+                let mut elements = Vec::new();
+                for item in items {
+                    let (next, operand) = self.lower_expr(item, block);
+                    block = next;
+                    elements.push(operand);
+                }
+                self.emit_assign(block, place, Rvalue::AggregateArray { elements }, expr.span);
+                block
+            }
+            HirExprKind::RepeatArray { value, length } => {
+                let (block, operand) = self.lower_expr(value, current);
+                self.emit_assign(
+                    block,
+                    place,
+                    Rvalue::RepeatArray {
+                        value: operand,
+                        length: *length,
+                    },
+                    expr.span,
+                );
+                block
+            }
+            _ => {
+                let (block, value) = self.lower_expr(expr, current);
+                self.emit_assign(block, place, Rvalue::Use(value), expr.span);
+                block
+            }
+        }
+    }
+
+    fn lower_array_expr(
+        &mut self,
+        expr: &HirExpr,
+        items: &[HirExpr],
+        current: BasicBlockId,
+    ) -> (BasicBlockId, Operand) {
+        let temp = self.alloc_temp(expr.ty.clone(), expr.span);
+        let block = self.lower_initializer_into(expr, Place::new(temp), current);
+        let _ = items;
+        (block, Operand::Copy(Place::new(temp)))
+    }
+
+    fn lower_repeat_array_expr(
+        &mut self,
+        expr: &HirExpr,
+        value: &HirExpr,
+        length: usize,
+        current: BasicBlockId,
+    ) -> (BasicBlockId, Operand) {
+        let temp = self.alloc_temp(expr.ty.clone(), expr.span);
+        let repeat_expr = HirExpr {
+            kind: HirExprKind::RepeatArray {
+                value: Box::new(value.clone()),
+                length,
+            },
+            ty: expr.ty.clone(),
+            span: expr.span,
+        };
+        let block = self.lower_initializer_into(&repeat_expr, Place::new(temp), current);
+        (block, Operand::Copy(Place::new(temp)))
+    }
+
+    fn lower_string_index(
+        &mut self,
+        expr: &HirExpr,
+        target: &HirExpr,
+        index: &HirExpr,
+        current: BasicBlockId,
+    ) -> (BasicBlockId, Operand) {
+        let (block, target_operand) = self.lower_expr(target, current);
+        let (block, index_operand) = self.lower_expr(index, block);
+        let destination = if matches!(expr.ty, Type::Unit) {
+            None
+        } else {
+            Some(Place::new(self.alloc_temp(expr.ty.clone(), expr.span)))
+        };
+        let target_block = self.new_block();
+        self.set_terminator(
+            block,
+            TerminatorKind::Call {
+                callee: Operand::Constant(Constant {
+                    ty: Type::Unknown,
+                    value: ConstantValue::Function("string_byte_at".to_string()),
+                }),
+                args: vec![target_operand, index_operand],
+                destination: destination.clone(),
+                target: target_block,
+            },
+        );
+        let value = destination.map(Operand::Move).unwrap_or_else(unit_operand);
+        (target_block, value)
     }
 
     fn path_place(&self, segments: &[String]) -> Option<Place> {
@@ -724,9 +859,11 @@ fn unit_operand() -> Operand {
 fn literal_operand(value: &str, ty: &Type) -> Operand {
     let constant = match ty {
         Type::Int => ConstantValue::Integer(value.to_string()),
+        Type::Byte => ConstantValue::Integer(value.to_string()),
         Type::Float => ConstantValue::Float(value.to_string()),
         Type::String => ConstantValue::String(value.trim_matches('"').to_string()),
         Type::Bool => ConstantValue::Bool(value == "true"),
+        Type::Enum(_) => ConstantValue::Integer(value.to_string()),
         _ => ConstantValue::String(value.to_string()),
     };
     Operand::Constant(Constant {

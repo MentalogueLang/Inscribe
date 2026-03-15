@@ -117,14 +117,16 @@ pub fn walk_module_result<V: ResultVisitor + ?Sized>(
 }
 
 pub fn walk_item<V: Visitor + ?Sized>(visitor: &mut V, item: &Item) {
-    if let Item::Function(function) = item {
-        visitor.visit_function(function);
+    match item {
+        Item::Function(function) => visitor.visit_function(function),
+        Item::Import(_) | Item::Struct(_) | Item::Enum(_) => {}
     }
 }
 
 pub fn walk_item_mut<V: VisitorMut + ?Sized>(visitor: &mut V, item: &mut Item) {
-    if let Item::Function(function) = item {
-        visitor.visit_function(function);
+    match item {
+        Item::Function(function) => visitor.visit_function(function),
+        Item::Import(_) | Item::Struct(_) | Item::Enum(_) => {}
     }
 }
 
@@ -255,6 +257,12 @@ pub fn walk_stmt_result<V: ResultVisitor + ?Sized>(
 pub fn walk_expr<V: Visitor + ?Sized>(visitor: &mut V, expr: &Expr) {
     match &expr.kind {
         ExprKind::Literal(_) | ExprKind::Path(_) => {}
+        ExprKind::Array(items) => {
+            for item in items {
+                visitor.visit_expr(item);
+            }
+        }
+        ExprKind::RepeatArray { value, .. } => visitor.visit_expr(value),
         ExprKind::Unary { expr, .. } | ExprKind::Try(expr) => visitor.visit_expr(expr),
         ExprKind::Binary { left, right, .. } => {
             visitor.visit_expr(left);
@@ -267,6 +275,10 @@ pub fn walk_expr<V: Visitor + ?Sized>(visitor: &mut V, expr: &Expr) {
             }
         }
         ExprKind::Field { base, .. } => visitor.visit_expr(base),
+        ExprKind::Index { target, index } => {
+            visitor.visit_expr(target);
+            visitor.visit_expr(index);
+        }
         ExprKind::StructLiteral { fields, .. } => {
             for field in fields {
                 visitor.visit_expr(&field.value);
@@ -297,6 +309,12 @@ pub fn walk_expr<V: Visitor + ?Sized>(visitor: &mut V, expr: &Expr) {
 pub fn walk_expr_mut<V: VisitorMut + ?Sized>(visitor: &mut V, expr: &mut Expr) {
     match &mut expr.kind {
         ExprKind::Literal(_) | ExprKind::Path(_) => {}
+        ExprKind::Array(items) => {
+            for item in items {
+                visitor.visit_expr(item);
+            }
+        }
+        ExprKind::RepeatArray { value, .. } => visitor.visit_expr(value),
         ExprKind::Unary { expr, .. } | ExprKind::Try(expr) => visitor.visit_expr(expr),
         ExprKind::Binary { left, right, .. } => {
             visitor.visit_expr(left);
@@ -309,6 +327,10 @@ pub fn walk_expr_mut<V: VisitorMut + ?Sized>(visitor: &mut V, expr: &mut Expr) {
             }
         }
         ExprKind::Field { base, .. } => visitor.visit_expr(base),
+        ExprKind::Index { target, index } => {
+            visitor.visit_expr(target);
+            visitor.visit_expr(index);
+        }
         ExprKind::StructLiteral { fields, .. } => {
             for field in fields {
                 visitor.visit_expr(&mut field.value);
@@ -342,6 +364,13 @@ pub fn walk_expr_result<V: ResultVisitor + ?Sized>(
 ) -> Result<(), V::Error> {
     match &expr.kind {
         ExprKind::Literal(_) | ExprKind::Path(_) => Ok(()),
+        ExprKind::Array(items) => {
+            for item in items {
+                visitor.visit_expr(item)?;
+            }
+            Ok(())
+        }
+        ExprKind::RepeatArray { value, .. } => visitor.visit_expr(value),
         ExprKind::Unary { expr, .. } | ExprKind::Try(expr) => visitor.visit_expr(expr),
         ExprKind::Binary { left, right, .. } => {
             visitor.visit_expr(left)?;
@@ -355,6 +384,10 @@ pub fn walk_expr_result<V: ResultVisitor + ?Sized>(
             Ok(())
         }
         ExprKind::Field { base, .. } => visitor.visit_expr(base),
+        ExprKind::Index { target, index } => {
+            visitor.visit_expr(target)?;
+            visitor.visit_expr(index)
+        }
         ExprKind::StructLiteral { fields, .. } => {
             for field in fields {
                 visitor.visit_expr(&field.value)?;

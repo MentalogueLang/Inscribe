@@ -13,8 +13,8 @@ pub use loader::{
     SourceModule,
 };
 pub use resolver::{
-    resolve_module, Builtins, FunctionInfo, FunctionKey, ParamInfo, ResolveError, ResolvedProgram,
-    StructInfo, Symbol, SymbolId, SymbolKind, TypeName,
+    resolve_module, Builtins, EnumInfo, FunctionInfo, FunctionKey, ParamInfo, ResolveError,
+    ResolvedProgram, StructInfo, Symbol, SymbolId, SymbolKind, TypeName,
 };
 
 pub fn resolve_module_graph(

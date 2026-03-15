@@ -63,7 +63,11 @@ pub fn evaluate_constant_rvalue(rvalue: &Rvalue) -> Option<Constant> {
             let right = operand_constant(right)?;
             fold_binary(op, &left, &right)
         }
-        Rvalue::AggregateStruct { .. } | Rvalue::ResultOk(_) | Rvalue::ResultErr(_) => None,
+        Rvalue::AggregateStruct { .. }
+        | Rvalue::AggregateArray { .. }
+        | Rvalue::RepeatArray { .. }
+        | Rvalue::ResultOk(_)
+        | Rvalue::ResultErr(_) => None,
         Rvalue::Use(Operand::Copy(_)) | Rvalue::Use(Operand::Move(_)) => None,
     }
 }
@@ -108,6 +112,16 @@ fn rewrite_rvalue(rvalue: &Rvalue, env: &[Option<Constant>]) -> Rvalue {
                 .iter()
                 .map(|(name, operand)| (name.clone(), rewrite_operand(operand, env)))
                 .collect(),
+        },
+        Rvalue::AggregateArray { elements } => Rvalue::AggregateArray {
+            elements: elements
+                .iter()
+                .map(|operand| rewrite_operand(operand, env))
+                .collect(),
+        },
+        Rvalue::RepeatArray { value, length } => Rvalue::RepeatArray {
+            value: rewrite_operand(value, env),
+            length: *length,
         },
         Rvalue::ResultOk(operand) => Rvalue::ResultOk(rewrite_operand(operand, env)),
         Rvalue::ResultErr(operand) => Rvalue::ResultErr(rewrite_operand(operand, env)),

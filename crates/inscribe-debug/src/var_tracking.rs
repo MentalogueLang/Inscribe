@@ -247,6 +247,14 @@ fn collect_rvalue_uses(
                 collect_operand_use(uses, summaries, operand, point, span);
             }
         }
+        Rvalue::AggregateArray { elements } => {
+            for operand in elements {
+                collect_operand_use(uses, summaries, operand, point, span);
+            }
+        }
+        Rvalue::RepeatArray { value, .. } => {
+            collect_operand_use(uses, summaries, value, point, span);
+        }
     }
 }
 
@@ -287,6 +295,7 @@ fn record_place_use(
 fn projection_name(projection: &inscribe_mir::ProjectionElem) -> String {
     match projection {
         inscribe_mir::ProjectionElem::Field(name) => name.clone(),
+        inscribe_mir::ProjectionElem::Index(_) => "[index]".to_string(),
     }
 }
 

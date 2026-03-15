@@ -10,7 +10,7 @@ pub use parser::{parse_module, ParseError, Parser};
 
 #[cfg(test)]
 mod tests {
-    use inscribe_ast::nodes::{ExprKind, Item, PatternKind, Stmt, Visibility};
+    use inscribe_ast::nodes::{ExprKind, Item, PatternKind, Stmt, TypeRefKind, Visibility};
     use inscribe_lexer::lex;
 
     use crate::parse_module;
@@ -128,9 +128,9 @@ fn main() {
     }
 
     #[test]
-    fn parses_private_functions() {
+    fn parses_priv_functions() {
         let source = r#"
-private fn helper() -> int {
+priv fn helper() -> int {
     7
 }
 "#;
@@ -143,5 +143,46 @@ private fn helper() -> int {
         };
         assert_eq!(function.visibility, Visibility::Private);
         assert_eq!(function.name, "helper");
+    }
+
+    #[test]
+    fn parses_enums_arrays_and_indexing() {
+        let source = r#"
+enum Kind {
+    Object
+    Array
+}
+
+fn main() {
+    let nums: [int; 3] = [1, 2, 3]
+    let fill: [byte; 4] = [0; 4]
+    nums[1]
+}
+"#;
+
+        let module = parse_module(lex(source).expect("lexing should succeed"))
+            .expect("parsing should succeed");
+
+        assert!(matches!(module.items[0], Item::Enum(_)));
+        let Item::Function(main_fn) = &module.items[1] else {
+            panic!("expected function");
+        };
+        let body = main_fn.body.as_ref().expect("main should have a body");
+        let Stmt::Let(nums) = &body.statements[0] else {
+            panic!("expected array binding");
+        };
+        let Some(ty) = &nums.ty else {
+            panic!("expected array annotation");
+        };
+        assert!(matches!(ty.kind, TypeRefKind::Array { length: 3, .. }));
+        assert!(matches!(nums.value.kind, ExprKind::Array(_)));
+        let Stmt::Let(fill) = &body.statements[1] else {
+            panic!("expected repeat binding");
+        };
+        assert!(matches!(fill.value.kind, ExprKind::RepeatArray { length: 4, .. }));
+        let Stmt::Expr(expr) = &body.statements[2] else {
+            panic!("expected index expression");
+        };
+        assert!(matches!(expr.kind, ExprKind::Index { .. }));
     }
 }

@@ -100,6 +100,7 @@ pub fn lex(source: &str) -> Result<Vec<Token>, LexError> {
                     "const" => TokenKind::Const,
                     "fn" => TokenKind::Fn,
                     "struct" => TokenKind::Struct,
+                    "enum" => TokenKind::Enum,
                     "if" => TokenKind::If,
                     "else" => TokenKind::Else,
                     "for" => TokenKind::For,
@@ -107,7 +108,7 @@ pub fn lex(source: &str) -> Result<Vec<Token>, LexError> {
                     "while" => TokenKind::While,
                     "return" => TokenKind::Return,
                     "import" => TokenKind::Import,
-                    "private" => TokenKind::Private,
+                    "priv" => TokenKind::Private,
                     "match" => TokenKind::Match,
                     "true" => TokenKind::True,
                     "false" => TokenKind::False,
@@ -149,6 +150,14 @@ fn lex_punctuation(cursor: &mut Cursor<'_>) -> Option<Token> {
         (')', _) => {
             let _ = cursor.bump();
             TokenKind::RParen
+        }
+        ('[', _) => {
+            let _ = cursor.bump();
+            TokenKind::LBracket
+        }
+        (']', _) => {
+            let _ = cursor.bump();
+            TokenKind::RBracket
         }
         ('{', _) => {
             let _ = cursor.bump();

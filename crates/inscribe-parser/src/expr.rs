@@ -1,7 +1,7 @@
 use inscribe_ast::nodes::BinaryOp;
 use inscribe_lexer::token::TokenKind;
 
-// TODO: Extend precedence handling for tuples, indexing, and additional operators.
+// TODO: Extend precedence handling for tuples and additional operators.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Precedence {

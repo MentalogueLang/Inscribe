@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::fmt;
 
 use inscribe_ast::nodes::{
-    Block, Expr, ExprKind, FunctionDecl, Item, Literal, MatchArm, Module, Pattern, PatternKind,
-    Stmt, StructDecl, TypeRef,
+    Block, EnumDecl, Expr, ExprKind, FunctionDecl, Item, Literal, MatchArm, Module, Pattern,
+    PatternKind, Stmt, StructDecl, TypeRef, TypeRefKind,
 };
 use inscribe_ast::span::Span;
 
@@ -48,6 +48,7 @@ pub struct SymbolId(pub usize);
 pub enum SymbolKind {
     Import,
     Struct,
+    Enum,
     Function,
     Local,
     Param,
@@ -68,10 +69,25 @@ pub struct FunctionKey {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TypeName {
-    pub path: Vec<String>,
-    pub arguments: Vec<TypeName>,
-    pub span: Span,
+pub enum TypeName {
+    Named {
+        path: Vec<String>,
+        arguments: Vec<TypeName>,
+        span: Span,
+    },
+    Array {
+        element: Box<TypeName>,
+        length: usize,
+        span: Span,
+    },
+}
+
+impl TypeName {
+    pub fn span(&self) -> Span {
+        match self {
+            Self::Named { span, .. } | Self::Array { span, .. } => *span,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -79,6 +95,14 @@ pub struct StructInfo {
     pub symbol: SymbolId,
     pub name: String,
     pub fields: HashMap<String, TypeName>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnumInfo {
+    pub symbol: SymbolId,
+    pub name: String,
+    pub variants: HashMap<String, usize>,
     pub span: Span,
 }
 
@@ -107,7 +131,7 @@ pub struct Builtins {
 impl Default for Builtins {
     fn default() -> Self {
         Self {
-            types: vec!["int", "float", "string", "bool", "Result", "Error"],
+            types: vec!["int", "byte", "float", "string", "bool", "Result", "Error"],
             constructors: vec!["Ok", "Err"],
         }
     }
@@ -129,6 +153,7 @@ pub struct ResolvedProgram {
     pub imports: ImportTable,
     pub symbols: Vec<Symbol>,
     pub structs: HashMap<String, StructInfo>,
+    pub enums: HashMap<String, EnumInfo>,
     pub functions: HashMap<FunctionKey, FunctionInfo>,
     pub builtins: Builtins,
 }
@@ -136,6 +161,10 @@ pub struct ResolvedProgram {
 impl ResolvedProgram {
     pub fn has_struct(&self, name: &str) -> bool {
         self.structs.contains_key(name)
+    }
+
+    pub fn has_enum(&self, name: &str) -> bool {
+        self.enums.contains_key(name)
     }
 
     pub fn has_function(&self, name: &str) -> bool {
@@ -153,7 +182,11 @@ impl ResolvedProgram {
 
     pub fn is_known_type_path(&self, path: &[String]) -> bool {
         path.last()
-            .is_some_and(|last| self.builtins.is_type(last) || self.structs.contains_key(last))
+            .is_some_and(|last| {
+                self.builtins.is_type(last)
+                    || self.structs.contains_key(last)
+                    || self.enums.contains_key(last)
+            })
     }
 }
 
@@ -165,6 +198,7 @@ pub fn resolve_module(module: &Module) -> Result<ResolvedProgram, Vec<ResolveErr
 pub struct Resolver {
     symbols: Vec<Symbol>,
     structs: HashMap<String, StructInfo>,
+    enums: HashMap<String, EnumInfo>,
     functions: HashMap<FunctionKey, FunctionInfo>,
     builtins: Builtins,
     errors: Vec<ResolveError>,
@@ -191,6 +225,7 @@ impl Resolver {
                 imports,
                 symbols: self.symbols,
                 structs: self.structs,
+                enums: self.enums,
                 functions: self.functions,
                 builtins: self.builtins,
             })
@@ -212,6 +247,7 @@ impl Resolver {
                     self.push_symbol(alias, SymbolKind::Import, import.span);
                 }
                 Item::Struct(decl) => self.collect_struct(decl),
+                Item::Enum(decl) => self.collect_enum(decl),
                 Item::Function(function) => self.collect_function(function),
             }
         }
@@ -247,6 +283,37 @@ impl Resolver {
                 symbol,
                 name: decl.name.clone(),
                 fields,
+                span: decl.span,
+            },
+        );
+    }
+
+    fn collect_enum(&mut self, decl: &EnumDecl) {
+        if self.enums.contains_key(&decl.name) {
+            self.errors.push(ResolveError::new(
+                format!("duplicate enum `{}`", decl.name),
+                decl.span,
+            ));
+            return;
+        }
+
+        let symbol = self.push_symbol(decl.name.clone(), SymbolKind::Enum, decl.span);
+        let mut variants = HashMap::new();
+        for (index, variant) in decl.variants.iter().enumerate() {
+            if variants.insert(variant.name.clone(), index).is_some() {
+                self.errors.push(ResolveError::new(
+                    format!("duplicate variant `{}` in enum `{}`", variant.name, decl.name),
+                    variant.span,
+                ));
+            }
+        }
+
+        self.enums.insert(
+            decl.name.clone(),
+            EnumInfo {
+                symbol,
+                name: decl.name.clone(),
+                variants,
                 span: decl.span,
             },
         );
@@ -450,6 +517,12 @@ impl Resolver {
                     ));
                 }
             }
+            ExprKind::Array(items) => {
+                for item in items {
+                    self.resolve_expr(item, scope, imports);
+                }
+            }
+            ExprKind::RepeatArray { value, .. } => self.resolve_expr(value, scope, imports),
             ExprKind::Unary { expr, .. } | ExprKind::Try(expr) => {
                 self.resolve_expr(expr, scope, imports);
             }
@@ -464,6 +537,10 @@ impl Resolver {
                 }
             }
             ExprKind::Field { base, .. } => self.resolve_expr(base, scope, imports),
+            ExprKind::Index { target, index } => {
+                self.resolve_expr(target, scope, imports);
+                self.resolve_expr(index, scope, imports);
+            }
             ExprKind::StructLiteral { path, fields } => {
                 if !self
                     .structs
@@ -580,6 +657,7 @@ impl Resolver {
         if segments.len() == 1 {
             scope.lookup(head).is_some()
                 || self.structs.contains_key(head)
+                || self.enums.contains_key(head)
                 || self.has_toplevel_function(head)
                 || imports.contains_alias(head)
                 || self.builtins.is_constructor(head)
@@ -588,37 +666,53 @@ impl Resolver {
                 || imports.contains_alias(head)
                 || self.structs.contains_key(head)
                 || self.has_toplevel_function(head)
+                || self
+                    .enums
+                    .get(head)
+                    .is_some_and(|info| segments.len() == 2 && info.variants.contains_key(&segments[1]))
         }
     }
 
     fn resolve_type_name(&mut self, ty: &TypeRef) -> TypeName {
-        for argument in &ty.arguments {
-            let _ = self.resolve_type_name(argument);
-        }
+        match &ty.kind {
+            TypeRefKind::Path { path, arguments } => {
+                for argument in arguments {
+                    let _ = self.resolve_type_name(argument);
+                }
 
-        if !self.is_known_type_path(ty.path.segments.as_slice())
-            && ty.path.segments.first().is_some()
-        {
-            self.errors.push(ResolveError::new(
-                format!("unknown type `{}`", ty.path.segments.join(".")),
-                ty.span,
-            ));
-        }
+                if !self.is_known_type_path(path.segments.as_slice())
+                    && path.segments.first().is_some()
+                {
+                    self.errors.push(ResolveError::new(
+                        format!("unknown type `{}`", path.segments.join(".")),
+                        ty.span,
+                    ));
+                }
 
-        TypeName {
-            path: ty.path.segments.clone(),
-            arguments: ty
-                .arguments
-                .iter()
-                .map(|argument| self.resolve_type_name(argument))
-                .collect(),
-            span: ty.span,
+                TypeName::Named {
+                    path: path.segments.clone(),
+                    arguments: arguments
+                        .iter()
+                        .map(|argument| self.resolve_type_name(argument))
+                        .collect(),
+                    span: ty.span,
+                }
+            }
+            TypeRefKind::Array { element, length } => TypeName::Array {
+                element: Box::new(self.resolve_type_name(element)),
+                length: *length,
+                span: ty.span,
+            },
         }
     }
 
     fn is_known_type_path(&self, path: &[String]) -> bool {
         path.last()
-            .is_some_and(|last| self.builtins.is_type(last) || self.structs.contains_key(last))
+            .is_some_and(|last| {
+                self.builtins.is_type(last)
+                    || self.structs.contains_key(last)
+                    || self.enums.contains_key(last)
+            })
     }
 
     fn has_toplevel_function(&self, name: &str) -> bool {

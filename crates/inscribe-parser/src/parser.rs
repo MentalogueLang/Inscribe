@@ -1,9 +1,10 @@
 use std::fmt;
 
 use inscribe_ast::nodes::{
-    Block, ConstStmt, Expr, ExprKind, ForStmt, FunctionDecl, Import, Item, LetStmt, Literal,
-    MatchArm, Module, Param, Path, Pattern, PatternKind, ReturnStmt, Stmt, StructDecl,
-    StructField, StructLiteralField, TypeRef, UnaryOp, Visibility, WhileStmt,
+    Block, ConstStmt, EnumDecl, EnumVariant, Expr, ExprKind, ForStmt, FunctionDecl, Import, Item,
+    LetStmt, Literal, MatchArm, Module, Param, Path, Pattern, PatternKind, ReturnStmt, Stmt,
+    StructDecl, StructField, StructLiteralField, TypeRef, TypeRefKind, UnaryOp, Visibility,
+    WhileStmt,
 };
 use inscribe_ast::span::{Position, Span};
 use inscribe_lexer::token::{Span as TokenSpan, Token, TokenKind};
@@ -82,11 +83,12 @@ impl Parser {
         match self.peek() {
             TokenKind::Import => self.parse_import().map(Item::Import),
             TokenKind::Struct => self.parse_struct().map(Item::Struct),
+            TokenKind::Enum => self.parse_enum().map(Item::Enum),
             TokenKind::Fn => self
                 .parse_function(Visibility::Public, None)
                 .map(Item::Function),
             TokenKind::Private => self.parse_private_function().map(Item::Function),
-            _ => Err(self.error_here("expected `import`, `struct`, `private`, or `fn`")),
+            _ => Err(self.error_here("expected `import`, `struct`, `enum`, `priv`, or `fn`")),
         }
     }
 
@@ -135,6 +137,37 @@ impl Parser {
             name,
             name_span,
             fields,
+            span: Span::new(convert_position(start), convert_position(end)),
+        })
+    }
+
+    fn parse_enum(&mut self) -> Result<EnumDecl, ParseError> {
+        let start = self.expect_simple(TokenKind::Enum)?.span.start;
+        let (name, name_span) = self.expect_identifier()?;
+        self.expect_simple(TokenKind::LBrace)?;
+        self.skip_separators();
+
+        let mut variants = Vec::new();
+        while !self.check(TokenKind::RBrace) && !self.at_eof() {
+            let variant_start = self.current_span().start;
+            let (variant_name, variant_name_span) = self.expect_identifier()?;
+            variants.push(EnumVariant {
+                name: variant_name,
+                name_span: variant_name_span,
+                span: Span::new(variant_start, variant_name_span.end),
+            });
+
+            if self.check(TokenKind::RBrace) {
+                break;
+            }
+            self.consume_list_separator("enum variant")?;
+        }
+
+        let end = self.expect_simple(TokenKind::RBrace)?.span.end;
+        Ok(EnumDecl {
+            name,
+            name_span,
+            variants,
             span: Span::new(convert_position(start), convert_position(end)),
         })
     }
@@ -213,6 +246,21 @@ impl Parser {
     }
 
     fn parse_type(&mut self) -> Result<TypeRef, ParseError> {
+        if self.check(TokenKind::LBracket) {
+            let start = self.expect_simple(TokenKind::LBracket)?.span.start;
+            let element = self.parse_type()?;
+            self.expect_simple(TokenKind::Semicolon)?;
+            let length = self.expect_array_length()?;
+            let end = self.expect_simple(TokenKind::RBracket)?.span.end;
+            return Ok(TypeRef {
+                kind: TypeRefKind::Array {
+                    element: Box::new(element),
+                    length,
+                },
+                span: Span::new(convert_position(start), convert_position(end)),
+            });
+        }
+
         let path = self.parse_path()?;
         let mut arguments = Vec::new();
 
@@ -237,8 +285,10 @@ impl Parser {
         };
 
         Ok(TypeRef {
-            path: path.clone(),
-            arguments,
+            kind: TypeRefKind::Path {
+                path: path.clone(),
+                arguments,
+            },
             span: Span::new(path.span.start, end),
         })
     }
@@ -384,6 +434,7 @@ impl Parser {
             expr = match self.peek() {
                 TokenKind::LParen => self.finish_call(expr)?,
                 TokenKind::Dot => self.finish_field(expr)?,
+                TokenKind::LBracket => self.finish_index(expr)?,
                 TokenKind::Question => self.finish_try(expr),
                 TokenKind::LBrace
                     if allow_trailing_struct_literal && matches!(expr.kind, ExprKind::Path(_)) =>
@@ -449,6 +500,7 @@ impl Parser {
             TokenKind::LBrace => self
                 .parse_block()
                 .map(|block| Expr::new(ExprKind::Block(block.clone()), block.span)),
+            TokenKind::LBracket => self.parse_array_expression(),
             TokenKind::LParen => {
                 self.advance();
                 let expr = self.parse_expression(Precedence::Assignment.level())?;
@@ -634,6 +686,46 @@ impl Parser {
         Ok(Expr::new(ExprKind::Path(path.clone()), path.span))
     }
 
+    fn parse_array_expression(&mut self) -> Result<Expr, ParseError> {
+        let start = self.expect_simple(TokenKind::LBracket)?.span.start;
+        self.skip_inline_separators();
+        if self.check(TokenKind::RBracket) {
+            return Err(self.error_here("array literals must contain at least one element"));
+        }
+
+        let first = self.parse_expression(Precedence::Assignment.level())?;
+        self.skip_inline_separators();
+
+        if self.match_simple(TokenKind::Semicolon) {
+            self.skip_inline_separators();
+            let length = self.expect_array_length()?;
+            let end = self.expect_simple(TokenKind::RBracket)?.span.end;
+            return Ok(Expr::new(
+                ExprKind::RepeatArray {
+                    value: Box::new(first),
+                    length,
+                },
+                Span::new(convert_position(start), convert_position(end)),
+            ));
+        }
+
+        let mut items = vec![first];
+        while !self.check(TokenKind::RBracket) && !self.at_eof() {
+            self.expect_simple(TokenKind::Comma)?;
+            self.skip_inline_separators();
+            if self.check(TokenKind::RBracket) {
+                break;
+            }
+            items.push(self.parse_expression(Precedence::Assignment.level())?);
+            self.skip_inline_separators();
+        }
+        let end = self.expect_simple(TokenKind::RBracket)?.span.end;
+        Ok(Expr::new(
+            ExprKind::Array(items),
+            Span::new(convert_position(start), convert_position(end)),
+        ))
+    }
+
     fn finish_call(&mut self, callee: Expr) -> Result<Expr, ParseError> {
         let start = callee.span.start;
         self.expect_simple(TokenKind::LParen)?;
@@ -668,6 +760,20 @@ impl Parser {
                 field,
             },
             Span::new(start, span.end),
+        ))
+    }
+
+    fn finish_index(&mut self, target: Expr) -> Result<Expr, ParseError> {
+        let start = target.span.start;
+        self.expect_simple(TokenKind::LBracket)?;
+        let index = self.parse_expression(Precedence::Assignment.level())?;
+        let end = self.expect_simple(TokenKind::RBracket)?.span.end;
+        Ok(Expr::new(
+            ExprKind::Index {
+                target: Box::new(target),
+                index: Box::new(index),
+            },
+            Span::new(start, convert_position(end)),
         ))
     }
 
@@ -728,6 +834,22 @@ impl Parser {
             segment_spans,
             Span::new(start, self.previous_span().end),
         ))
+    }
+
+    fn expect_array_length(&mut self) -> Result<usize, ParseError> {
+        match &self.current().kind {
+            TokenKind::Integer(value) => {
+                let parsed = value.parse::<usize>().map_err(|_| {
+                    ParseError::new(
+                        format!("invalid array length `{value}`"),
+                        convert_span(self.current().span),
+                    )
+                })?;
+                let _ = self.advance();
+                Ok(parsed)
+            }
+            _ => Err(self.error_here("expected an integer array length")),
+        }
     }
 
     fn skip_top_level_separators(&mut self) -> Result<(), ParseError> {

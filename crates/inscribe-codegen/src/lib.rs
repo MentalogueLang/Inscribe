@@ -345,6 +345,51 @@ fn main() -> int {
     }
 
     #[test]
+    fn emits_array_indexing_and_assignment() {
+        let mir = compile_source(
+            r#"
+fn main() -> int {
+    let buf: [byte; 4] = [0; 4]
+    buf[2] = 5
+    buf[2]
+}
+"#,
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("lea r10"));
+        assert!(assembly.contains("[r10]"));
+    }
+
+    #[test]
+    fn emits_enum_values() {
+        let mir = compile_source(
+            r#"
+enum Kind {
+    Invalid
+    Object
+}
+
+fn main() -> int {
+    if Kind.Object == Kind.Invalid {
+        0
+    } else {
+        1
+    }
+}
+"#,
+        );
+
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("cmp rax, rcx"));
+        assert!(assembly.contains("__ml_fn_main"));
+    }
+
+    #[test]
     fn emits_hidden_calls_for_imported_private_helpers() {
         let mir = compile_entry_source(
             "main.mtl",
@@ -362,7 +407,7 @@ fn main() -> int {
                 (
                     "shared/math.mtl",
                     r#"
-private fn plus_one(value: int) -> int {
+priv fn plus_one(value: int) -> int {
     value + 1
 }
 

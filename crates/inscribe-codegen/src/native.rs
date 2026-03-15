@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use inscribe_mir::{
-    optimize_program, BasicBlockId, ConstantValue, MirFunction, MirProgram, Operand, Place,
-    ProjectionElem, Rvalue, StatementKind, TerminatorKind,
+    optimize_program, BasicBlockId, Constant, ConstantValue, MirFunction, MirProgram, Operand,
+    Place, ProjectionElem, Rvalue, StatementKind, TerminatorKind,
 };
 use inscribe_typeck::Type;
 
@@ -226,19 +226,27 @@ fn lower_assign(
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
-    if !place.projection.is_empty() {
-        return Err(CodegenError::new(
-            "native codegen does not yet support field projections",
-        ));
-    }
-
     ensure_supported_local_type(function, place.local.0)?;
-    lower_rvalue(value, stack, state, instructions)?;
-    instructions.push(Instruction::MovStackReg(
-        stack.offset_for(place.local.0)?,
-        Register::Rax,
-    ));
-    Ok(())
+    match value {
+        Rvalue::AggregateArray { elements } => {
+            lower_array_aggregate_assign(function, place, elements, stack, state, instructions)
+        }
+        Rvalue::RepeatArray { value, length } => {
+            lower_repeat_array_assign(function, place, value, *length, stack, state, instructions)
+        }
+        _ => {
+            let value_ty = place_type(function, place)?;
+            if !is_supported_scalar_type(&value_ty) {
+                return Err(CodegenError::new(format!(
+                    "native codegen does not yet support assigning `{}` through `{}`",
+                    value_ty.display_name(),
+                    function.locals[place.local.0].name
+                )));
+            }
+            lower_rvalue(value, stack, state, instructions)?;
+            store_scalar_place(function, place, Register::Rax, stack, state, instructions)
+        }
+    }
 }
 
 fn lower_rvalue(
@@ -300,6 +308,9 @@ fn lower_rvalue(
         Rvalue::AggregateStruct { .. } => Err(CodegenError::new(
             "native codegen does not yet support struct aggregates",
         )),
+        Rvalue::AggregateArray { .. } | Rvalue::RepeatArray { .. } => Err(CodegenError::new(
+            "native codegen only supports array aggregates in direct assignments",
+        )),
         Rvalue::ResultOk(_) | Rvalue::ResultErr(_) => Err(CodegenError::new(
             "native codegen does not yet support result aggregates",
         )),
@@ -347,10 +358,7 @@ fn lower_call_terminator(
 
     if let Some(place) = destination {
         ensure_supported_local_type(function, place.local.0)?;
-        instructions.push(Instruction::MovStackReg(
-            stack.offset_for(place.local.0)?,
-            Register::Rax,
-        ));
+        store_scalar_place(function, place, Register::Rax, stack, state, instructions)?;
     }
 
     instructions.push(Instruction::Jump(block_label(function, target)));
@@ -424,14 +432,16 @@ fn emit_function_return(
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     match function.signature.return_type.as_ref() {
-        Type::Int | Type::Bool | Type::String => instructions.push(Instruction::MovRegStack(
+        Type::Int | Type::Byte | Type::Bool | Type::String | Type::Enum(_) => {
+            instructions.push(Instruction::MovRegStack(
             Register::Rax,
             stack.offset_for(function.return_local.0)?,
-        )),
+        ))
+        }
         Type::Unit => instructions.push(Instruction::MovRegImm64(Register::Rax, 0)),
         other => {
             return Err(CodegenError::new(format!(
-                "native codegen currently only supports direct returns of `int`, `bool`, or `()`, found `{}`",
+                "native codegen currently only supports direct returns of `int`, `byte`, `bool`, enum, `string`, or `()`, found `{}`",
                 other.display_name()
             )))
         }
@@ -1067,22 +1077,13 @@ fn load_operand(
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     match operand {
-        Operand::Copy(place) | Operand::Move(place) => {
-            if place
-                .projection
-                .iter()
-                .any(|projection| matches!(projection, ProjectionElem::Field(_)))
-            {
-                return Err(CodegenError::new(
-                    "native codegen does not yet support field projections",
-                ));
-            }
-            instructions.push(Instruction::MovRegStack(
-                destination,
-                stack.offset_for(place.local.0)?,
-            ));
-            Ok(())
-        }
+        Operand::Copy(place) | Operand::Move(place) => load_place_operand(
+            place,
+            destination,
+            stack,
+            state,
+            instructions,
+        ),
         Operand::Constant(constant) => {
             load_constant(&constant.value, destination, state, instructions)
         }
@@ -1129,7 +1130,7 @@ fn ensure_supported_local_type(function: &MirFunction, local: usize) -> Result<(
         )));
     };
 
-    if is_supported_scalar_type(&local_decl.ty) {
+    if is_supported_local_type(&local_decl.ty) {
         Ok(())
     } else {
         Err(CodegenError::new(format!(
@@ -1141,7 +1142,293 @@ fn ensure_supported_local_type(function: &MirFunction, local: usize) -> Result<(
 }
 
 fn is_supported_scalar_type(ty: &Type) -> bool {
-    matches!(ty, Type::Int | Type::Bool | Type::String | Type::Unit)
+    matches!(
+        ty,
+        Type::Int | Type::Byte | Type::Bool | Type::String | Type::Enum(_) | Type::Unit
+    )
+}
+
+fn is_supported_local_type(ty: &Type) -> bool {
+    match ty {
+        Type::Array(element, _) => supported_array_element_size(element).is_some(),
+        _ => is_supported_scalar_type(ty),
+    }
+}
+
+fn place_type(function: &MirFunction, place: &Place) -> Result<Type, CodegenError> {
+    let mut ty = function
+        .locals
+        .get(place.local.0)
+        .map(|local| local.ty.clone())
+        .ok_or_else(|| CodegenError::new(format!("MIR local `{}` does not exist", place.local.0)))?;
+    for projection in &place.projection {
+        ty = match (projection, ty) {
+            (ProjectionElem::Field(_), _) => {
+                return Err(CodegenError::new(
+                    "native codegen does not yet support field projections",
+                ))
+            }
+            (ProjectionElem::Index(_), Type::Array(element, _)) => *element,
+            (ProjectionElem::Index(_), other) => {
+                return Err(CodegenError::new(format!(
+                    "cannot index into `{}` during native lowering",
+                    other.display_name()
+                )))
+            }
+        };
+    }
+    Ok(ty)
+}
+
+fn supported_array_element_size(ty: &Type) -> Option<usize> {
+    match ty {
+        Type::Byte => Some(1),
+        Type::Int | Type::Bool | Type::String | Type::Enum(_) => Some(8),
+        _ => None,
+    }
+}
+
+fn type_stack_size(ty: &Type) -> Option<usize> {
+    match ty {
+        Type::Array(element, length) => supported_array_element_size(element).map(|size| size * length),
+        _ if is_supported_scalar_type(ty) => Some(8),
+        _ => None,
+    }
+}
+
+fn load_place_operand(
+    place: &Place,
+    destination: Register,
+    stack: &StackLayout,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let _ = state;
+    if place.projection.is_empty() {
+        instructions.push(Instruction::MovRegStack(
+            destination,
+            stack.offset_for(place.local.0)?,
+        ));
+        return Ok(());
+    }
+
+    let (element_ty, oob_label, done_label) =
+        compute_projected_address(place, stack, state, instructions, "load_place")?;
+    match element_ty {
+        Type::Byte => {
+            instructions.push(Instruction::MovzxRegMem8(destination, Register::R10));
+            instructions.push(Instruction::Jump(done_label.clone()));
+            instructions.push(Instruction::Label(oob_label));
+            instructions.push(Instruction::MovRegImm64(destination, 0));
+            instructions.push(Instruction::Label(done_label));
+        }
+        other if is_supported_scalar_type(&other) => {
+            instructions.push(Instruction::MovRegMem(destination, Register::R10));
+            instructions.push(Instruction::Jump(done_label.clone()));
+            instructions.push(Instruction::Label(oob_label));
+            instructions.push(Instruction::MovRegImm64(destination, 0));
+            instructions.push(Instruction::Label(done_label));
+        }
+        other => {
+            return Err(CodegenError::new(format!(
+                "native codegen cannot load projected `{}` values",
+                other.display_name()
+            )))
+        }
+    }
+    Ok(())
+}
+
+fn store_scalar_place(
+    function: &MirFunction,
+    place: &Place,
+    source: Register,
+    stack: &StackLayout,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    if place.projection.is_empty() {
+        instructions.push(Instruction::MovStackReg(
+            stack.offset_for(place.local.0)?,
+            source,
+        ));
+        return Ok(());
+    }
+
+    let value_ty = place_type(function, place)?;
+    let (_element_ty, oob_label, done_label) =
+        compute_projected_address(place, stack, state, instructions, "store_place")?;
+    match value_ty {
+        Type::Byte => instructions.push(Instruction::MovMemReg8(Register::R10, source)),
+        other if is_supported_scalar_type(&other) => {
+            instructions.push(Instruction::MovMemReg(Register::R10, source));
+        }
+        other => {
+            return Err(CodegenError::new(format!(
+                "native codegen cannot store projected `{}` values",
+                other.display_name()
+            )))
+        }
+    }
+    instructions.push(Instruction::Jump(done_label.clone()));
+    instructions.push(Instruction::Label(oob_label));
+    instructions.push(Instruction::Label(done_label));
+    Ok(())
+}
+
+fn lower_array_aggregate_assign(
+    function: &MirFunction,
+    place: &Place,
+    elements: &[Operand],
+    stack: &StackLayout,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    if !place.projection.is_empty() {
+        return Err(CodegenError::new(
+            "native codegen only supports assigning array aggregates to array locals",
+        ));
+    }
+    let array_ty = function
+        .locals
+        .get(place.local.0)
+        .map(|local| local.ty.clone())
+        .ok_or_else(|| CodegenError::new(format!("MIR local `{}` does not exist", place.local.0)))?;
+    let Type::Array(element, length) = array_ty else {
+        return Err(CodegenError::new(
+            "array aggregate assignment requires an array destination",
+        ));
+    };
+    if elements.len() != length {
+        return Err(CodegenError::new(format!(
+            "array aggregate length mismatch: expected {length}, found {}",
+            elements.len()
+        )));
+    }
+    for (index, operand) in elements.iter().enumerate() {
+        load_operand(operand, Register::Rax, stack, state, instructions)?;
+        let element_place = Place {
+            local: place.local,
+            projection: vec![ProjectionElem::Index(Operand::Constant(Constant {
+                ty: Type::Int,
+                value: ConstantValue::Integer(index.to_string()),
+            }))],
+        };
+        let element_place = if matches!(
+            element.as_ref(),
+            Type::Byte | Type::Int | Type::Bool | Type::String | Type::Enum(_)
+        ) {
+            element_place
+        } else {
+            return Err(CodegenError::new(
+                "native codegen does not support nested array elements yet",
+            ));
+        };
+        store_scalar_place(function, &element_place, Register::Rax, stack, state, instructions)?;
+    }
+    Ok(())
+}
+
+fn lower_repeat_array_assign(
+    function: &MirFunction,
+    place: &Place,
+    value: &Operand,
+    length: usize,
+    stack: &StackLayout,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let array_ty = function
+        .locals
+        .get(place.local.0)
+        .map(|local| local.ty.clone())
+        .ok_or_else(|| CodegenError::new(format!("MIR local `{}` does not exist", place.local.0)))?;
+    let Type::Array(element, expected_len) = array_ty else {
+        return Err(CodegenError::new(
+            "repeat array assignment requires an array destination",
+        ));
+    };
+    if length != expected_len {
+        return Err(CodegenError::new(format!(
+            "repeat array length mismatch: expected {expected_len}, found {length}",
+        )));
+    }
+    for index in 0..length {
+        load_operand(value, Register::Rax, stack, state, instructions)?;
+        let element_place = Place {
+            local: place.local,
+            projection: vec![ProjectionElem::Index(Operand::Constant(Constant {
+                ty: Type::Int,
+                value: ConstantValue::Integer(index.to_string()),
+            }))],
+        };
+        if !matches!(
+            element.as_ref(),
+            Type::Byte | Type::Int | Type::Bool | Type::String | Type::Enum(_)
+        ) {
+            return Err(CodegenError::new(
+                "native codegen does not support nested array elements yet",
+            ));
+        }
+        store_scalar_place(function, &element_place, Register::Rax, stack, state, instructions)?;
+    }
+    Ok(())
+}
+
+fn compute_projected_address(
+    place: &Place,
+    stack: &StackLayout,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+    label_prefix: &str,
+) -> Result<(Type, String, String), CodegenError> {
+    instructions.push(Instruction::LeaRegRspOffset(
+        Register::R10,
+        stack.offset_for(place.local.0)?,
+    ));
+    let mut current_ty = stack
+        .local_types
+        .get(place.local.0)
+        .cloned()
+        .ok_or_else(|| CodegenError::new(format!("MIR local `{}` does not exist", place.local.0)))?;
+    let oob_label = format!("__ml_{label_prefix}_oob_{}", instructions.len());
+    let done_label = format!("__ml_{label_prefix}_done_{}", instructions.len());
+    for projection in &place.projection {
+        match (projection, current_ty) {
+            (ProjectionElem::Field(_), _) => {
+                return Err(CodegenError::new(
+                    "native codegen does not yet support field projections",
+                ))
+            }
+            (ProjectionElem::Index(index), Type::Array(element, length)) => {
+                load_operand(index, Register::Rcx, stack, state, instructions)?;
+                instructions.push(Instruction::CmpRegImm(Register::Rcx, 0));
+                instructions.push(Instruction::JumpIf(Condition::Less, oob_label.clone()));
+                instructions.push(Instruction::CmpRegImm(Register::Rcx, length as i32));
+                instructions.push(Instruction::JumpIf(Condition::GreaterEqual, oob_label.clone()));
+                let size = supported_array_element_size(&element).ok_or_else(|| {
+                    CodegenError::new(format!(
+                        "native codegen does not support array element type `{}`",
+                        element.display_name()
+                    ))
+                })?;
+                instructions.push(Instruction::LeaRegBaseIndexScale(
+                    Register::R10,
+                    Register::R10,
+                    Register::Rcx,
+                    size as u8,
+                ));
+                current_ty = *element;
+            }
+            (ProjectionElem::Index(_), other) => {
+                return Err(CodegenError::new(format!(
+                    "cannot index into `{}` during native lowering",
+                    other.display_name()
+                )))
+            }
+        }
+    }
+    Ok((current_ty, oob_label, done_label))
 }
 
 fn callable_name(function: &MirFunction) -> String {
@@ -1595,12 +1882,13 @@ struct StackLayout {
     total_size: usize,
     outgoing_call_area: usize,
     offsets: Vec<i32>,
+    local_types: Vec<Type>,
 }
 
 impl StackLayout {
     fn new(function: &MirFunction, target: Target) -> Result<Self, CodegenError> {
         for local in &function.locals {
-            if !is_supported_scalar_type(&local.ty) {
+            if !is_supported_local_type(&local.ty) {
                 return Err(CodegenError::new(format!(
                     "native codegen does not yet support local `{}` of type `{}`",
                     local.name,
@@ -1610,20 +1898,28 @@ impl StackLayout {
         }
 
         let outgoing_call_area = max_outgoing_call_area(function, target);
-        let frame_size = function.locals.len() * 8;
+        let mut frame_size = 0usize;
+        let mut offsets = Vec::with_capacity(function.locals.len());
+        for local in &function.locals {
+            offsets.push((outgoing_call_area + frame_size) as i32);
+            frame_size += type_stack_size(&local.ty).ok_or_else(|| {
+                CodegenError::new(format!(
+                    "native codegen does not yet support local `{}` of type `{}`",
+                    local.name,
+                    local.ty.display_name()
+                ))
+            })?;
+        }
         let mut total_size = outgoing_call_area + frame_size;
         while total_size % 16 != required_frame_alignment(function, target) {
             total_size += 1;
         }
 
-        let offsets = (0..function.locals.len())
-            .map(|index| (outgoing_call_area + index * 8) as i32)
-            .collect();
-
         Ok(Self {
             total_size,
             outgoing_call_area,
             offsets,
+            local_types: function.locals.iter().map(|local| local.ty.clone()).collect(),
         })
     }
 
@@ -1708,6 +2004,10 @@ impl Register {
 
     fn rex_r(self) -> u8 {
         u8::from((self.encoding() & 0b1000) != 0) << 2
+    }
+
+    fn rex_x(self) -> u8 {
+        u8::from((self.encoding() & 0b1000) != 0) << 1
     }
 
     fn rex_b(self) -> u8 {
@@ -1795,7 +2095,10 @@ enum Instruction {
     MovRegStack(Register, i32),
     MovStackReg(i32, Register),
     LeaRegRspOffset(Register, i32),
+    LeaRegBaseIndexScale(Register, Register, Register, u8),
     MovRegReg(Register, Register),
+    MovRegMem(Register, Register),
+    MovMemReg(Register, Register),
     AddRegReg(Register, Register),
     SubRegReg(Register, Register),
     AddRegImm(Register, i32),
@@ -1843,7 +2146,8 @@ impl Instruction {
             Self::MovRegDataAddr(_, _) => 10,
             Self::MovRegStack(_, offset) | Self::MovStackReg(offset, _) => stack_mem_len(*offset),
             Self::LeaRegRspOffset(_, offset) => stack_mem_len(*offset),
-            Self::MovRegReg(_, _) => 3,
+            Self::LeaRegBaseIndexScale(_, _, _, _) => 4,
+            Self::MovRegReg(_, _) | Self::MovRegMem(_, _) | Self::MovMemReg(_, _) => 3,
             Self::AddRegReg(_, _)
             | Self::SubRegReg(_, _)
             | Self::AndRegReg(_, _)
@@ -1897,7 +2201,12 @@ impl Instruction {
             Self::LeaRegRspOffset(reg, offset) => {
                 format!("lea {}, [rsp + {offset}]", reg.name())
             }
+            Self::LeaRegBaseIndexScale(dst, base, index, scale) => {
+                format!("lea {}, [{} + {}*{}]", dst.name(), base.name(), index.name(), scale)
+            }
             Self::MovRegReg(dst, src) => format!("mov {}, {}", dst.name(), src.name()),
+            Self::MovRegMem(dst, base) => format!("mov {}, qword ptr [{}]", dst.name(), base.name()),
+            Self::MovMemReg(base, src) => format!("mov qword ptr [{}], {}", base.name(), src.name()),
             Self::AddRegReg(dst, src) => format!("add {}, {}", dst.name(), src.name()),
             Self::SubRegReg(dst, src) => format!("sub {}, {}", dst.name(), src.name()),
             Self::AddRegImm(reg, value) => format!("add {}, {}", reg.name(), value),
@@ -1976,7 +2285,12 @@ fn encode_instruction(
         Instruction::MovRegStack(reg, offset) => encode_mov_reg_stack(output, *reg, *offset),
         Instruction::MovStackReg(offset, reg) => encode_mov_stack_reg(output, *offset, *reg),
         Instruction::LeaRegRspOffset(reg, offset) => encode_lea_reg_rsp(output, *reg, *offset),
+        Instruction::LeaRegBaseIndexScale(dst, base, index, scale) => {
+            encode_lea_reg_base_index_scale(output, *dst, *base, *index, *scale)
+        }
         Instruction::MovRegReg(dst, src) => encode_mov_reg_reg(output, *dst, *src),
+        Instruction::MovRegMem(dst, base) => encode_mov_reg_mem(output, *dst, *base),
+        Instruction::MovMemReg(base, src) => encode_mov_mem_reg(output, *base, *src),
         Instruction::AddRegReg(dst, src) => encode_reg_reg(output, 0x01, *dst, *src),
         Instruction::SubRegReg(dst, src) => encode_reg_reg(output, 0x29, *dst, *src),
         Instruction::AddRegImm(reg, value) => encode_reg_imm(output, 0, *reg, *value),
@@ -2117,12 +2431,34 @@ fn encode_lea_reg_rsp(output: &mut Vec<u8>, reg: Register, offset: i32) {
     encode_rsp_memory_operand(output, reg.low3(), offset);
 }
 
+fn encode_lea_reg_base_index_scale(
+    output: &mut Vec<u8>,
+    dst: Register,
+    base: Register,
+    index: Register,
+    scale: u8,
+) {
+    output.extend_from_slice(&[0x48 | dst.rex_r() | index.rex_x() | base.rex_b(), 0x8D]);
+    output.push(modrm(0b00, dst.low3(), 0b100));
+    output.push(sib(scale_bits(scale), index.low3(), base.low3()));
+}
+
 fn encode_mov_reg_reg(output: &mut Vec<u8>, dst: Register, src: Register) {
     output.extend_from_slice(&[
         0x48 | src.rex_r() | dst.rex_b(),
         0x89,
         modrm(0b11, src.low3(), dst.low3()),
     ]);
+}
+
+fn encode_mov_reg_mem(output: &mut Vec<u8>, dst: Register, base: Register) {
+    output.extend_from_slice(&[0x48 | dst.rex_r() | base.rex_b(), 0x8B]);
+    encode_register_memory_operand(output, dst.low3(), base);
+}
+
+fn encode_mov_mem_reg(output: &mut Vec<u8>, base: Register, src: Register) {
+    output.extend_from_slice(&[0x48 | src.rex_r() | base.rex_b(), 0x89]);
+    encode_register_memory_operand(output, src.low3(), base);
 }
 
 fn encode_reg_reg(output: &mut Vec<u8>, opcode: u8, dst: Register, src: Register) {
@@ -2166,20 +2502,13 @@ fn encode_cmp_reg_imm(output: &mut Vec<u8>, reg: Register, value: i32) {
 }
 
 fn encode_mov_mem_reg8(output: &mut Vec<u8>, base: Register, src: Register) {
-    output.extend_from_slice(&[
-        0x40 | src.rex_r() | base.rex_b(),
-        0x88,
-        modrm(0b00, src.low3(), base.low3()),
-    ]);
+    output.extend_from_slice(&[0x40 | src.rex_r() | base.rex_b(), 0x88]);
+    encode_register_memory_operand(output, src.low3(), base);
 }
 
 fn encode_movzx_reg_mem8(output: &mut Vec<u8>, dst: Register, base: Register) {
-    output.extend_from_slice(&[
-        0x48 | dst.rex_r() | base.rex_b(),
-        0x0F,
-        0xB6,
-        modrm(0b00, dst.low3(), base.low3()),
-    ]);
+    output.extend_from_slice(&[0x48 | dst.rex_r() | base.rex_b(), 0x0F, 0xB6]);
+    encode_register_memory_operand(output, dst.low3(), base);
 }
 
 fn encode_rsp_memory_operand(output: &mut Vec<u8>, reg: u8, offset: i32) {
@@ -2192,6 +2521,31 @@ fn encode_rsp_memory_operand(output: &mut Vec<u8>, reg: u8, offset: i32) {
         output.push(0x24);
         output.extend_from_slice(&offset.to_le_bytes());
     }
+}
+
+fn encode_register_memory_operand(output: &mut Vec<u8>, reg: u8, base: Register) {
+    if matches!(base, Register::Rax | Register::Rcx | Register::Rdx | Register::Rdi | Register::Rsi | Register::R8 | Register::R9 | Register::R10 | Register::R11) {
+        if base.low3() == 0b100 {
+            output.push(modrm(0b00, reg, 0b100));
+            output.push(sib(0, 0b100, base.low3()));
+        } else {
+            output.push(modrm(0b00, reg, base.low3()));
+        }
+    }
+}
+
+fn scale_bits(scale: u8) -> u8 {
+    match scale {
+        1 => 0,
+        2 => 1,
+        4 => 2,
+        8 => 3,
+        _ => 0,
+    }
+}
+
+fn sib(scale: u8, index: u8, base: u8) -> u8 {
+    ((scale & 0b11) << 6) | ((index & 0b111) << 3) | (base & 0b111)
 }
 
 fn stack_mem_len(offset: i32) -> usize {

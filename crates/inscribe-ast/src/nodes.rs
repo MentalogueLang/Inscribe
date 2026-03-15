@@ -16,6 +16,7 @@ impl Spanned for Module {
 pub enum Item {
     Import(Import),
     Struct(StructDecl),
+    Enum(EnumDecl),
     Function(FunctionDecl),
 }
 
@@ -24,6 +25,7 @@ impl Spanned for Item {
         match self {
             Self::Import(item) => item.span,
             Self::Struct(item) => item.span,
+            Self::Enum(item) => item.span,
             Self::Function(item) => item.span,
         }
     }
@@ -64,6 +66,33 @@ pub struct StructField {
 }
 
 impl Spanned for StructField {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnumDecl {
+    pub name: String,
+    pub name_span: Span,
+    pub variants: Vec<EnumVariant>,
+    pub span: Span,
+}
+
+impl Spanned for EnumDecl {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnumVariant {
+    pub name: String,
+    pub name_span: Span,
+    pub span: Span,
+}
+
+impl Spanned for EnumVariant {
     fn span(&self) -> Span {
         self.span
     }
@@ -233,6 +262,11 @@ impl Spanned for Expr {
 pub enum ExprKind {
     Literal(Literal),
     Path(Path),
+    Array(Vec<Expr>),
+    RepeatArray {
+        value: Box<Expr>,
+        length: usize,
+    },
     Unary {
         op: UnaryOp,
         expr: Box<Expr>,
@@ -249,6 +283,10 @@ pub enum ExprKind {
     Field {
         base: Box<Expr>,
         field: String,
+    },
+    Index {
+        target: Box<Expr>,
+        index: Box<Expr>,
     },
     StructLiteral {
         path: Path,
@@ -355,8 +393,7 @@ pub enum BinaryOp {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeRef {
-    pub path: Path,
-    pub arguments: Vec<TypeRef>,
+    pub kind: TypeRefKind,
     pub span: Span,
 }
 
@@ -364,6 +401,18 @@ impl Spanned for TypeRef {
     fn span(&self) -> Span {
         self.span
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TypeRefKind {
+    Path {
+        path: Path,
+        arguments: Vec<TypeRef>,
+    },
+    Array {
+        element: Box<TypeRef>,
+        length: usize,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

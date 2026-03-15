@@ -10,11 +10,17 @@ pub fn unify(expected: &Type, actual: &Type, span: Span) -> Result<Type, TypeErr
         (Type::Unknown, other) | (other, Type::Unknown) => Ok(other.clone()),
         (Type::Unit, Type::Unit)
         | (Type::Int, Type::Int)
+        | (Type::Byte, Type::Byte)
         | (Type::Float, Type::Float)
         | (Type::String, Type::String)
         | (Type::Bool, Type::Bool)
         | (Type::Error, Type::Error) => Ok(expected.clone()),
+        (Type::Byte, Type::Int) | (Type::Int, Type::Byte) => Ok(Type::Byte),
         (Type::Struct(left), Type::Struct(right)) if left == right => Ok(expected.clone()),
+        (Type::Enum(left), Type::Enum(right)) if left == right => Ok(expected.clone()),
+        (Type::Array(left, left_len), Type::Array(right, right_len)) if left_len == right_len => {
+            Ok(Type::Array(Box::new(unify(left, right, span)?), *left_len))
+        }
         (Type::Range(left), Type::Range(right)) => {
             Ok(Type::Range(Box::new(unify(left, right, span)?)))
         }

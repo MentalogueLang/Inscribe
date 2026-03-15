@@ -3,8 +3,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use inscribe_ast::nodes::{
-    Block, Expr, ExprKind, FunctionDecl, Import, Item, MatchArm, Module, Param, Path as AstPath,
-    Pattern, PatternKind, Stmt, StructDecl, StructField, StructLiteralField, TypeRef, Visibility,
+    Block, EnumDecl, EnumVariant, Expr, ExprKind, FunctionDecl, Import, Item, MatchArm, Module,
+    Param, Path as AstPath, Pattern, PatternKind, Stmt, StructDecl, StructField,
+    StructLiteralField, TypeRef, TypeRefKind, Visibility,
 };
 use inscribe_ast::span::{Position, Span};
 use inscribe_parser::parse_module;
@@ -201,6 +202,10 @@ fn module_node(source: &SourceModule) -> ModuleNode {
                 name: decl.name.clone(),
                 span: decl.span,
             }),
+            Item::Enum(decl) => Some(ItemNode::Enum {
+                name: decl.name.clone(),
+                span: decl.span,
+            }),
             Item::Function(function) => Some(ItemNode::Function {
                 key: FunctionKey {
                     receiver: function
@@ -317,6 +322,12 @@ fn rewrite_expr_private_paths(expr: &mut Expr, private_names: &HashMap<String, S
                 }
             }
         }
+        ExprKind::Array(items) => {
+            for item in items {
+                rewrite_expr_private_paths(item, private_names);
+            }
+        }
+        ExprKind::RepeatArray { value, .. } => rewrite_expr_private_paths(value, private_names),
         ExprKind::Unary { expr: inner, .. } => rewrite_expr_private_paths(inner, private_names),
         ExprKind::Binary { left, right, .. } => {
             rewrite_expr_private_paths(left, private_names);
@@ -329,6 +340,10 @@ fn rewrite_expr_private_paths(expr: &mut Expr, private_names: &HashMap<String, S
             }
         }
         ExprKind::Field { base, .. } => rewrite_expr_private_paths(base, private_names),
+        ExprKind::Index { target, index } => {
+            rewrite_expr_private_paths(target, private_names);
+            rewrite_expr_private_paths(index, private_names);
+        }
         ExprKind::StructLiteral { fields, .. } => {
             for field in fields {
                 rewrite_expr_private_paths(&mut field.value, private_names);
@@ -460,6 +475,7 @@ fn rebase_item_spans(item: &mut Item, base_offset: usize) {
     match item {
         Item::Import(import) => rebase_import_spans(import, base_offset),
         Item::Struct(decl) => rebase_struct_spans(decl, base_offset),
+        Item::Enum(decl) => rebase_enum_spans(decl, base_offset),
         Item::Function(function) => rebase_function_spans(function, base_offset),
     }
 }
@@ -481,6 +497,19 @@ fn rebase_struct_field_spans(field: &mut StructField, base_offset: usize) {
     shift_span(&mut field.name_span, base_offset);
     shift_span(&mut field.span, base_offset);
     rebase_type_ref_spans(&mut field.ty, base_offset);
+}
+
+fn rebase_enum_spans(decl: &mut EnumDecl, base_offset: usize) {
+    shift_span(&mut decl.name_span, base_offset);
+    shift_span(&mut decl.span, base_offset);
+    for variant in &mut decl.variants {
+        rebase_enum_variant_spans(variant, base_offset);
+    }
+}
+
+fn rebase_enum_variant_spans(variant: &mut EnumVariant, base_offset: usize) {
+    shift_span(&mut variant.name_span, base_offset);
+    shift_span(&mut variant.span, base_offset);
 }
 
 fn rebase_function_spans(function: &mut FunctionDecl, base_offset: usize) {
@@ -559,6 +588,12 @@ fn rebase_expr_spans(expr: &mut Expr, base_offset: usize) {
     match &mut expr.kind {
         ExprKind::Literal(_) => {}
         ExprKind::Path(path) => rebase_path_spans(path, base_offset),
+        ExprKind::Array(items) => {
+            for item in items {
+                rebase_expr_spans(item, base_offset);
+            }
+        }
+        ExprKind::RepeatArray { value, .. } => rebase_expr_spans(value, base_offset),
         ExprKind::Unary { expr: inner, .. } => rebase_expr_spans(inner, base_offset),
         ExprKind::Binary { left, right, .. } => {
             rebase_expr_spans(left, base_offset);
@@ -571,6 +606,10 @@ fn rebase_expr_spans(expr: &mut Expr, base_offset: usize) {
             }
         }
         ExprKind::Field { base, .. } => rebase_expr_spans(base, base_offset),
+        ExprKind::Index { target, index } => {
+            rebase_expr_spans(target, base_offset);
+            rebase_expr_spans(index, base_offset);
+        }
         ExprKind::StructLiteral { path, fields } => {
             rebase_path_spans(path, base_offset);
             for field in fields {
@@ -627,9 +666,14 @@ fn rebase_pattern_spans(pattern: &mut Pattern, base_offset: usize) {
 
 fn rebase_type_ref_spans(ty: &mut TypeRef, base_offset: usize) {
     shift_span(&mut ty.span, base_offset);
-    rebase_path_spans(&mut ty.path, base_offset);
-    for argument in &mut ty.arguments {
-        rebase_type_ref_spans(argument, base_offset);
+    match &mut ty.kind {
+        TypeRefKind::Path { path, arguments } => {
+            rebase_path_spans(path, base_offset);
+            for argument in arguments {
+                rebase_type_ref_spans(argument, base_offset);
+            }
+        }
+        TypeRefKind::Array { element, .. } => rebase_type_ref_spans(element, base_offset),
     }
 }
 

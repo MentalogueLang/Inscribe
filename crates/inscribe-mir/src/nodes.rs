@@ -78,6 +78,7 @@ impl Place {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ProjectionElem {
     Field(String),
+    Index(Operand),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -95,6 +96,13 @@ pub enum Rvalue {
     AggregateStruct {
         path: Vec<String>,
         fields: Vec<(String, Operand)>,
+    },
+    AggregateArray {
+        elements: Vec<Operand>,
+    },
+    RepeatArray {
+        value: Operand,
+        length: usize,
     },
     ResultOk(Operand),
     ResultErr(Operand),
