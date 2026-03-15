@@ -1,19 +1,6 @@
 import core.bool
 import shared.json
-
-fn print_int(value: int)
-fn print_string(value: string)
-fn print_newline()
-
-fn write_line_string(value: string) {
-    print_string(value)
-    print_newline()
-}
-
-fn write_line_int(value: int) {
-    print_int(value)
-    print_newline()
-}
+import io.console
 
 fn print_result(label: string, source: string) {
     let result = parse_document(source)
@@ -23,8 +10,8 @@ fn print_result(label: string, source: string) {
 }
 
 fn main() -> int {
-    print_result("object", "{\"name\":\"Ada\",\"active\":true,\"scores\":[1,2,3]}")
-    print_result("array", "[null,false,true,{\"value\":12}]")
-    print_result("invalid", "{\"broken\":[1,2}")
+    print_result("object", "{\"a\":1,\"b\":2}")
+    print_result("array", "[null,false,true]")
+    print_result("invalid", "[1,2")
     0
 }

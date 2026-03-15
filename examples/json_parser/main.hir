@@ -7,9 +7,9 @@ fn string_length -> int
 fn string_byte_at -> int
   <declaration>
 fn len -> int
-  string_length: int(value: string): int
+  string_length: fn(string) -> int(value: string): int
 fn byte_at -> int
-  string_byte_at: int(value: string, index: ()): int
+  string_byte_at: fn(string, int) -> int(value: string, index: int): int
 fn in_bounds -> bool
   if ...: bool
 fn is_space -> bool
@@ -18,98 +18,154 @@ fn is_digit -> bool
   if ...: bool
 fn is_hex_digit -> bool
   if ...: bool
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_invalid -> int
+private fn __priv_811ad09817485e06_kind_invalid -> int
   0: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_object -> int
+private fn __priv_811ad09817485e06_kind_object -> int
   1: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_array -> int
+private fn __priv_811ad09817485e06_kind_array -> int
   2: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_string -> int
+private fn __priv_811ad09817485e06_kind_string -> int
   3: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_number -> int
+private fn __priv_811ad09817485e06_kind_number -> int
   4: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_bool -> int
+private fn __priv_811ad09817485e06_kind_bool -> int
   5: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_kind_null -> int
+private fn __priv_811ad09817485e06_kind_null -> int
   6: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_ok_result -> int
-  (((next: int Multiply 10: int): int Add kind: string): int Add 1: int): int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_error_result -> int
+private fn __priv_811ad09817485e06_ok_result -> int
+  (((next: int Multiply 10: int): int Add kind: int): int Add 1: int): int
+private fn __priv_811ad09817485e06_error_result -> int
   (0: int Subtract ((next: int Multiply 10: int): int Add 1: int): int): int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded -> int
+private fn __priv_811ad09817485e06_result_encoded -> int
   if ...: int
 fn result_ok -> bool
-  (value: bool Greater 0: int): bool
+  (value: int Greater 0: int): bool
 fn result_kind -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_next -> int
-  ((__priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_result_encoded: int(value: int): int Subtract 1: int): int Divide 10: int): int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_byte -> bool
+private fn __priv_811ad09817485e06_result_next -> int
+  ((__priv_811ad09817485e06_result_encoded: fn(int) -> int(value: int): int Subtract 1: int): int Divide 10: int): int
+private fn __priv_811ad09817485e06_has_byte -> bool
   if ...: bool
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_has_quote -> bool
+private fn __priv_811ad09817485e06_has_quote -> bool
   if ...: bool
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_advance_quote -> int
+private fn __priv_811ad09817485e06_advance_quote -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace -> int
+private fn __priv_811ad09817485e06_skip_whitespace -> int
   if ...: int
 fn parse_document -> int
-  let value: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value: int(source: string, 0: int): int
+  let value: int = __priv_811ad09817485e06_parse_value: fn(string, int) -> int(source: string, 0: int): int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_value -> int
-  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, index: int): int
+private fn __priv_811ad09817485e06_parse_value -> int
+  let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, index: int): int
+  let code: int = __priv_811ad09817485e06_parse_value_code: fn(string, int) -> int(source: string, cursor: int): int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string -> int
+private fn __priv_811ad09817485e06_parse_value_code -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_body -> int
+private fn __priv_811ad09817485e06_parse_value_after_string -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_string_escape -> int
+private fn __priv_811ad09817485e06_parse_value_after_object -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_unicode_escape -> int
+private fn __priv_811ad09817485e06_parse_value_after_array -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_true -> int
+private fn __priv_811ad09817485e06_parse_value_after_true -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_false -> int
+private fn __priv_811ad09817485e06_parse_value_after_false -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_null -> int
+private fn __priv_811ad09817485e06_parse_string -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number -> int
+private fn __priv_811ad09817485e06_parse_string_body -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_number_tail -> int
+private fn __priv_811ad09817485e06_parse_string_body_after_quote -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array -> int
-  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, (index: int Add 1: int): int): int
+private fn __priv_811ad09817485e06_parse_string_body_in_bounds -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_array_after_value -> int
-  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, index: int): int
+private fn __priv_811ad09817485e06_parse_string_body_after_escape -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object -> int
-  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, (index: int Add 1: int): int): int
+private fn __priv_811ad09817485e06_parse_string_escape -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_key -> int
-  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, index: int): int
+private fn __priv_811ad09817485e06_parse_unicode_escape -> int
   if ...: int
-private fn __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_parse_object_after_value -> int
-  let cursor: int = __priv_____D__GitHub_Repositories_Mentalogue_inscribe_examples_json_parser_shared_json_mtl_skip_whitespace: int(source: string, index: int): int
+private fn __priv_811ad09817485e06_parse_true -> int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_false -> int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_null -> int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_number -> int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_number_at -> int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_number_digit -> int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_number_tail -> int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_array -> int
+  let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, (index: int Add 1: int): int): int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_array_after_value -> int
+  let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, index: int): int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_object -> int
+  let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, (index: int Add 1: int): int): int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_object_after_key -> int
+  let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, index: int): int
+  if ...: int
+private fn __priv_811ad09817485e06_parse_object_after_value -> int
+  let cursor: int = __priv_811ad09817485e06_skip_whitespace: fn(string, int) -> int(source: string, index: int): int
   if ...: int
 fn print_int -> ()
+  <declaration>
+fn print_bool -> ()
   <declaration>
 fn print_string -> ()
   <declaration>
 fn print_newline -> ()
   <declaration>
-fn write_line_string -> ()
-  print_string: ()(value: string): ()
-  print_newline: ()(): ()
+fn flush_stdout -> ()
+  <declaration>
+fn read_int -> int
+  <declaration>
+fn write_int -> ()
+  print_int: fn(int) -> ()(value: int): ()
+fn write_bool -> ()
+  print_bool: fn(bool) -> ()(value: bool): ()
+fn write_string -> ()
+  print_string: fn(string) -> ()(value: string): ()
+fn newline -> ()
+  print_newline: fn() -> ()(): ()
+fn flush -> ()
+  flush_stdout: fn() -> ()(): ()
+fn read_line_int -> int
+  read_int: fn() -> int(): int
 fn write_line_int -> ()
-  print_int: ()(value: int): ()
-  print_newline: ()(): ()
+  write_int: fn(int) -> ()(value: int): ()
+  newline: fn() -> ()(): ()
+fn write_line_bool -> ()
+  write_bool: fn(bool) -> ()(value: bool): ()
+  newline: fn() -> ()(): ()
+fn write_line_string -> ()
+  write_string: fn(string) -> ()(value: string): ()
+  newline: fn() -> ()(): ()
+fn write_bool_as_int -> ()
+  write_int: fn(int) -> ()(bool_to_int: fn(bool) -> int(value: bool): int): ()
+fn write_line_bool_as_int -> ()
+  write_bool_as_int: fn(bool) -> ()(value: bool): ()
+  newline: fn() -> ()(): ()
+fn write_pair_int -> ()
+  write_int: fn(int) -> ()(left: int): ()
+  newline: fn() -> ()(): ()
+  write_int: fn(int) -> ()(right: int): ()
+fn write_pair_int_line -> ()
+  write_pair_int: fn(int, int) -> ()(left: int, right: int): ()
+  newline: fn() -> ()(): ()
 fn print_result -> ()
-  let result: int = parse_document: int(source: string): int
-  write_line_string: ()(label: string): ()
-  write_line_int: ()(bool_to_int: int(result_ok: bool(result: int): bool): int): ()
-  write_line_int: ()(result_kind: int(result: int): int): ()
+  let result: int = parse_document: fn(string) -> int(source: string): int
+  write_line_string: fn(string) -> ()(label: string): ()
+  write_line_int: fn(int) -> ()(bool_to_int: fn(bool) -> int(result_ok: fn(int) -> bool(result: int): bool): int): ()
+  write_line_int: fn(int) -> ()(result_kind: fn(int) -> int(result: int): int): ()
 fn main -> int
-  print_result: ()("object": string, "{\"name\":\"Ada\",\"active\":true,\"scores\":[1,2,3]}": string): ()
-  print_result: ()("array": string, "[null,false,true,{\"value\":12}]": string): ()
-  print_result: ()("invalid": string, "{\"broken\":[1,2}": string): ()
+  print_result: fn(string, string) -> ()(object: string, {"a":1,"b":2}: string): ()
+  print_result: fn(string, string) -> ()(array: string, [null,false,true]: string): ()
+  print_result: fn(string, string) -> ()(invalid: string, [1,2: string): ()
   0: int

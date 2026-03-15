@@ -101,30 +101,59 @@ fn parse_document(source: string) -> int {
 
 private fn parse_value(source: string, index: int) -> int {
     let cursor = skip_whitespace(source, index)
-    if has_quote(source, cursor) {
+    let code = parse_value_code(source, cursor)
+    if code == 34 {
         parse_string(source, cursor)
     } else {
-        if has_byte(source, cursor, 123) {
-            parse_object(source, cursor)
-        } else {
-            if has_byte(source, cursor, 91) {
-                parse_array(source, cursor)
-            } else {
-                if has_byte(source, cursor, 116) {
-                    parse_true(source, cursor)
-                } else {
-                    if has_byte(source, cursor, 102) {
-                        parse_false(source, cursor)
-                    } else {
-                        if has_byte(source, cursor, 110) {
-                            parse_null(source, cursor)
-                        } else {
-                            parse_number(source, cursor)
-                        }
-                    }
-                }
-            }
-        }
+        parse_value_after_string(source, cursor, code)
+    }
+}
+
+private fn parse_value_code(source: string, cursor: int) -> int {
+    if in_bounds(source, cursor) {
+        byte_at(source, cursor)
+    } else {
+        -1
+    }
+}
+
+private fn parse_value_after_string(source: string, cursor: int, code: int) -> int {
+    if code == 123 {
+        parse_object(source, cursor)
+    } else {
+        parse_value_after_object(source, cursor, code)
+    }
+}
+
+private fn parse_value_after_object(source: string, cursor: int, code: int) -> int {
+    if code == 91 {
+        parse_array(source, cursor)
+    } else {
+        parse_value_after_array(source, cursor, code)
+    }
+}
+
+private fn parse_value_after_array(source: string, cursor: int, code: int) -> int {
+    if code == 116 {
+        parse_true(source, cursor)
+    } else {
+        parse_value_after_true(source, cursor, code)
+    }
+}
+
+private fn parse_value_after_true(source: string, cursor: int, code: int) -> int {
+    if code == 102 {
+        parse_false(source, cursor)
+    } else {
+        parse_value_after_false(source, cursor, code)
+    }
+}
+
+private fn parse_value_after_false(source: string, cursor: int, code: int) -> int {
+    if code == 110 {
+        parse_null(source, cursor)
+    } else {
+        parse_number(source, cursor)
     }
 }
 
@@ -140,19 +169,31 @@ private fn parse_string_body(source: string, index: int) -> int {
     if has_quote(source, index) {
         ok_result(advance_quote(source, index), kind_string())
     } else {
-        if in_bounds(source, index) {
-            if byte_at(source, index) == 92 {
-                parse_string_escape(source, index + 1)
-            } else {
-                if byte_at(source, index) < 32 {
-                    error_result(index)
-                } else {
-                    parse_string_body(source, index + 1)
-                }
-            }
-        } else {
-            error_result(index)
-        }
+        parse_string_body_after_quote(source, index)
+    }
+}
+
+private fn parse_string_body_after_quote(source: string, index: int) -> int {
+    if in_bounds(source, index) {
+        parse_string_body_in_bounds(source, index)
+    } else {
+        error_result(index)
+    }
+}
+
+private fn parse_string_body_in_bounds(source: string, index: int) -> int {
+    if byte_at(source, index) == 92 {
+        parse_string_escape(source, index + 1)
+    } else {
+        parse_string_body_after_escape(source, index)
+    }
+}
+
+private fn parse_string_body_after_escape(source: string, index: int) -> int {
+    if byte_at(source, index) < 32 {
+        error_result(index)
+    } else {
+        parse_string_body(source, index + 1)
     }
 }
 
@@ -218,23 +259,35 @@ private fn parse_null(source: string, index: int) -> int {
 
 private fn parse_number(source: string, index: int) -> int {
     if has_byte(source, index, 45) {
-        if in_bounds(source, index + 1) && is_digit(byte_at(source, index + 1)) {
-            parse_number_tail(source, index + 2)
-        } else {
-            error_result(index)
-        }
+        parse_number_at(source, index, index + 1)
     } else {
-        if in_bounds(source, index) && is_digit(byte_at(source, index)) {
-            parse_number_tail(source, index + 1)
-        } else {
-            error_result(index)
-        }
+        parse_number_at(source, index, index)
+    }
+}
+
+private fn parse_number_at(source: string, error_index: int, cursor: int) -> int {
+    if in_bounds(source, cursor) {
+        parse_number_digit(source, error_index, cursor)
+    } else {
+        error_result(error_index)
+    }
+}
+
+private fn parse_number_digit(source: string, error_index: int, cursor: int) -> int {
+    if is_digit(byte_at(source, cursor)) {
+        parse_number_tail(source, cursor + 1)
+    } else {
+        error_result(error_index)
     }
 }
 
 private fn parse_number_tail(source: string, index: int) -> int {
-    if in_bounds(source, index) && is_digit(byte_at(source, index)) {
-        parse_number_tail(source, index + 1)
+    if in_bounds(source, index) {
+        if is_digit(byte_at(source, index)) {
+            parse_number_tail(source, index + 1)
+        } else {
+            ok_result(index, kind_number())
+        }
     } else {
         ok_result(index, kind_number())
     }
