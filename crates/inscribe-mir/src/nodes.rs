@@ -1,21 +1,22 @@
 use inscribe_ast::span::Span;
 use inscribe_typeck::{FunctionSignature, Type};
+use serde::{Deserialize, Serialize};
 
 // TODO: Introduce stable ids and richer provenance once optimization passes begin mutating MIR.
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MirProgram {
     pub functions: Vec<MirFunction>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct BasicBlockId(pub usize);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct LocalId(pub usize);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MirFunction {
     pub receiver: Option<String>,
     pub name: String,
@@ -28,7 +29,7 @@ pub struct MirFunction {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct LocalDecl {
     pub id: LocalId,
     pub name: String,
@@ -38,20 +39,20 @@ pub struct LocalDecl {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct BasicBlockData {
     pub id: BasicBlockId,
     pub statements: Vec<Statement>,
     pub terminator: TerminatorKind,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Statement {
     pub kind: StatementKind,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum StatementKind {
     StorageLive(LocalId),
     StorageDead(LocalId),
@@ -60,7 +61,7 @@ pub enum StatementKind {
     Nop,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Place {
     pub local: LocalId,
     pub projection: Vec<ProjectionElem>,
@@ -75,13 +76,13 @@ impl Place {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum ProjectionElem {
     Field(String),
     Index(Operand),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum Rvalue {
     Use(Operand),
     UnaryOp {
@@ -108,20 +109,20 @@ pub enum Rvalue {
     ResultErr(Operand),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum Operand {
     Copy(Place),
     Move(Place),
     Constant(Constant),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Constant {
     pub ty: Type,
     pub value: ConstantValue,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum ConstantValue {
     Unit,
     Integer(String),
@@ -131,7 +132,7 @@ pub enum ConstantValue {
     Function(String),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum TerminatorKind {
     Goto {
         target: BasicBlockId,
@@ -169,7 +170,7 @@ pub enum TerminatorKind {
     Unreachable,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MatchTarget {
     pub pattern: String,
     pub target: BasicBlockId,

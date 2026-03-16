@@ -2,10 +2,11 @@ use std::collections::HashMap;
 
 use inscribe_ast::span::Span;
 use inscribe_resolve::FunctionKey;
+use serde::{Deserialize, Serialize};
 
 // TODO: Replace the span-keyed tables with stable node ids once the AST is interned.
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Type {
     Unknown,
     Unit,
@@ -46,7 +47,7 @@ impl Type {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionSignature {
     pub key: FunctionKey,
     pub params: Vec<Type>,
@@ -65,27 +66,27 @@ impl FunctionSignature {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum BindingKind {
     Let,
     Const,
     Param,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct BindingInfo {
     pub ty: Type,
     pub kind: BindingKind,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
 pub struct TypeCheckResult {
     pub expr_types: HashMap<ExprKey, Type>,
     pub function_signatures: HashMap<FunctionKey, FunctionSignature>,
     pub item_types: HashMap<String, Type>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ExprKey {
     pub start: usize,
     pub end: usize,

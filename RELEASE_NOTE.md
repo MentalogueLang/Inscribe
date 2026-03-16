@@ -1,12 +1,13 @@
-# Inscribe 0.1.1
+# Inscribe 0.1.2
 
 ## Highlights
 
-- Introduced stable HIR symbol ids and a canonical symbol table across lowering, pretty-printing, and MIR lowering.
-- Ignored generated `.hir`/`.mir` artifacts and removed tracked copies from the repository.
-- Updated the release workflow to build against the Inscribe workspace `Cargo.toml`.
+- Added disk-backed artifact caching for graph/resolve/typeck/hir/mir stages.
+- Added sandboxed execution (`inscribe run --sandbox`) backed by the MIR interpreter.
+- Added `main -> string` output handling and richer debug line/source maps.
+- Added HTTP runtime surface and determinism capability tracking updates.
 
 ## Artifacts
 
-- `inscribe-0.1.1-windows-x64.zip`
-- `inscribe-0.1.1-linux-x64.tar.gz`
+- `inscribe-0.1.2-windows-x64.zip`
+- `inscribe-0.1.2-linux-x64.tar.gz`

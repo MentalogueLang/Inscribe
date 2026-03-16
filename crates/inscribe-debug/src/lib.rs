@@ -41,6 +41,25 @@ pub fn build_program_debug_info(program: &MirProgram) -> ProgramDebugInfo {
     }
 }
 
+pub fn build_program_debug_info_with_sources(
+    program: &MirProgram,
+    source_map: &SourceMap,
+    file: SourceFileId,
+) -> ProgramDebugInfo {
+    ProgramDebugInfo {
+        dwarf: emit_program_dwarf_with_sources(program, Some(source_map), Some(file)),
+        functions: program
+            .functions
+            .iter()
+            .map(|function| FunctionDebugInfo {
+                name: qualified_function_name(function),
+                variables: track_variables(function),
+                dwarf: emit_function_dwarf_with_sources(function, Some(source_map), Some(file)),
+            })
+            .collect(),
+    }
+}
+
 fn qualified_function_name(function: &inscribe_mir::MirFunction) -> String {
     function
         .receiver

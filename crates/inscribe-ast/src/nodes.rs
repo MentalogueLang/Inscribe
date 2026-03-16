@@ -1,6 +1,7 @@
 use crate::span::{Span, Spanned};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Module {
     pub items: Vec<Item>,
     pub span: Span,
@@ -12,7 +13,7 @@ impl Spanned for Module {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum Item {
     Import(Import),
     Struct(StructDecl),
@@ -31,7 +32,7 @@ impl Spanned for Item {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Import {
     pub path: Path,
     pub span: Span,
@@ -43,7 +44,7 @@ impl Spanned for Import {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct StructDecl {
     pub name: String,
     pub name_span: Span,
@@ -57,7 +58,7 @@ impl Spanned for StructDecl {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct StructField {
     pub name: String,
     pub name_span: Span,
@@ -71,7 +72,7 @@ impl Spanned for StructField {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct EnumDecl {
     pub name: String,
     pub name_span: Span,
@@ -85,7 +86,7 @@ impl Spanned for EnumDecl {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct EnumVariant {
     pub name: String,
     pub name_span: Span,
@@ -99,7 +100,7 @@ impl Spanned for EnumVariant {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct FunctionDecl {
     pub visibility: Visibility,
     pub receiver: Option<Path>,
@@ -117,13 +118,13 @@ impl Spanned for FunctionDecl {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Visibility {
     Public,
     Private,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Param {
     pub name: String,
     pub name_span: Span,
@@ -137,7 +138,7 @@ impl Spanned for Param {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Block {
     pub statements: Vec<Stmt>,
     pub span: Span,
@@ -149,7 +150,7 @@ impl Spanned for Block {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum Stmt {
     Let(LetStmt),
     Const(ConstStmt),
@@ -172,7 +173,7 @@ impl Spanned for Stmt {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct LetStmt {
     pub name: String,
     pub name_span: Span,
@@ -187,7 +188,7 @@ impl Spanned for LetStmt {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ConstStmt {
     pub name: String,
     pub name_span: Span,
@@ -202,7 +203,7 @@ impl Spanned for ConstStmt {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ForStmt {
     pub pattern: Pattern,
     pub iterable: Expr,
@@ -216,7 +217,7 @@ impl Spanned for ForStmt {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct WhileStmt {
     pub condition: Expr,
     pub body: Block,
@@ -229,7 +230,7 @@ impl Spanned for WhileStmt {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
     pub span: Span,
@@ -241,7 +242,7 @@ impl Spanned for ReturnStmt {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Expr {
     pub kind: ExprKind,
     pub span: Span,
@@ -259,7 +260,7 @@ impl Spanned for Expr {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum ExprKind {
     Literal(Literal),
     Path(Path),
@@ -310,7 +311,7 @@ pub enum ExprKind {
     Try(Box<Expr>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct StructLiteralField {
     pub name: String,
     pub name_span: Span,
@@ -324,7 +325,7 @@ impl Spanned for StructLiteralField {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct MatchArm {
     pub pattern: Pattern,
     pub value: Expr,
@@ -337,7 +338,7 @@ impl Spanned for MatchArm {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Pattern {
     pub kind: PatternKind,
     pub span: Span,
@@ -355,7 +356,7 @@ impl Spanned for Pattern {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum PatternKind {
     Wildcard,
     Binding(String),
@@ -364,7 +365,7 @@ pub enum PatternKind {
     Constructor { path: Path, arguments: Vec<Pattern> },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum Literal {
     Integer(String),
     Float(String),
@@ -372,13 +373,13 @@ pub enum Literal {
     Bool(bool),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnaryOp {
     Negate,
     Not,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinaryOp {
     Assign,
     Range,
@@ -396,7 +397,7 @@ pub enum BinaryOp {
     Divide,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct TypeRef {
     pub kind: TypeRefKind,
     pub span: Span,
@@ -408,7 +409,7 @@ impl Spanned for TypeRef {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum TypeRefKind {
     Path {
         path: Path,
@@ -420,7 +421,7 @@ pub enum TypeRefKind {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Path {
     pub segments: Vec<String>,
     pub segment_spans: Vec<Span>,

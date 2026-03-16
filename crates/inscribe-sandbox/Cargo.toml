@@ -4,4 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# TODO: Add third-party dependencies as this crate gains real functionality.
+inscribe-comptime = { path = "../inscribe-comptime" }
+inscribe-mir = { path = "../inscribe-mir" }
+ureq = "2.9"

@@ -1,6 +1,8 @@
 // TODO: Expand source tracking as the compiler gains file tables and macro spans.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Position {
     pub offset: usize,
     pub line: usize,
@@ -17,7 +19,7 @@ impl Position {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Span {
     pub start: Position,
     pub end: Position,

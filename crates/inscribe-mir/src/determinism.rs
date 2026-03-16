@@ -123,6 +123,7 @@ fn runtime_capabilities(name: &str) -> &'static [Capability] {
         }
         "string_length" | "string_byte_at" => &[],
         "read_int" => &[Capability::Stdin],
+        "http_get" => &[Capability::Network],
         _ => &[Capability::ForeignHost],
     }
 }
@@ -131,11 +132,12 @@ fn runtime_capabilities(name: &str) -> &'static [Capability] {
 enum Capability {
     Filesystem,
     Stdin,
+    Network,
     ForeignHost,
 }
 
 impl Capability {
     fn breaks_determinism(self) -> bool {
-        matches!(self, Self::Stdin | Self::ForeignHost)
+        matches!(self, Self::Stdin | Self::Network | Self::ForeignHost)
     }
 }

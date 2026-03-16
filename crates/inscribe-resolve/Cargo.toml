@@ -8,3 +8,4 @@ inscribe-ast = { path = "../inscribe-ast" }
 inscribe-lexer = { path = "../inscribe-lexer" }
 inscribe-parser = { path = "../inscribe-parser" }
 inscribe-session = { path = "../inscribe-session" }
+serde = { version = "1.0", features = ["derive"] }

@@ -10,18 +10,19 @@ use inscribe_ast::nodes::{
 use inscribe_ast::span::{Position, Span};
 use inscribe_parser::parse_module;
 use inscribe_session::SessionError;
+use serde::{Deserialize, Serialize};
 
 use crate::module_tree::{ImportNode, ItemNode, ModuleNode, ModuleTree};
 use crate::resolver::FunctionKey;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct SourceModule {
     pub path: PathBuf,
     pub module: Module,
     pub imports: Vec<PathBuf>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct LoadedModuleGraph {
     pub entry: PathBuf,
     pub modules: Vec<SourceModule>,
@@ -29,7 +30,7 @@ pub struct LoadedModuleGraph {
     pub tree: ModuleTree,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ModuleLoadOptions {
     pub stdlib_root: PathBuf,
 }

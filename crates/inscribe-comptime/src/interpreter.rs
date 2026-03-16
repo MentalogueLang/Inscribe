@@ -2,11 +2,14 @@ use inscribe_mir::{
     BasicBlockId, MatchTarget, MirFunction, MirProgram, Operand, Place, ProjectionElem, Rvalue,
     StatementKind, TerminatorKind,
 };
+use std::fmt;
+use std::sync::Arc;
 
 use crate::boundary::{
     constant_to_value, ComptimeError, ComptimeResult, ComptimeValue, RangeValue, StructValue,
 };
 use crate::reflect::{qualified_function_name, MirReflection};
+use crate::runtime::Runtime;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct InterpreterConfig {
@@ -23,10 +26,20 @@ impl Default for InterpreterConfig {
     }
 }
 
-#[derive(Debug)]
 pub struct Interpreter<'a> {
     reflection: MirReflection<'a>,
     config: InterpreterConfig,
+    runtime: Option<Arc<dyn Runtime>>,
+}
+
+impl<'a> fmt::Debug for Interpreter<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Interpreter")
+            .field("reflection", &self.reflection)
+            .field("config", &self.config)
+            .field("runtime", &self.runtime.as_ref().map(|_| "<runtime>"))
+            .finish()
+    }
 }
 
 impl<'a> Interpreter<'a> {
@@ -34,6 +47,7 @@ impl<'a> Interpreter<'a> {
         Self {
             reflection: MirReflection::new(program),
             config: InterpreterConfig::default(),
+            runtime: None,
         }
     }
 
@@ -41,6 +55,15 @@ impl<'a> Interpreter<'a> {
         Self {
             reflection: MirReflection::new(program),
             config,
+            runtime: None,
+        }
+    }
+
+    pub fn with_runtime(program: &'a MirProgram, runtime: Arc<dyn Runtime>) -> Self {
+        Self {
+            reflection: MirReflection::new(program),
+            config: InterpreterConfig::default(),
+            runtime: Some(runtime),
         }
     }
 
@@ -73,6 +96,9 @@ impl<'a> Interpreter<'a> {
         steps_left: &mut usize,
     ) -> ComptimeResult<ComptimeValue> {
         if function.is_declaration {
+            if let Some(runtime) = &self.runtime {
+                return runtime.call(&qualified_function_name(function), args);
+            }
             return Err(ComptimeError::new(format!(
                 "cannot execute declaration-only function `{}` at compile time",
                 qualified_function_name(function)

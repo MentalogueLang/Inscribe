@@ -1,4 +1,6 @@
-// TODO: Implement the capability module for inscribe-sandbox.
-
-#[derive(Debug, Default)]
-pub struct CapabilityStub;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Capability {
+    Stdout,
+    Stdin,
+    Network,
+}

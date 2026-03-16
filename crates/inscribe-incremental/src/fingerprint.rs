@@ -1,10 +1,12 @@
 use std::fmt;
 use std::hash::{Hash, Hasher};
 
+use serde::{Deserialize, Serialize};
+
 const FNV_OFFSET_BASIS: u64 = 0xcbf29ce484222325;
 const FNV_PRIME: u64 = 0x00000100000001b3;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
 pub struct Fingerprint(u64);
 
 impl Fingerprint {

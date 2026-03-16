@@ -1,16 +1,17 @@
 use inscribe_ast::nodes::{Item, Module, Visibility};
 use inscribe_ast::span::Span;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 use crate::resolver::FunctionKey;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ModuleTree {
     pub entry: PathBuf,
     pub modules: Vec<ModuleNode>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ModuleNode {
     pub name: String,
     pub path: PathBuf,
@@ -19,14 +20,14 @@ pub struct ModuleNode {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ImportNode {
     pub path: Vec<String>,
     pub resolved_path: Option<PathBuf>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum ItemNode {
     Struct { name: String, span: Span },
     Enum { name: String, span: Span },

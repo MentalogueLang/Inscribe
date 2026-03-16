@@ -6,7 +6,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use inscribe_codegen::Target;
 use inscribe_hir::{lower_module, HirProgram};
-use inscribe_incremental::{Cache, Fingerprint, FingerprintBuilder, QueryEngine, QueryError};
+use inscribe_incremental::{
+    Cache, DiskCache, Fingerprint, FingerprintBuilder, QueryEngine, QueryError,
+};
 use inscribe_mir::{lower_program, optimize_program, MirProgram};
 use inscribe_resolve::{load_module_graph, resolve_module_graph, LoadedModuleGraph, ResolvedProgram};
 use inscribe_session::{Session, SessionError};
@@ -34,16 +36,6 @@ pub struct IncrementalSession {
 impl IncrementalSession {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    fn cached_graph_fingerprint(
-        &self,
-        entry: &Path,
-    ) -> Result<Option<Fingerprint>, SessionError> {
-        self.graph_cache
-            .get(entry)
-            .map(|graph| fingerprint_graph_sources(graph))
-            .transpose()
     }
 }
 
@@ -75,34 +67,52 @@ fn compile_file_with_incremental(
     input: &Path,
 ) -> Result<CompiledArtifacts, SessionError> {
     let entry = canonicalize_path(input)?;
-    let cached_fingerprint = incremental.cached_graph_fingerprint(&entry)?;
-    let load_fingerprint = cached_fingerprint.unwrap_or_else(|| fingerprint_path(&entry));
+    let cache_root = cache_root_for_entry(&entry);
+    let graph_disk = DiskCache::new(&cache_root, "graph");
 
-    let graph = incremental
-        .engine
-        .execute(
-            &mut incremental.graph_cache,
-            "load_module_graph",
-            entry.clone(),
-            load_fingerprint,
-            |_| load_module_graph(&entry).map_err(|error| QueryError::new(error.to_string())),
-        )
-        .map_err(|error| SessionError::new("load", error.message))?;
+    let mut source_fingerprint = None;
+    let mut graph = None;
 
-    let source_fingerprint = if let Some(fingerprint) = cached_fingerprint {
-        fingerprint
-    } else {
-        let fingerprint = fingerprint_graph_sources(&graph)?;
-        incremental
-            .graph_cache
-            .insert(entry.clone(), fingerprint, graph.clone());
-        fingerprint
+    if let Some(entry_cache) = graph_disk
+        .load::<PathBuf, LoadedModuleGraph>(&entry)
+        .map_err(|error| cache_error("graph", &error))?
+    {
+        let fingerprint = fingerprint_graph_sources(&entry_cache.value)?;
+        if fingerprint == entry_cache.fingerprint {
+            source_fingerprint = Some(entry_cache.fingerprint);
+            incremental
+                .graph_cache
+                .insert(entry.clone(), entry_cache.fingerprint, entry_cache.value.clone());
+            graph = Some(entry_cache.value);
+        }
+    }
+
+    let graph = match graph {
+        Some(graph) => graph,
+        None => {
+            let graph = load_module_graph(&entry).map_err(|error| {
+                SessionError::new("load", error.to_string())
+            })?;
+            let fingerprint = fingerprint_graph_sources(&graph)?;
+            graph_disk
+                .store(&entry, fingerprint, &graph)
+                .map_err(|error| cache_error("graph", &error))?;
+            incremental
+                .graph_cache
+                .insert(entry.clone(), fingerprint, graph.clone());
+            source_fingerprint = Some(fingerprint);
+            graph
+        }
     };
+
+    let source_fingerprint = source_fingerprint.unwrap_or_else(|| Fingerprint::of(&entry));
+    let resolve_disk = DiskCache::new(&cache_root, "resolve");
 
     let resolved = incremental
         .engine
-        .execute(
+        .execute_with_disk(
             &mut incremental.resolved_cache,
+            Some(&resolve_disk),
             "resolve",
             entry.clone(),
             source_fingerprint,
@@ -118,8 +128,9 @@ fn compile_file_with_incremental(
 
     let typed = incremental
         .engine
-        .execute(
+        .execute_with_disk(
             &mut incremental.typed_cache,
+            Some(&DiskCache::new(&cache_root, "typeck")),
             "typeck",
             entry.clone(),
             source_fingerprint,
@@ -135,8 +146,9 @@ fn compile_file_with_incremental(
 
     let hir = incremental
         .engine
-        .execute(
+        .execute_with_disk(
             &mut incremental.hir_cache,
+            Some(&DiskCache::new(&cache_root, "hir")),
             "lower_hir",
             entry.clone(),
             source_fingerprint,
@@ -146,8 +158,9 @@ fn compile_file_with_incremental(
 
     let mir = incremental
         .engine
-        .execute(
+        .execute_with_disk(
             &mut incremental.mir_cache,
+            Some(&DiskCache::new(&cache_root, "mir")),
             "lower_mir",
             entry.clone(),
             source_fingerprint,
@@ -167,12 +180,6 @@ where
     I: IntoIterator<Item = String>,
 {
     errors.into_iter().collect::<Vec<_>>().join("\n")
-}
-
-fn fingerprint_path(path: &Path) -> Fingerprint {
-    let mut builder = FingerprintBuilder::new();
-    builder.update_str(&path.to_string_lossy());
-    builder.finish()
 }
 
 fn fingerprint_graph_sources(graph: &LoadedModuleGraph) -> Result<Fingerprint, SessionError> {
@@ -198,6 +205,18 @@ fn fingerprint_paths(paths: &[PathBuf]) -> Result<Fingerprint, SessionError> {
         builder.update_bytes(&bytes);
     }
     Ok(builder.finish())
+}
+
+fn cache_root_for_entry(entry: &Path) -> PathBuf {
+    let base = entry.parent().unwrap_or_else(|| Path::new("."));
+    base.join(".inscribe").join("cache")
+}
+
+fn cache_error(stage: &str, error: &std::io::Error) -> SessionError {
+    SessionError::new(
+        "cache",
+        format!("failed to access {stage} cache: {error}"),
+    )
 }
 
 fn canonicalize_path(path: &Path) -> Result<PathBuf, SessionError> {

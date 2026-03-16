@@ -7,6 +7,7 @@ edition = "2021"
 inscribe-ast = { path = "../inscribe-ast" }
 inscribe-resolve = { path = "../inscribe-resolve" }
 inscribe-session = { path = "../inscribe-session" }
+serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
 inscribe-lexer = { path = "../inscribe-lexer" }

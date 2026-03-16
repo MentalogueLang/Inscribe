@@ -1,11 +1,12 @@
 use inscribe_ast::Visibility;
 use inscribe_ast::span::Span;
 use inscribe_typeck::{FunctionSignature, Type};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct HirSymbolId(pub usize);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum HirSymbolKind {
     Import,
     Struct,
@@ -18,7 +19,7 @@ pub enum HirSymbolKind {
     Unresolved,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirSymbol {
     pub id: HirSymbolId,
     pub name: String,
@@ -26,7 +27,7 @@ pub struct HirSymbol {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirProgram {
     pub items: Vec<HirItem>,
     pub symbols: Vec<HirSymbol>,
@@ -43,7 +44,7 @@ impl HirProgram {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum HirItem {
     Import(HirImport),
     Struct(HirStruct),
@@ -51,42 +52,42 @@ pub enum HirItem {
     Function(HirFunction),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirImport {
     pub symbol: HirSymbolId,
     pub path: Vec<String>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirStruct {
     pub symbol: HirSymbolId,
     pub fields: Vec<HirField>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirField {
     pub symbol: HirSymbolId,
     pub ty: Type,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirEnum {
     pub symbol: HirSymbolId,
     pub variants: Vec<HirEnumVariant>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirEnumVariant {
     pub symbol: HirSymbolId,
     pub discriminant: usize,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirFunction {
     pub symbol: HirSymbolId,
     pub visibility: Visibility,
@@ -98,21 +99,21 @@ pub struct HirFunction {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirParam {
     pub symbol: HirSymbolId,
     pub ty: Type,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirBlock {
     pub statements: Vec<HirStmt>,
     pub ty: Type,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum HirStmt {
     Let(HirBinding),
     Const(HirBinding),
@@ -122,7 +123,7 @@ pub enum HirStmt {
     Expr(HirExpr),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirBinding {
     pub symbol: HirSymbolId,
     pub ty: Type,
@@ -130,7 +131,7 @@ pub struct HirBinding {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirFor {
     pub binding: HirSymbolId,
     pub binding_ty: Type,
@@ -139,21 +140,21 @@ pub struct HirFor {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirWhile {
     pub condition: HirExpr,
     pub body: HirBlock,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirExpr {
     pub kind: HirExprKind,
     pub ty: Type,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum HirExprKind {
     Literal(String),
     EnumVariant {
@@ -208,7 +209,7 @@ pub enum HirExprKind {
     Try(Box<HirExpr>),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct HirMatchArm {
     pub pattern: String,
     pub value: HirExpr,

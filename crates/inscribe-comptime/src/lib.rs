@@ -5,6 +5,7 @@ pub mod boundary;
 pub mod comptime_alloc;
 pub mod interpreter;
 pub mod reflect;
+pub mod runtime;
 
 pub use boundary::{
     constant_to_value, value_to_constant, ComptimeError, ComptimeResult, ComptimeValue, RangeValue,
@@ -13,6 +14,7 @@ pub use boundary::{
 pub use comptime_alloc::{ComptimeAllocId, ComptimeAllocator};
 pub use interpreter::{Interpreter, InterpreterConfig};
 pub use reflect::{qualified_function_name, FunctionReflection, LocalReflection, MirReflection};
+pub use runtime::Runtime;
 
 pub fn evaluate_function(
     program: &MirProgram,

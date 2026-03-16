@@ -61,7 +61,12 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
         .map(|function| (callable_name(function), function_label(function)))
         .collect::<HashMap<_, _>>();
 
-    emit_entry_wrapper(&program.functions[main_index], target, &mut instructions);
+    emit_entry_wrapper(
+        &program.functions[main_index],
+        target,
+        &mut state,
+        &mut instructions,
+    );
 
     for function in &program.functions {
         lower_function(function, &labels, target, &mut state, &mut instructions)?;
@@ -371,13 +376,64 @@ fn emit_compare(condition: Condition, instructions: &mut Vec<Instruction>) {
     instructions.push(Instruction::MovzxEaxAl);
 }
 
-fn emit_entry_wrapper(main: &MirFunction, target: Target, instructions: &mut Vec<Instruction>) {
+fn emit_entry_wrapper(
+    main: &MirFunction,
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) {
+    let string_len_loop = "__ml_entry_string_len_loop".to_string();
+    let string_len_done = "__ml_entry_string_len_done".to_string();
+    let string_len_empty = "__ml_entry_string_len_empty".to_string();
+    let string_write_skip = "__ml_entry_string_write_skip".to_string();
+    let string_write_done = "__ml_entry_string_write_done".to_string();
+
     instructions.push(Instruction::Label(target.entry_symbol().to_string()));
 
     match target.os {
         OperatingSystem::Linux => {
             instructions.push(Instruction::Call(function_label(main)));
-            instructions.push(Instruction::MovRegReg(Register::Rdi, Register::Rax));
+            match main.signature.return_type.as_ref() {
+                Type::String => {
+                    instructions.push(Instruction::MovRegReg(Register::R10, Register::Rax));
+                    instructions.push(Instruction::MovRegReg(Register::R11, Register::Rax));
+                    instructions.push(Instruction::CmpRegImm(Register::R10, 0));
+                    instructions.push(Instruction::JumpIf(
+                        Condition::Equal,
+                        string_len_empty.clone(),
+                    ));
+                    instructions.push(Instruction::Label(string_len_loop.clone()));
+                    instructions.push(Instruction::MovzxRegMem8(Register::Rax, Register::R11));
+                    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+                    instructions.push(Instruction::JumpIf(
+                        Condition::Equal,
+                        string_len_done.clone(),
+                    ));
+                    instructions.push(Instruction::AddRegImm(Register::R11, 1));
+                    instructions.push(Instruction::Jump(string_len_loop.clone()));
+                    instructions.push(Instruction::Label(string_len_done.clone()));
+                    instructions.push(Instruction::MovRegReg(Register::R9, Register::R11));
+                    instructions.push(Instruction::SubRegReg(Register::R9, Register::R10));
+                    instructions.push(Instruction::Jump(string_write_skip.clone()));
+                    instructions.push(Instruction::Label(string_len_empty.clone()));
+                    instructions.push(Instruction::MovRegImm64(Register::R9, 0));
+                    instructions.push(Instruction::Label(string_write_skip.clone()));
+                    instructions.push(Instruction::CmpRegImm(Register::R9, 0));
+                    instructions.push(Instruction::JumpIf(
+                        Condition::Equal,
+                        string_write_done.clone(),
+                    ));
+                    emit_write_stdout(target, Register::R10, Register::R9, state, instructions);
+                    instructions.push(Instruction::Label(string_write_done.clone()));
+                    instructions.push(Instruction::MovRegImm64(Register::Rdi, 0));
+                }
+                Type::Unit => {
+                    instructions.push(Instruction::MovRegImm64(Register::Rdi, 0));
+                }
+                _ => {
+                    instructions.push(Instruction::MovRegReg(Register::Rdi, Register::Rax));
+                }
+            }
             instructions.push(Instruction::MovRegImm64(Register::Rax, 60));
             instructions.push(Instruction::Syscall);
             instructions.push(Instruction::Ud2);
@@ -385,6 +441,45 @@ fn emit_entry_wrapper(main: &MirFunction, target: Target, instructions: &mut Vec
         OperatingSystem::Windows => {
             instructions.push(Instruction::SubRsp(40));
             instructions.push(Instruction::Call(function_label(main)));
+            match main.signature.return_type.as_ref() {
+                Type::String => {
+                    instructions.push(Instruction::MovRegReg(Register::R10, Register::Rax));
+                    instructions.push(Instruction::MovRegReg(Register::R11, Register::Rax));
+                    instructions.push(Instruction::CmpRegImm(Register::R10, 0));
+                    instructions.push(Instruction::JumpIf(
+                        Condition::Equal,
+                        string_len_empty.clone(),
+                    ));
+                    instructions.push(Instruction::Label(string_len_loop.clone()));
+                    instructions.push(Instruction::MovzxRegMem8(Register::Rax, Register::R11));
+                    instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
+                    instructions.push(Instruction::JumpIf(
+                        Condition::Equal,
+                        string_len_done.clone(),
+                    ));
+                    instructions.push(Instruction::AddRegImm(Register::R11, 1));
+                    instructions.push(Instruction::Jump(string_len_loop.clone()));
+                    instructions.push(Instruction::Label(string_len_done.clone()));
+                    instructions.push(Instruction::MovRegReg(Register::R9, Register::R11));
+                    instructions.push(Instruction::SubRegReg(Register::R9, Register::R10));
+                    instructions.push(Instruction::Jump(string_write_skip.clone()));
+                    instructions.push(Instruction::Label(string_len_empty.clone()));
+                    instructions.push(Instruction::MovRegImm64(Register::R9, 0));
+                    instructions.push(Instruction::Label(string_write_skip.clone()));
+                    instructions.push(Instruction::CmpRegImm(Register::R9, 0));
+                    instructions.push(Instruction::JumpIf(
+                        Condition::Equal,
+                        string_write_done.clone(),
+                    ));
+                    emit_write_stdout(target, Register::R10, Register::R9, state, instructions);
+                    instructions.push(Instruction::Label(string_write_done.clone()));
+                    instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+                }
+                Type::Unit => {
+                    instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+                }
+                _ => {}
+            }
             instructions.push(Instruction::AddRsp(40));
             instructions.push(Instruction::Ret);
         }
@@ -474,6 +569,7 @@ fn is_supported_runtime_declaration(function: &MirFunction) -> bool {
                 | "print_newline"
                 | "flush_stdout"
                 | "read_int"
+                | "http_get"
                 | "string_length"
                 | "string_byte_at"
         )
@@ -499,6 +595,7 @@ fn emit_runtime_function(
         "print_newline" => emit_runtime_print_newline(function, target, state, instructions),
         "flush_stdout" => emit_runtime_flush_stdout(function, target, state, instructions),
         "read_int" => emit_runtime_read_int(function, target, state, instructions),
+        "http_get" => emit_runtime_http_get(function, target, state, instructions),
         "string_length" => emit_runtime_string_length(function, target, instructions),
         "string_byte_at" => emit_runtime_string_byte_at(function, target, instructions),
         _ => Err(CodegenError::new(format!(
@@ -506,6 +603,22 @@ fn emit_runtime_function(
             callable_name(function)
         ))),
     }
+}
+
+fn emit_runtime_http_get(
+    function: &MirFunction,
+    target: Target,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let frame = runtime_frame_size(target);
+    let empty = state.intern_c_string("");
+    instructions.push(Instruction::Label(function_label(function)));
+    instructions.push(Instruction::SubRsp(frame));
+    instructions.push(Instruction::MovRegDataAddr(Register::Rax, empty));
+    instructions.push(Instruction::AddRsp(frame));
+    instructions.push(Instruction::Ret);
+    Ok(())
 }
 
 fn emit_runtime_print_int(

@@ -2,19 +2,20 @@ use std::collections::HashMap;
 
 use inscribe_ast::nodes::{Item, Module};
 use inscribe_ast::span::Span;
+use serde::{Deserialize, Serialize};
 
 use crate::resolver::ResolveError;
 
 // TODO: Support aliases and selective imports once the language grows beyond whole-module imports.
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ImportEntry {
     pub alias: String,
     pub path: Vec<String>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
 pub struct ImportTable {
     entries: HashMap<String, ImportEntry>,
 }

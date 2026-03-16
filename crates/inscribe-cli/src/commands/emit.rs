@@ -2,8 +2,12 @@ use std::path::{Path, PathBuf};
 
 use inscribe_abi::{current_header, AbiTarget, Stability};
 use inscribe_codegen::{emit_native_assembly, OperatingSystem, Target};
-use inscribe_debug::{build_program_debug_info, emit_program_dwarf};
+use inscribe_debug::{
+    build_program_debug_info_with_sources, emit_program_dwarf_with_sources, SourceFileId,
+    SourceMap,
+};
 use inscribe_hir::render as render_hir;
+use inscribe_resolve::load_module_graph;
 
 use crate::session::{
     compile_file_to_hir, compile_file_to_mir, default_assembly_output, default_text_output,
@@ -46,12 +50,22 @@ pub fn run(args: &[String]) -> Result<(), String> {
         EmitFormat::Dwarf => {
             let input = parsed.input.as_ref().expect("dwarf emit requires an input");
             let mir = compile_file_to_mir(input).map_err(|error| error.to_string())?;
-            format!("{:#?}\n", emit_program_dwarf(&mir)).into_bytes()
+            let (source_map, file) = load_source_map(input)?;
+            format!(
+                "{:#?}\n",
+                emit_program_dwarf_with_sources(&mir, Some(&source_map), Some(file))
+            )
+            .into_bytes()
         }
         EmitFormat::Debug => {
             let input = parsed.input.as_ref().expect("debug emit requires an input");
             let mir = compile_file_to_mir(input).map_err(|error| error.to_string())?;
-            format!("{:#?}\n", build_program_debug_info(&mir)).into_bytes()
+            let (source_map, file) = load_source_map(input)?;
+            format!(
+                "{:#?}\n",
+                build_program_debug_info_with_sources(&mir, &source_map, file)
+            )
+            .into_bytes()
         }
         EmitFormat::Abi => current_header(abi_target(parsed.target), parsed.stability)
             .to_bytes()
@@ -232,6 +246,25 @@ fn default_output_path(format: EmitFormat, input: Option<&Path>, target: Target)
 
 fn usage() -> &'static str {
     "usage: inscribe emit <asm|hir|mir|dwarf|debug> <input.mtl> [--target <linux-x86_64|windows-x86_64>] [-o <output>]\n       inscribe emit abi [--target <linux-x86_64|windows-x86_64>] [--stability <stable|experimental|internal>] [-o <output.mabi>]"
+}
+
+fn load_source_map(input: &Path) -> Result<(SourceMap, SourceFileId), String> {
+    let graph = load_module_graph(input).map_err(|error| error.to_string())?;
+    let mut merged = String::new();
+
+    for module in &graph.modules {
+        let source = std::fs::read_to_string(&module.path)
+            .map_err(|error| format!("failed to read `{}`: {error}", module.path.display()))?;
+        let padding = source.len().max(1) + 1 - source.len();
+        merged.push_str(&source);
+        for _ in 0..padding {
+            merged.push('\n');
+        }
+    }
+
+    let mut map = SourceMap::new();
+    let file = map.add_file(graph.entry.to_string_lossy(), merged);
+    Ok((map, file))
 }
 
 #[cfg(test)]

@@ -1,7 +1,9 @@
 use std::fmt;
 use std::hash::Hash;
 
-use crate::cache::Cache;
+use serde::{de::DeserializeOwned, Serialize};
+
+use crate::cache::{Cache, DiskCache};
 use crate::dep_graph::{DepGraph, DepNode};
 use crate::fingerprint::Fingerprint;
 
@@ -86,6 +88,50 @@ impl QueryEngine {
             }
             Err(error) => Err(error),
         }
+    }
+
+    pub fn execute_with_disk<K, V, F>(
+        &mut self,
+        cache: &mut Cache<K, V>,
+        disk: Option<&DiskCache>,
+        query: &'static str,
+        key: K,
+        input_fingerprint: Fingerprint,
+        compute: F,
+    ) -> Result<V, QueryError>
+    where
+        K: Eq + Hash + Clone,
+        V: Clone + Serialize + DeserializeOwned,
+        F: FnOnce(&mut QueryEngine) -> Result<V, QueryError>,
+    {
+        if let Some(disk) = disk {
+            match disk.load_if_fresh::<K, V>(&key, input_fingerprint) {
+                Ok(Some(value)) => {
+                    cache.insert(key.clone(), input_fingerprint, value.clone());
+                    return Ok(value);
+                }
+                Ok(None) => {}
+                Err(error) => {
+                    return Err(QueryError::new(format!(
+                        "failed to read disk cache for `{}`: {error}",
+                        query
+                    )))
+                }
+            }
+        }
+
+        let result = self.execute(cache, query, key.clone(), input_fingerprint, compute)?;
+
+        if let Some(disk) = disk {
+            if let Err(error) = disk.store(&key, input_fingerprint, &result) {
+                return Err(QueryError::new(format!(
+                    "failed to write disk cache for `{}`: {error}",
+                    query
+                )));
+            }
+        }
+
+        Ok(result)
     }
 }
 

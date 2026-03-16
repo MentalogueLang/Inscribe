@@ -10,5 +10,6 @@ inscribe-parser = { path = "../inscribe-parser" }
 inscribe-resolve = { path = "../inscribe-resolve" }
 inscribe-session = { path = "../inscribe-session" }
 inscribe-typeck = { path = "../inscribe-typeck" }
+serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]

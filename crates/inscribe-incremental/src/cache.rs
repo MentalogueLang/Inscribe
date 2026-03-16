@@ -1,5 +1,9 @@
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::io;
+use std::path::PathBuf;
+
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::fingerprint::Fingerprint;
 
@@ -9,9 +13,23 @@ pub struct CacheEntry<V> {
     pub value: V,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskCacheEntry<V> {
+    pub fingerprint: Fingerprint,
+    pub value: V,
+}
+
+#[derive(Debug)]
 pub struct Cache<K, V> {
     entries: HashMap<K, CacheEntry<V>>,
+}
+
+impl<K, V> Default for Cache<K, V> {
+    fn default() -> Self {
+        Self {
+            entries: HashMap::new(),
+        }
+    }
 }
 
 impl<K, V> Cache<K, V>
@@ -52,6 +70,86 @@ where
 
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct DiskCache {
+    root: PathBuf,
+    query: &'static str,
+}
+
+impl DiskCache {
+    pub fn new(root: impl Into<PathBuf>, query: &'static str) -> Self {
+        Self {
+            root: root.into(),
+            query,
+        }
+    }
+
+    pub fn load<K, V>(&self, key: &K) -> io::Result<Option<DiskCacheEntry<V>>>
+    where
+        K: Hash,
+        V: DeserializeOwned,
+    {
+        let path = self.entry_path(key);
+        if !path.exists() {
+            return Ok(None);
+        }
+        let bytes = std::fs::read(path)?;
+        let entry = bincode::deserialize::<DiskCacheEntry<V>>(&bytes)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+        Ok(Some(entry))
+    }
+
+    pub fn load_if_fresh<K, V>(
+        &self,
+        key: &K,
+        fingerprint: Fingerprint,
+    ) -> io::Result<Option<V>>
+    where
+        K: Hash,
+        V: DeserializeOwned,
+    {
+        let entry = match self.load::<K, V>(key)? {
+            Some(entry) => entry,
+            None => return Ok(None),
+        };
+        if entry.fingerprint == fingerprint {
+            Ok(Some(entry.value))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn store<K, V>(
+        &self,
+        key: &K,
+        fingerprint: Fingerprint,
+        value: &V,
+    ) -> io::Result<()>
+    where
+        K: Hash,
+        V: Serialize,
+    {
+        let path = self.entry_path(key);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        let entry = DiskCacheEntry {
+            fingerprint,
+            value,
+        };
+        let bytes = bincode::serialize(&entry)
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+        std::fs::write(path, bytes)?;
+        Ok(())
+    }
+
+    fn entry_path<K: Hash>(&self, key: &K) -> PathBuf {
+        let key_hash = Fingerprint::of(key).as_u64();
+        let filename = format!("{:016x}.bin", key_hash);
+        self.root.join(self.query).join(filename)
     }
 }
 

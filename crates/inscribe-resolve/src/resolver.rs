@@ -6,6 +6,7 @@ use inscribe_ast::nodes::{
     PatternKind, Stmt, StructDecl, TypeRef, TypeRefKind,
 };
 use inscribe_ast::span::Span;
+use serde::{Deserialize, Serialize};
 
 use crate::cycle_detect::detect_cycles;
 use crate::import::ImportTable;
@@ -14,7 +15,7 @@ use crate::scope::ScopeStack;
 
 // TODO: Record path-to-symbol bindings explicitly once later phases want direct symbol ids.
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ResolveError {
     pub message: String,
     pub span: Span,
@@ -41,10 +42,10 @@ impl fmt::Display for ResolveError {
 
 impl std::error::Error for ResolveError {}
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SymbolId(pub usize);
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum SymbolKind {
     Import,
     Struct,
@@ -54,7 +55,7 @@ pub enum SymbolKind {
     Param,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Symbol {
     pub id: SymbolId,
     pub name: String,
@@ -62,13 +63,13 @@ pub struct Symbol {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionKey {
     pub receiver: Option<String>,
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub enum TypeName {
     Named {
         path: Vec<String>,
@@ -90,7 +91,7 @@ impl TypeName {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct StructInfo {
     pub symbol: SymbolId,
     pub name: String,
@@ -98,7 +99,7 @@ pub struct StructInfo {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct EnumInfo {
     pub symbol: SymbolId,
     pub name: String,
@@ -106,14 +107,14 @@ pub struct EnumInfo {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ParamInfo {
     pub name: String,
     pub ty: Option<TypeName>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct FunctionInfo {
     pub symbol: SymbolId,
     pub key: FunctionKey,
@@ -122,32 +123,40 @@ pub struct FunctionInfo {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Builtins {
-    types: Vec<&'static str>,
-    constructors: Vec<&'static str>,
+    types: Vec<String>,
+    constructors: Vec<String>,
 }
 
 impl Default for Builtins {
     fn default() -> Self {
         Self {
-            types: vec!["int", "byte", "float", "string", "bool", "Result", "Error"],
-            constructors: vec!["Ok", "Err"],
+            types: vec![
+                "int".to_string(),
+                "byte".to_string(),
+                "float".to_string(),
+                "string".to_string(),
+                "bool".to_string(),
+                "Result".to_string(),
+                "Error".to_string(),
+            ],
+            constructors: vec!["Ok".to_string(), "Err".to_string()],
         }
     }
 }
 
 impl Builtins {
     pub fn is_type(&self, name: &str) -> bool {
-        self.types.iter().any(|entry| entry == &name)
+        self.types.iter().any(|entry| entry == name)
     }
 
     pub fn is_constructor(&self, name: &str) -> bool {
-        self.constructors.iter().any(|entry| entry == &name)
+        self.constructors.iter().any(|entry| entry == name)
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ResolvedProgram {
     pub module_tree: ModuleTree,
     pub imports: ImportTable,
@@ -194,7 +203,7 @@ pub fn resolve_module(module: &Module) -> Result<ResolvedProgram, Vec<ResolveErr
     Resolver::default().resolve_module(module)
 }
 
-#[derive(Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct Resolver {
     symbols: Vec<Symbol>,
     structs: HashMap<String, StructInfo>,

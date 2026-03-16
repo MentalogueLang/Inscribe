@@ -7,6 +7,7 @@ edition = "2021"
 inscribe-abi = { path = "../inscribe-abi" }
 inscribe-ast = { path = "../inscribe-ast" }
 inscribe-codegen = { path = "../inscribe-codegen" }
+inscribe-comptime = { path = "../inscribe-comptime" }
 inscribe-debug = { path = "../inscribe-debug" }
 inscribe-hir = { path = "../inscribe-hir" }
 inscribe-incremental = { path = "../inscribe-incremental" }
@@ -14,5 +15,6 @@ inscribe-lexer = { path = "../inscribe-lexer" }
 inscribe-mir = { path = "../inscribe-mir" }
 inscribe-parser = { path = "../inscribe-parser" }
 inscribe-resolve = { path = "../inscribe-resolve" }
+inscribe-sandbox = { path = "../inscribe-sandbox" }
 inscribe-session = { path = "../inscribe-session" }
 inscribe-typeck = { path = "../inscribe-typeck" }
