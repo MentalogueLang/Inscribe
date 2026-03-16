@@ -1,14 +1,12 @@
-# Inscribe 0.1.0
+# Inscribe Unreleased
 
 ## Highlights
 
-- Initial public Inscribe release.
-- Added capability-aware MIR determinism tracking.
-- Added stdin support and refreshed the calculator example.
-- Added string helpers, enums, arrays, indexing, and `as` casts.
-- Improved import handling, parse errors, and JSON parser example coverage.
+- Introduced stable HIR symbol ids and a canonical symbol table across lowering, pretty-printing, and MIR lowering.
+- Ignored generated `.hir`/`.mir` artifacts and removed tracked copies from the repository.
+- Updated the release workflow to build against the Inscribe workspace `Cargo.toml`.
 
 ## Artifacts
 
-- `inscribe-0.1.0-windows-x64.zip`
-- `inscribe-0.1.0-linux-x64.tar.gz`
+- `inscribe-<version>-windows-x64.zip`
+- `inscribe-<version>-linux-x64.tar.gz`

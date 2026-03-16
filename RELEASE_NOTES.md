@@ -1,5 +1,13 @@
 # Release Notes
 
+## Unreleased
+
+### Highlights
+
+- Introduced stable HIR symbol ids and a canonical symbol table across lowering, pretty-printing, and MIR lowering.
+- Ignored generated `.hir`/`.mir` artifacts and removed tracked copies from the repository.
+- Updated the release workflow to build against the Inscribe workspace `Cargo.toml`.
+
 ## 0.1.0 - 2026-03-15
 
 ### Highlights
