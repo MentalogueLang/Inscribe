@@ -1,12 +1,17 @@
 pub mod abi_header;
 pub mod calling_conv;
 pub mod layout;
+pub mod mlib;
 pub mod stability;
 pub mod versioning;
 
 pub use abi_header::{AbiCompatibilityError, AbiHeader, ABI_HEADER_SIZE, ABI_MAGIC};
 pub use calling_conv::{AbiTarget, CallingConvention};
 pub use layout::{AbiType, FieldLayout, Layout, StructField, StructLayout, StructMemoryLayout};
+pub use mlib::{
+    MlibExport, MlibExportKind, MlibFile, MlibHeader, MLIB_EXPORT_ENTRY_SIZE, MLIB_HEADER_SIZE,
+    MLIB_MAGIC,
+};
 pub use stability::Stability;
 pub use versioning::{AbiVersion, CURRENT_ABI_VERSION};
 

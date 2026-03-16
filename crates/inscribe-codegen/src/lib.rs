@@ -4,11 +4,13 @@ use inscribe_sandbox as _;
 use inscribe_mir::MirProgram;
 
 pub mod llvm;
+mod mlib;
 mod native;
 pub mod targets;
 pub mod wasm;
 
 pub use native::{emit_assembly, emit_executable};
+pub use mlib::emit_mlib;
 pub use targets::{Architecture, ExecutableFormat, OperatingSystem, Target};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
