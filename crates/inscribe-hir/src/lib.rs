@@ -13,8 +13,9 @@ use inscribe_typeck::TypeError;
 
 pub use lower::lower_module;
 pub use nodes::{
-    HirBinding, HirBlock, HirExpr, HirExprKind, HirField, HirFor, HirFunction, HirImport, HirItem,
-    HirMatchArm, HirParam, HirProgram, HirStmt, HirStruct, HirWhile,
+    HirBinding, HirBlock, HirEnumVariant, HirExpr, HirExprKind, HirField, HirFor, HirFunction,
+    HirImport, HirItem, HirMatchArm, HirParam, HirProgram, HirStmt, HirStruct, HirSymbol,
+    HirSymbolId, HirSymbolKind, HirWhile,
 };
 pub use pretty::render;
 

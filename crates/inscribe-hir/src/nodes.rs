@@ -2,12 +2,45 @@ use inscribe_ast::Visibility;
 use inscribe_ast::span::Span;
 use inscribe_typeck::{FunctionSignature, Type};
 
-// TODO: Grow this into a canonical compiler IR with stable ids instead of source-driven names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct HirSymbolId(pub usize);
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HirSymbolKind {
+    Import,
+    Struct,
+    Enum,
+    Variant,
+    Function,
+    Field,
+    Param,
+    Local,
+    Unresolved,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HirSymbol {
+    pub id: HirSymbolId,
+    pub name: String,
+    pub kind: HirSymbolKind,
+    pub span: Span,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirProgram {
     pub items: Vec<HirItem>,
+    pub symbols: Vec<HirSymbol>,
     pub span: Span,
+}
+
+impl HirProgram {
+    pub fn symbol(&self, id: HirSymbolId) -> &HirSymbol {
+        &self.symbols[id.0]
+    }
+
+    pub fn symbol_name(&self, id: HirSymbolId) -> &str {
+        &self.symbol(id).name
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,36 +53,44 @@ pub enum HirItem {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirImport {
+    pub symbol: HirSymbolId,
     pub path: Vec<String>,
     pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirStruct {
-    pub name: String,
+    pub symbol: HirSymbolId,
     pub fields: Vec<HirField>,
     pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirField {
-    pub name: String,
+    pub symbol: HirSymbolId,
     pub ty: Type,
     pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirEnum {
-    pub name: String,
-    pub variants: Vec<(String, usize)>,
+    pub symbol: HirSymbolId,
+    pub variants: Vec<HirEnumVariant>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HirEnumVariant {
+    pub symbol: HirSymbolId,
+    pub discriminant: usize,
     pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirFunction {
+    pub symbol: HirSymbolId,
     pub visibility: Visibility,
-    pub receiver: Option<String>,
-    pub name: String,
+    pub receiver: Option<HirSymbolId>,
     pub signature: FunctionSignature,
     pub params: Vec<HirParam>,
     pub is_declaration: bool,
@@ -59,7 +100,7 @@ pub struct HirFunction {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirParam {
-    pub name: String,
+    pub symbol: HirSymbolId,
     pub ty: Type,
     pub span: Span,
 }
@@ -83,7 +124,7 @@ pub enum HirStmt {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirBinding {
-    pub name: String,
+    pub symbol: HirSymbolId,
     pub ty: Type,
     pub value: HirExpr,
     pub span: Span,
@@ -91,7 +132,7 @@ pub struct HirBinding {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HirFor {
-    pub binding: String,
+    pub binding: HirSymbolId,
     pub binding_ty: Type,
     pub iterable: HirExpr,
     pub body: HirBlock,
@@ -116,11 +157,11 @@ pub struct HirExpr {
 pub enum HirExprKind {
     Literal(String),
     EnumVariant {
-        enum_name: String,
-        variant: String,
+        enum_id: HirSymbolId,
+        variant_id: HirSymbolId,
         discriminant: usize,
     },
-    Path(Vec<String>),
+    Path(HirSymbolId),
     Array(Vec<HirExpr>),
     RepeatArray {
         value: Box<HirExpr>,
@@ -144,15 +185,15 @@ pub enum HirExprKind {
     },
     Field {
         base: Box<HirExpr>,
-        field: String,
+        field: HirSymbolId,
     },
     Index {
         target: Box<HirExpr>,
         index: Box<HirExpr>,
     },
     StructLiteral {
-        path: Vec<String>,
-        fields: Vec<(String, HirExpr)>,
+        struct_id: HirSymbolId,
+        fields: Vec<(HirSymbolId, HirExpr)>,
     },
     If {
         condition: Box<HirExpr>,

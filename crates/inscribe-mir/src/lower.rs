@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use inscribe_ast::span::Span;
 use inscribe_hir::nodes::{
-    HirBlock, HirExpr, HirExprKind, HirFunction, HirItem, HirProgram, HirStmt,
+    HirBlock, HirExpr, HirExprKind, HirFunction, HirItem, HirProgram, HirStmt, HirSymbolId,
 };
 use inscribe_typeck::Type;
 
@@ -19,7 +19,7 @@ pub fn lower_program(program: &HirProgram) -> MirProgram {
         .items
         .iter()
         .filter_map(|item| match item {
-            HirItem::Function(function) => Some(lower_function(function)),
+            HirItem::Function(function) => Some(lower_function(program, function)),
             HirItem::Import(_) | HirItem::Struct(_) | HirItem::Enum(_) => None,
         })
         .collect();
@@ -30,24 +30,26 @@ pub fn lower_program(program: &HirProgram) -> MirProgram {
     }
 }
 
-fn lower_function(function: &HirFunction) -> MirFunction {
-    let mut lowerer = FunctionLowerer::new(function);
+fn lower_function(program: &HirProgram, function: &HirFunction) -> MirFunction {
+    let mut lowerer = FunctionLowerer::new(program, function);
     lowerer.lower_body(function.body.as_ref());
     lowerer.finish()
 }
 
 struct FunctionLowerer<'a> {
+    program: &'a HirProgram,
     function: &'a HirFunction,
     locals: Vec<LocalDecl>,
     blocks: Vec<BasicBlockData>,
-    scopes: Vec<HashMap<String, LocalId>>,
+    scopes: Vec<HashMap<HirSymbolId, LocalId>>,
     entry: BasicBlockId,
     return_local: LocalId,
 }
 
 impl<'a> FunctionLowerer<'a> {
-    fn new(function: &'a HirFunction) -> Self {
+    fn new(program: &'a HirProgram, function: &'a HirFunction) -> Self {
         let mut lowerer = Self {
+            program,
             function,
             locals: Vec::new(),
             blocks: Vec::new(),
@@ -74,13 +76,13 @@ impl<'a> FunctionLowerer<'a> {
 
         for param in &function.params {
             let local = lowerer.alloc_local(
-                param.name.clone(),
+                lowerer.program.symbol_name(param.symbol).to_string(),
                 param.ty.clone(),
                 false,
                 false,
                 param.span,
             );
-            lowerer.define_binding(param.name.clone(), local);
+            lowerer.define_binding(param.symbol, local);
             lowerer.emit(entry, StatementKind::StorageLive(local), param.span);
         }
 
@@ -88,9 +90,13 @@ impl<'a> FunctionLowerer<'a> {
     }
 
     fn finish(self) -> MirFunction {
+        let name = self.function_name();
         MirFunction {
-            receiver: self.function.receiver.clone(),
-            name: self.function.name.clone(),
+            receiver: self
+                .function
+                .receiver
+                .map(|symbol| self.program.symbol_name(symbol).to_string()),
+            name,
             signature: self.function.signature.clone(),
             is_declaration: self.function.is_declaration,
             locals: self.locals,
@@ -99,6 +105,18 @@ impl<'a> FunctionLowerer<'a> {
             return_local: self.return_local,
             span: self.function.span,
         }
+    }
+
+    fn function_name(&self) -> String {
+        let name = self.program.symbol_name(self.function.symbol);
+        if let Some(receiver) = self.function.receiver {
+            let receiver_name = self.program.symbol_name(receiver);
+            let qualified_prefix = format!("{receiver_name}.");
+            if let Some(stripped) = name.strip_prefix(&qualified_prefix) {
+                return stripped.to_string();
+            }
+        }
+        name.to_string()
     }
 
     fn lower_body(&mut self, body: Option<&HirBlock>) {
@@ -155,33 +173,36 @@ impl<'a> FunctionLowerer<'a> {
         match statement {
             HirStmt::Let(binding) => {
                 let local = self.alloc_local(
-                    binding.name.clone(),
+                    self.program.symbol_name(binding.symbol).to_string(),
                     binding.ty.clone(),
                     true,
                     false,
                     binding.span,
                 );
-                self.define_binding(binding.name.clone(), local);
+                self.define_binding(binding.symbol, local);
                 self.emit(current, StatementKind::StorageLive(local), binding.span);
                 let block = self.lower_initializer_into(&binding.value, Place::new(local), current);
                 (block, None)
             }
             HirStmt::Const(binding) => {
                 let local = self.alloc_local(
-                    binding.name.clone(),
+                    self.program.symbol_name(binding.symbol).to_string(),
                     binding.ty.clone(),
                     false,
                     false,
                     binding.span,
                 );
-                self.define_binding(binding.name.clone(), local);
+                self.define_binding(binding.symbol, local);
                 self.emit(current, StatementKind::StorageLive(local), binding.span);
                 let block = self.lower_initializer_into(&binding.value, Place::new(local), current);
                 (block, None)
             }
             HirStmt::For(for_stmt) => {
                 let iter_local = self.alloc_local(
-                    format!("{}_iter", for_stmt.binding),
+                    format!(
+                        "{}_iter",
+                        self.program.symbol_name(for_stmt.binding)
+                    ),
                     for_stmt.iterable.ty.clone(),
                     true,
                     true,
@@ -201,7 +222,7 @@ impl<'a> FunctionLowerer<'a> {
                 );
 
                 let binding_local = self.alloc_local(
-                    for_stmt.binding.clone(),
+                    self.program.symbol_name(for_stmt.binding).to_string(),
                     for_stmt.binding_ty.clone(),
                     true,
                     false,
@@ -222,7 +243,7 @@ impl<'a> FunctionLowerer<'a> {
                 );
 
                 self.push_scope();
-                self.define_binding(for_stmt.binding.clone(), binding_local);
+                self.define_binding(for_stmt.binding, binding_local);
                 self.emit(
                     body,
                     StatementKind::StorageLive(binding_local),
@@ -293,11 +314,13 @@ impl<'a> FunctionLowerer<'a> {
                     value: ConstantValue::Integer(discriminant.to_string()),
                 }),
             ),
-            HirExprKind::Path(segments) => {
-                let operand = self.path_operand(segments, &expr.ty).unwrap_or_else(|| {
+            HirExprKind::Path(symbol) => {
+                let operand = self.symbol_operand(*symbol, &expr.ty).unwrap_or_else(|| {
                     Operand::Constant(Constant {
                         ty: expr.ty.clone(),
-                        value: ConstantValue::Function(segments.join(".")),
+                        value: ConstantValue::Function(
+                            self.program.symbol_name(*symbol).to_string(),
+                        ),
                     })
                 });
                 (current, operand)
@@ -349,7 +372,9 @@ impl<'a> FunctionLowerer<'a> {
                 let place = self
                     .expr_place(base)
                     .map(|mut place| {
-                        place.projection.push(ProjectionElem::Field(field.clone()));
+                        place.projection.push(ProjectionElem::Field(
+                            self.program.symbol_name(*field).to_string(),
+                        ));
                         place
                     })
                     .unwrap_or_else(|| {
@@ -370,14 +395,17 @@ impl<'a> FunctionLowerer<'a> {
                     });
                 (current, Operand::Copy(place))
             }
-            HirExprKind::StructLiteral { path, fields } => {
+            HirExprKind::StructLiteral { struct_id, fields } => {
                 let mut block = current;
                 let lowered_fields = fields
                     .iter()
                     .map(|(name, value)| {
                         let (next, operand) = self.lower_expr(value, block);
                         block = next;
-                        (name.clone(), operand)
+                        (
+                            self.program.symbol_name(*name).to_string(),
+                            operand,
+                        )
                     })
                     .collect::<Vec<_>>();
                 let temp = self.alloc_temp(expr.ty.clone(), expr.span);
@@ -385,7 +413,7 @@ impl<'a> FunctionLowerer<'a> {
                     block,
                     Place::new(temp),
                     Rvalue::AggregateStruct {
-                        path: path.clone(),
+                        path: vec![self.program.symbol_name(*struct_id).to_string()],
                         fields: lowered_fields,
                     },
                     expr.span,
@@ -438,7 +466,11 @@ impl<'a> FunctionLowerer<'a> {
             lowered_args.push(receiver);
             Operand::Constant(Constant {
                 ty: callee.ty.clone(),
-                value: ConstantValue::Function(format!("{}.{}", base.ty.display_name(), field)),
+                value: ConstantValue::Function(format!(
+                    "{}.{}",
+                    base.ty.display_name(),
+                    self.program.symbol_name(*field)
+                )),
             })
         } else {
             let (next, operand) = self.lower_expr(callee, block);
@@ -626,10 +658,12 @@ impl<'a> FunctionLowerer<'a> {
 
     fn expr_place(&self, expr: &HirExpr) -> Option<Place> {
         match &expr.kind {
-            HirExprKind::Path(segments) => self.path_place(segments),
+            HirExprKind::Path(symbol) => self.symbol_place(*symbol),
             HirExprKind::Field { base, field } => {
                 let mut place = self.expr_place(base)?;
-                place.projection.push(ProjectionElem::Field(field.clone()));
+                place.projection.push(ProjectionElem::Field(
+                    self.program.symbol_name(*field).to_string(),
+                ));
                 Some(place)
             }
             HirExprKind::Index { target, index } => {
@@ -639,7 +673,7 @@ impl<'a> FunctionLowerer<'a> {
                         ty: index.ty.clone(),
                         value: ConstantValue::Integer(value.clone()),
                     }),
-                    HirExprKind::Path(segments) => self.path_operand(segments, &index.ty)?,
+                    HirExprKind::Path(symbol) => self.symbol_operand(*symbol, &index.ty)?,
                     _ => return None,
                 };
                 place.projection.push(ProjectionElem::Index(operand));
@@ -751,24 +785,21 @@ impl<'a> FunctionLowerer<'a> {
         (target_block, value)
     }
 
-    fn path_place(&self, segments: &[String]) -> Option<Place> {
-        let (first, rest) = segments.split_first()?;
-        let local = self.lookup_binding(first)?;
-        let mut place = Place::new(local);
-        for field in rest {
-            place.projection.push(ProjectionElem::Field(field.clone()));
-        }
-        Some(place)
+    fn symbol_place(&self, symbol: HirSymbolId) -> Option<Place> {
+        let local = self.lookup_binding(symbol)?;
+        Some(Place::new(local))
     }
 
-    fn path_operand(&self, segments: &[String], ty: &Type) -> Option<Operand> {
-        self.path_place(segments)
-            .map(|place| Operand::Copy(place))
+    fn symbol_operand(&self, symbol: HirSymbolId, ty: &Type) -> Option<Operand> {
+        self.symbol_place(symbol)
+            .map(Operand::Copy)
             .or_else(|| {
                 if matches!(ty, Type::Function(_)) {
                     Some(Operand::Constant(Constant {
                         ty: ty.clone(),
-                        value: ConstantValue::Function(segments.join(".")),
+                        value: ConstantValue::Function(
+                            self.program.symbol_name(symbol).to_string(),
+                        ),
                     }))
                 } else {
                     None
@@ -830,16 +861,16 @@ impl<'a> FunctionLowerer<'a> {
         matches!(self.blocks[block.0].terminator, TerminatorKind::Unreachable)
     }
 
-    fn lookup_binding(&self, name: &str) -> Option<LocalId> {
+    fn lookup_binding(&self, symbol: HirSymbolId) -> Option<LocalId> {
         self.scopes
             .iter()
             .rev()
-            .find_map(|scope| scope.get(name).copied())
+            .find_map(|scope| scope.get(&symbol).copied())
     }
 
-    fn define_binding(&mut self, name: String, local: LocalId) {
+    fn define_binding(&mut self, symbol: HirSymbolId, local: LocalId) {
         if let Some(scope) = self.scopes.last_mut() {
-            scope.insert(name, local);
+            scope.insert(symbol, local);
         }
     }
 
