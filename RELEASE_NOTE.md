@@ -1,4 +1,4 @@
-# Inscribe Unreleased
+# Inscribe 0.1.1
 
 ## Highlights
 
@@ -8,5 +8,5 @@
 
 ## Artifacts
 
-- `inscribe-<version>-windows-x64.zip`
-- `inscribe-<version>-linux-x64.tar.gz`
+- `inscribe-0.1.1-windows-x64.zip`
+- `inscribe-0.1.1-linux-x64.tar.gz`
