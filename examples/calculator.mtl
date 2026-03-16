@@ -1,21 +1,4 @@
-fn read_int() -> int
-fn print_int(value: int)
-fn print_string(value: string)
-fn print_newline()
-
-fn write_line_string(value: string) {
-    print_string(value)
-    print_newline()
-}
-
-fn write_line_int(value: int) {
-    print_int(value)
-    print_newline()
-}
-
-fn read_line_int() -> int {
-    read_int()
-}
+import io.console
 
 fn safe_divide(left: int, right: int) -> int {
     if right == 0 {
