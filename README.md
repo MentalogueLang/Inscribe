@@ -24,7 +24,7 @@ cargo run -p inscribe-cli -- build examples/json_parser/main.mtl
 cargo run -p inscribe-cli -- run examples/json_parser/main.mtl
 ```
 
-Tip: you can install via `mntpack sync MentalogueLang/Inscribe -g -r auto`, though it is preferred to install Inscribe through Stratum when available.
+Tip: you can install via `mntpack sync MentalogueLang/Inscribe -g -r auto`, though it is preferred to install Inscribe through [Stratum](https://github.com/MentalogueLang/Stratum) when available.
 
 ## Check An Example
 
