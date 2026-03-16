@@ -1,14 +1,16 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::{Mutex, OnceLock};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use inscribe_codegen::Target;
 use inscribe_hir::{lower_module, HirProgram};
+use inscribe_incremental::{Cache, Fingerprint, FingerprintBuilder, QueryEngine, QueryError};
 use inscribe_mir::{lower_program, optimize_program, MirProgram};
-use inscribe_resolve::{load_module_graph, resolve_module_graph};
+use inscribe_resolve::{load_module_graph, resolve_module_graph, LoadedModuleGraph, ResolvedProgram};
 use inscribe_session::{Session, SessionError};
-use inscribe_typeck::check_module;
+use inscribe_typeck::{check_module, TypeCheckResult};
 
 pub fn host_session() -> Session {
     Session::default()
@@ -19,16 +21,45 @@ pub struct CompiledArtifacts {
     pub mir: MirProgram,
 }
 
+#[derive(Debug, Default)]
+pub struct IncrementalSession {
+    engine: QueryEngine,
+    graph_cache: Cache<PathBuf, LoadedModuleGraph>,
+    resolved_cache: Cache<PathBuf, ResolvedProgram>,
+    typed_cache: Cache<PathBuf, TypeCheckResult>,
+    hir_cache: Cache<PathBuf, HirProgram>,
+    mir_cache: Cache<PathBuf, MirProgram>,
+}
+
+impl IncrementalSession {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    fn cached_graph_fingerprint(
+        &self,
+        entry: &Path,
+    ) -> Result<Option<Fingerprint>, SessionError> {
+        self.graph_cache
+            .get(entry)
+            .map(|graph| fingerprint_graph_sources(graph))
+            .transpose()
+    }
+}
+
+static INCREMENTAL: OnceLock<Mutex<IncrementalSession>> = OnceLock::new();
+
+fn with_incremental_session<F, R>(f: F) -> R
+where
+    F: FnOnce(&mut IncrementalSession) -> R,
+{
+    let session = INCREMENTAL.get_or_init(|| Mutex::new(IncrementalSession::new()));
+    let mut guard = session.lock().expect("incremental session lock poisoned");
+    f(&mut guard)
+}
+
 pub fn compile_file(input: &Path) -> Result<CompiledArtifacts, SessionError> {
-    let graph = load_module_graph(input)?;
-    let resolved = resolve_module_graph(&graph)
-        .map_err(|errors| join_errors("resolve", errors.into_iter().map(|e| e.to_string())))?;
-    let typed = check_module(&graph.merged, &resolved)
-        .map_err(|errors| join_errors("typeck", errors.into_iter().map(|e| e.to_string())))?;
-    let hir = lower_module(&graph.merged, &resolved, &typed);
-    let mut mir = lower_program(&hir);
-    optimize_program(&mut mir);
-    Ok(CompiledArtifacts { hir, mir })
+    with_incremental_session(|incremental| compile_file_with_incremental(incremental, input))
 }
 
 pub fn compile_file_to_hir(input: &Path) -> Result<HirProgram, SessionError> {
@@ -39,12 +70,143 @@ pub fn compile_file_to_mir(input: &Path) -> Result<MirProgram, SessionError> {
     compile_file(input).map(|artifacts| artifacts.mir)
 }
 
-fn join_errors<I>(stage: &'static str, errors: I) -> SessionError
+fn compile_file_with_incremental(
+    incremental: &mut IncrementalSession,
+    input: &Path,
+) -> Result<CompiledArtifacts, SessionError> {
+    let entry = canonicalize_path(input)?;
+    let cached_fingerprint = incremental.cached_graph_fingerprint(&entry)?;
+    let load_fingerprint = cached_fingerprint.unwrap_or_else(|| fingerprint_path(&entry));
+
+    let graph = incremental
+        .engine
+        .execute(
+            &mut incremental.graph_cache,
+            "load_module_graph",
+            entry.clone(),
+            load_fingerprint,
+            |_| load_module_graph(&entry).map_err(|error| QueryError::new(error.to_string())),
+        )
+        .map_err(|error| SessionError::new("load", error.message))?;
+
+    let source_fingerprint = if let Some(fingerprint) = cached_fingerprint {
+        fingerprint
+    } else {
+        let fingerprint = fingerprint_graph_sources(&graph)?;
+        incremental
+            .graph_cache
+            .insert(entry.clone(), fingerprint, graph.clone());
+        fingerprint
+    };
+
+    let resolved = incremental
+        .engine
+        .execute(
+            &mut incremental.resolved_cache,
+            "resolve",
+            entry.clone(),
+            source_fingerprint,
+            |_| {
+                resolve_module_graph(&graph).map_err(|errors| {
+                    QueryError::new(join_error_messages(
+                        errors.into_iter().map(|error| error.to_string()),
+                    ))
+                })
+            },
+        )
+        .map_err(|error| SessionError::new("resolve", error.message))?;
+
+    let typed = incremental
+        .engine
+        .execute(
+            &mut incremental.typed_cache,
+            "typeck",
+            entry.clone(),
+            source_fingerprint,
+            |_| {
+                check_module(&graph.merged, &resolved).map_err(|errors| {
+                    QueryError::new(join_error_messages(
+                        errors.into_iter().map(|error| error.to_string()),
+                    ))
+                })
+            },
+        )
+        .map_err(|error| SessionError::new("typeck", error.message))?;
+
+    let hir = incremental
+        .engine
+        .execute(
+            &mut incremental.hir_cache,
+            "lower_hir",
+            entry.clone(),
+            source_fingerprint,
+            |_| Ok(lower_module(&graph.merged, &resolved, &typed)),
+        )
+        .map_err(|error| SessionError::new("hir", error.message))?;
+
+    let mir = incremental
+        .engine
+        .execute(
+            &mut incremental.mir_cache,
+            "lower_mir",
+            entry.clone(),
+            source_fingerprint,
+            |_| {
+                let mut mir = lower_program(&hir);
+                optimize_program(&mut mir);
+                Ok(mir)
+            },
+        )
+        .map_err(|error| SessionError::new("mir", error.message))?;
+
+    Ok(CompiledArtifacts { hir, mir })
+}
+
+fn join_error_messages<I>(errors: I) -> String
 where
     I: IntoIterator<Item = String>,
 {
-    let message = errors.into_iter().collect::<Vec<_>>().join("\n");
-    SessionError::new(stage, message)
+    errors.into_iter().collect::<Vec<_>>().join("\n")
+}
+
+fn fingerprint_path(path: &Path) -> Fingerprint {
+    let mut builder = FingerprintBuilder::new();
+    builder.update_str(&path.to_string_lossy());
+    builder.finish()
+}
+
+fn fingerprint_graph_sources(graph: &LoadedModuleGraph) -> Result<Fingerprint, SessionError> {
+    let mut paths = graph
+        .modules
+        .iter()
+        .map(|module| module.path.clone())
+        .collect::<Vec<_>>();
+    paths.sort();
+    fingerprint_paths(&paths)
+}
+
+fn fingerprint_paths(paths: &[PathBuf]) -> Result<Fingerprint, SessionError> {
+    let mut builder = FingerprintBuilder::new();
+    for path in paths {
+        let bytes = fs::read(path).map_err(|error| {
+            SessionError::new(
+                "io",
+                format!("failed to read `{}`: {error}", path.display()),
+            )
+        })?;
+        builder.update_str(&path.to_string_lossy());
+        builder.update_bytes(&bytes);
+    }
+    Ok(builder.finish())
+}
+
+fn canonicalize_path(path: &Path) -> Result<PathBuf, SessionError> {
+    path.canonicalize().map_err(|error| {
+        SessionError::new(
+            "io",
+            format!("failed to resolve `{}`: {error}", path.display()),
+        )
+    })
 }
 
 pub fn host_target() -> Target {

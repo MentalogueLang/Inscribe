@@ -19,6 +19,7 @@ dependencies = [
  "inscribe-codegen",
  "inscribe-debug",
  "inscribe-hir",
+ "inscribe-incremental",
  "inscribe-lexer",
  "inscribe-mir",
  "inscribe-parser",

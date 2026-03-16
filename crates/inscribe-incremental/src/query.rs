@@ -1,4 +1,123 @@
-// TODO: Implement the query module for inscribe-incremental.
+use std::fmt;
+use std::hash::Hash;
+
+use crate::cache::Cache;
+use crate::dep_graph::{DepGraph, DepNode};
+use crate::fingerprint::Fingerprint;
+
+#[derive(Debug, Clone)]
+pub struct QueryError {
+    pub message: String,
+}
+
+impl QueryError {
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+}
+
+impl fmt::Display for QueryError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "query error: {}", self.message)
+    }
+}
+
+impl std::error::Error for QueryError {}
 
 #[derive(Debug, Default)]
-pub struct QueryStub;
+pub struct QueryEngine {
+    dep_graph: DepGraph,
+    stack: Vec<DepNode>,
+}
+
+impl QueryEngine {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn dep_graph(&self) -> &DepGraph {
+        &self.dep_graph
+    }
+
+    pub fn dep_graph_mut(&mut self) -> &mut DepGraph {
+        &mut self.dep_graph
+    }
+
+    pub fn execute<K, V, F>(
+        &mut self,
+        cache: &mut Cache<K, V>,
+        query: &'static str,
+        key: K,
+        input_fingerprint: Fingerprint,
+        compute: F,
+    ) -> Result<V, QueryError>
+    where
+        K: Eq + Hash + Clone,
+        V: Clone,
+        F: FnOnce(&mut QueryEngine) -> Result<V, QueryError>,
+    {
+        let node = DepNode::new(query, Fingerprint::of(&key));
+        if let Some(parent) = self.stack.last().copied() {
+            self.dep_graph.add_dependency(parent, node);
+        }
+
+        if self.stack.contains(&node) {
+            return Err(QueryError::new(format!(
+                "cycle detected while evaluating `{}`",
+                query
+            )));
+        }
+
+        if let Some(value) = cache.get_if_fresh(&key, input_fingerprint) {
+            return Ok(value.clone());
+        }
+
+        self.dep_graph.clear_dependencies(node);
+        self.stack.push(node);
+        let result = compute(self);
+        self.stack.pop();
+
+        match result {
+            Ok(value) => {
+                cache.insert(key, input_fingerprint, value.clone());
+                Ok(value)
+            }
+            Err(error) => Err(error),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{QueryEngine, QueryError};
+    use crate::cache::Cache;
+    use crate::fingerprint::Fingerprint;
+
+    #[test]
+    fn caches_query_results() -> Result<(), QueryError> {
+        let mut engine = QueryEngine::new();
+        let mut cache = Cache::default();
+
+        let key = "input";
+        let fingerprint = Fingerprint::of(&"v1");
+        let mut runs = 0;
+
+        let first = engine.execute(&mut cache, "test", key, fingerprint, |engine| {
+            let _ = engine;
+            runs += 1;
+            Ok(10)
+        })?;
+        let second = engine.execute(&mut cache, "test", key, fingerprint, |engine| {
+            let _ = engine;
+            runs += 1;
+            Ok(20)
+        })?;
+
+        assert_eq!(first, 10);
+        assert_eq!(second, 10);
+        assert_eq!(runs, 1);
+        Ok(())
+    }
+}

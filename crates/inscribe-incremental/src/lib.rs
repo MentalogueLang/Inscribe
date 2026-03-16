@@ -5,4 +5,7 @@ pub mod dep_graph;
 pub mod fingerprint;
 pub mod query;
 
-// TODO: Implement the library root module for inscribe-incremental.
+pub use cache::{Cache, CacheEntry};
+pub use dep_graph::{DepGraph, DepNode};
+pub use fingerprint::{Fingerprint, FingerprintBuilder};
+pub use query::{QueryEngine, QueryError};
