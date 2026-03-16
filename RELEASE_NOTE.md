@@ -1,4 +1,4 @@
-# Inscribe 0.1.2
+# Inscribe 0.2.0
 
 ## Highlights
 
@@ -9,5 +9,5 @@
 
 ## Artifacts
 
-- `inscribe-0.1.2-windows-x64.zip`
-- `inscribe-0.1.2-linux-x64.tar.gz`
+- `inscribe-0.2.0-windows-x64.zip`
+- `inscribe-0.2.0-linux-x64.tar.gz`

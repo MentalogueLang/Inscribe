@@ -1,6 +1,6 @@
 # Release Notes
 
-## 0.1.2 - 2026-03-15
+## 0.2.0 - 2026-03-15
 
 ### Highlights
 
@@ -11,8 +11,8 @@
 
 ### Artifacts
 
-- `inscribe-0.1.2-windows-x64.zip`
-- `inscribe-0.1.2-linux-x64.tar.gz`
+- `inscribe-0.2.0-windows-x64.zip`
+- `inscribe-0.2.0-linux-x64.tar.gz`
 
 ## 0.1.1 - 2026-03-15
 
