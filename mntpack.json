@@ -1,5 +1,8 @@
 {
-  "bin": {
-    "inscribe": "./target/release/inscribe-cli"
+  "run": {
+    "windows-x64": "./target/release/inscribe-cli.exe",
+    "linux-x64"  : "./target/release/inscribe-cli",
+    "windows-x86": "./target/release/inscribe-cli.exe",
+    "linux-arm64": "./target/release/inscribe-cli"
   }
 }
