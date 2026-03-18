@@ -37,6 +37,15 @@ impl MlibExportKind {
             Self::Type => 3,
         }
     }
+
+    fn from_byte(value: u8) -> Option<Self> {
+        match value {
+            1 => Some(Self::Function),
+            2 => Some(Self::Global),
+            3 => Some(Self::Type),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -84,43 +93,83 @@ impl MlibFile {
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
+        let (string_table, export_table) = build_string_table_and_exports(&self.exports);
         let mut bytes = Vec::new();
         bytes.extend_from_slice(&self.header.to_bytes());
-
-        bytes.extend_from_slice(&self.export_table_bytes());
-        bytes.extend_from_slice(&self.string_table);
+        bytes.extend_from_slice(&export_table);
+        bytes.extend_from_slice(&string_table);
         bytes.extend_from_slice(&self.code);
         bytes.extend_from_slice(&self.data);
         bytes
     }
 
-    fn export_table_bytes(&self) -> Vec<u8> {
-        let mut bytes = Vec::with_capacity(self.exports.len() * MLIB_EXPORT_ENTRY_SIZE);
-        let mut string_cursor = 0u32;
-        for export in &self.exports {
-            let name_bytes = export.name.as_bytes();
-            let name_offset = string_cursor;
-            let name_len = name_bytes.len() as u16;
-            string_cursor = string_cursor.saturating_add(name_bytes.len() as u32 + 1);
-
-            bytes.extend_from_slice(&name_offset.to_le_bytes());
-            bytes.extend_from_slice(&name_len.to_le_bytes());
-            bytes.push(export.kind.to_byte());
-            bytes.push(0);
-            bytes.extend_from_slice(&export.address.to_le_bytes());
-
-            let signature_offset = export
-                .signature
-                .as_ref()
-                .map(|_| 0u32)
-                .unwrap_or(0u32);
-            bytes.extend_from_slice(&signature_offset.to_le_bytes());
+    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        if bytes.len() < MLIB_HEADER_SIZE {
+            return None;
         }
-        bytes
+
+        let header = MlibHeader::from_bytes(bytes[..MLIB_HEADER_SIZE].try_into().ok()?)?;
+        if header.magic != MLIB_MAGIC {
+            return None;
+        }
+
+        let export_table_start = header.export_table_offset as usize;
+        let export_table_end =
+            export_table_start + header.export_table_count as usize * MLIB_EXPORT_ENTRY_SIZE;
+        let string_table_start = header.string_table_offset as usize;
+        let string_table_end = string_table_start + header.string_table_size as usize;
+        let code_start = header.code_offset as usize;
+        let code_end = code_start + header.code_size as usize;
+        let data_start = header.data_offset as usize;
+        let data_end = data_start + header.data_size as usize;
+
+        if export_table_end > bytes.len()
+            || string_table_end > bytes.len()
+            || code_end > bytes.len()
+            || data_end > bytes.len()
+        {
+            return None;
+        }
+
+        let string_table = bytes[string_table_start..string_table_end].to_vec();
+        let mut exports = Vec::new();
+        for index in 0..header.export_table_count as usize {
+            let offset = export_table_start + index * MLIB_EXPORT_ENTRY_SIZE;
+            let entry = &bytes[offset..offset + MLIB_EXPORT_ENTRY_SIZE];
+            let name_offset = u32::from_le_bytes(entry[0..4].try_into().ok()?) as usize;
+            let name_len = u16::from_le_bytes(entry[4..6].try_into().ok()?) as usize;
+            let kind = MlibExportKind::from_byte(entry[6])?;
+            let address = u64::from_le_bytes(entry[8..16].try_into().ok()?);
+            let signature_offset = u32::from_le_bytes(entry[16..20].try_into().ok()?) as usize;
+            let signature_len = u32::from_le_bytes(entry[20..24].try_into().ok()?) as usize;
+
+            let name = read_string(&string_table, name_offset, name_len)?;
+            let signature = if signature_len == 0 {
+                None
+            } else {
+                Some(string_table.get(signature_offset..signature_offset + signature_len)?.to_vec())
+            };
+
+            exports.push(MlibExport {
+                name,
+                kind,
+                address,
+                signature,
+            });
+        }
+
+        Some(Self {
+            header,
+            exports,
+            string_table,
+            code: bytes[code_start..code_end].to_vec(),
+            data: bytes[data_start..data_end].to_vec(),
+        })
     }
 
     fn rebuild_layout(&mut self) {
-        self.string_table = build_string_table(&self.exports);
+        let (string_table, _) = build_string_table_and_exports(&self.exports);
+        self.string_table = string_table;
         let export_table_size = (self.exports.len() * MLIB_EXPORT_ENTRY_SIZE) as u64;
         let string_table_size = self.string_table.len() as u64;
 
@@ -201,13 +250,41 @@ impl MlibHeader {
     }
 }
 
-fn build_string_table(exports: &[MlibExport]) -> Vec<u8> {
-    let mut bytes = Vec::new();
+fn build_string_table_and_exports(exports: &[MlibExport]) -> (Vec<u8>, Vec<u8>) {
+    let mut strings = Vec::new();
+    let mut entries = Vec::with_capacity(exports.len() * MLIB_EXPORT_ENTRY_SIZE);
+
     for export in exports {
-        bytes.extend_from_slice(export.name.as_bytes());
-        bytes.push(0);
+        let name_offset = strings.len() as u32;
+        let name_len = export.name.len() as u16;
+        strings.extend_from_slice(export.name.as_bytes());
+        strings.push(0);
+
+        let (signature_offset, signature_len) = if let Some(signature) = &export.signature {
+            let offset = strings.len() as u32;
+            let len = signature.len() as u32;
+            strings.extend_from_slice(signature);
+            strings.push(0);
+            (offset, len)
+        } else {
+            (0, 0)
+        };
+
+        entries.extend_from_slice(&name_offset.to_le_bytes());
+        entries.extend_from_slice(&name_len.to_le_bytes());
+        entries.push(export.kind.to_byte());
+        entries.push(0);
+        entries.extend_from_slice(&export.address.to_le_bytes());
+        entries.extend_from_slice(&signature_offset.to_le_bytes());
+        entries.extend_from_slice(&signature_len.to_le_bytes());
     }
-    bytes
+
+    (strings, entries)
+}
+
+fn read_string(strings: &[u8], offset: usize, len: usize) -> Option<String> {
+    let bytes = strings.get(offset..offset + len)?;
+    std::str::from_utf8(bytes).ok().map(|value| value.to_string())
 }
 
 fn encode_target(target: AbiTarget) -> u16 {

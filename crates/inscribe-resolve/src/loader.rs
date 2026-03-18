@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use inscribe_abi::{MlibExportKind, MlibFile};
 use inscribe_ast::nodes::{
     Block, EnumDecl, EnumVariant, Expr, ExprKind, FunctionDecl, Import, Item, MatchArm, Module,
     Param, Path as AstPath, Pattern, PatternKind, Stmt, StructDecl, StructField,
@@ -114,17 +115,24 @@ fn load_recursive(
     }
 
     let source_text = fs::read_to_string(path).map_err(|error| {
-        SessionError::new(
-            "io",
-            format!("failed to read `{}`: {error}", path.display()),
-        )
-    })?;
-    let tokens = inscribe_lexer::lex(&source_text)
-        .map_err(|error| SessionError::new("lex", error.to_string()))?;
-    let mut module =
-        parse_module(tokens).map_err(|error| SessionError::new("parse", error.to_string()))?;
-    rebase_module_spans(&mut module, *next_span_base);
-    *next_span_base += source_text.len().max(1) + 1;
+        SessionError::new("io", format!("failed to read `{}`: {error}", path.display()))
+    });
+    let module = if path
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("mlib"))
+    {
+        load_mlib_module(path, next_span_base)?
+    } else {
+        let source_text = source_text?;
+        let tokens = inscribe_lexer::lex(&source_text)
+            .map_err(|error| SessionError::new("lex", error.to_string()))?;
+        let mut module =
+            parse_module(tokens).map_err(|error| SessionError::new("parse", error.to_string()))?;
+        rebase_module_spans(&mut module, *next_span_base);
+        *next_span_base += source_text.len().max(1) + 1;
+        module
+    };
 
     let mut imports = Vec::new();
     for item in &module.items {
@@ -446,16 +454,31 @@ fn resolve_import_path(
         .iter()
         .fold(base_dir.to_path_buf(), |path, segment| path.join(segment))
         .with_extension("mtl");
-    candidate.canonicalize().map_err(|error| {
-        SessionError::new(
-            "include",
-            format!(
-                "failed to resolve import `{}` from `{}`: {error}",
-                segments.join("."),
-                current_file.display()
-            ),
-        )
-    })
+    if candidate.exists() {
+        return candidate.canonicalize().map_err(|error| {
+            SessionError::new(
+                "include",
+                format!(
+                    "failed to resolve import `{}` from `{}`: {error}",
+                    segments.join("."),
+                    current_file.display()
+                ),
+            )
+        });
+    }
+
+    if let Some(candidate) = resolve_suture_import_path(current_file, segments)? {
+        return Ok(candidate);
+    }
+
+    Err(SessionError::new(
+        "include",
+        format!(
+            "failed to resolve import `{}` from `{}`",
+            segments.join("."),
+            current_file.display()
+        ),
+    ))
 }
 
 fn workspace_root() -> PathBuf {
@@ -697,4 +720,376 @@ fn shift_span(span: &mut Span, base_offset: usize) {
 
 fn shift_position(position: &mut Position, base_offset: usize) {
     position.offset += base_offset;
+}
+
+fn resolve_suture_import_path(
+    current_file: &Path,
+    segments: &[String],
+) -> Result<Option<PathBuf>, SessionError> {
+    let package = segments.join(".");
+    let Some(mut current) = current_file.parent().map(Path::to_path_buf) else {
+        return Ok(None);
+    };
+
+    loop {
+        let package_root = current.join(".suture").join("mlib").join(&package);
+        if package_root.is_dir() {
+            let direct = package_root.join(format!("{package}.mlib"));
+            if direct.exists() {
+                return direct.canonicalize().map(Some).map_err(|error| {
+                    SessionError::new(
+                        "include",
+                        format!("failed to resolve `{}`: {error}", direct.display()),
+                    )
+                });
+            }
+
+            let mut versions = fs::read_dir(&package_root)
+                .map_err(|error| {
+                    SessionError::new(
+                        "include",
+                        format!("failed to read `{}`: {error}", package_root.display()),
+                    )
+                })?
+                .filter_map(|entry| entry.ok())
+                .map(|entry| entry.path())
+                .filter(|path| path.is_dir())
+                .collect::<Vec<_>>();
+            versions.sort();
+            versions.reverse();
+            for version_dir in versions {
+                let candidate = version_dir.join(format!("{package}.mlib"));
+                if candidate.exists() {
+                    return candidate.canonicalize().map(Some).map_err(|error| {
+                        SessionError::new(
+                            "include",
+                            format!("failed to resolve `{}`: {error}", candidate.display()),
+                        )
+                    });
+                }
+            }
+        }
+
+        if !current.pop() {
+            break;
+        }
+    }
+
+    Ok(None)
+}
+
+fn load_mlib_module(path: &Path, next_span_base: &mut usize) -> Result<Module, SessionError> {
+    let bytes = fs::read(path).map_err(|error| {
+        SessionError::new(
+            "io",
+            format!("failed to read `{}`: {error}", path.display()),
+        )
+    })?;
+    let file = MlibFile::from_bytes(&bytes).ok_or_else(|| {
+        SessionError::new(
+            "include",
+            format!("failed to decode MLIB `{}`", path.display()),
+        )
+    })?;
+
+    let mut custom_types = HashSet::new();
+    let mut functions = Vec::new();
+    for export in &file.exports {
+        if export.kind != MlibExportKind::Function {
+            continue;
+        }
+        let signature = export.signature.as_deref().ok_or_else(|| {
+            SessionError::new(
+                "include",
+                format!("MLIB export `{}` is missing a function signature", export.name),
+            )
+        })?;
+        let signature = std::str::from_utf8(signature).map_err(|error| {
+            SessionError::new(
+                "include",
+                format!("MLIB export `{}` has an invalid signature: {error}", export.name),
+            )
+        })?;
+        functions.push(synthetic_function_from_export(
+            export.name.as_str(),
+            signature,
+            next_span_base,
+            &mut custom_types,
+        )?);
+    }
+
+    let mut type_names = custom_types.into_iter().collect::<Vec<_>>();
+    type_names.sort();
+    let mut items = type_names
+        .into_iter()
+        .map(|name| Item::Struct(synthetic_struct_decl(name, next_span_base)))
+        .collect::<Vec<_>>();
+    items.extend(functions.into_iter().map(Item::Function));
+    let span = fresh_span(next_span_base);
+    Ok(Module { items, span })
+}
+
+fn synthetic_function_from_export(
+    export_name: &str,
+    signature: &str,
+    next_span_base: &mut usize,
+    custom_types: &mut HashSet<String>,
+) -> Result<FunctionDecl, SessionError> {
+    let (receiver, name) = if let Some((receiver, name)) = export_name.rsplit_once('.') {
+        (Some(receiver.to_string()), name.to_string())
+    } else {
+        (None, export_name.to_string())
+    };
+    let parsed = parse_signature_text(signature)?;
+    for ty in &parsed.params {
+        collect_custom_types_from_type_ref(ty, custom_types);
+    }
+    if let Some(return_type) = &parsed.return_type {
+        collect_custom_types_from_type_ref(return_type, custom_types);
+    }
+    if let Some(receiver) = &receiver {
+        custom_types.insert(receiver.clone());
+    }
+
+    let receiver_path = receiver
+        .as_ref()
+        .map(|receiver| synthetic_path(vec![receiver.clone()], fresh_span(next_span_base)));
+    let name_span = fresh_span(next_span_base);
+    let span = fresh_span(next_span_base);
+    let mut params = Vec::new();
+    for (index, ty) in parsed.params.into_iter().enumerate() {
+        let is_self = receiver.is_some()
+            && index == 0
+            && matches!(
+                &ty.kind,
+                TypeRefKind::Path { path, .. }
+                    if path.segments.last() == receiver.as_ref()
+            );
+        let param_name = if is_self {
+            "self".to_string()
+        } else {
+            format!("arg{index}")
+        };
+        let ty = if is_self { None } else { Some(ty) };
+        let param_span = fresh_span(next_span_base);
+        params.push(Param {
+            name: param_name,
+            name_span: param_span,
+            ty,
+            span: param_span,
+        });
+    }
+
+    Ok(FunctionDecl {
+        visibility: Visibility::Public,
+        receiver: receiver_path,
+        name,
+        name_span,
+        params,
+        return_type: parsed.return_type,
+        body: None,
+        span,
+    })
+}
+
+fn synthetic_struct_decl(name: String, next_span_base: &mut usize) -> StructDecl {
+    let span = fresh_span(next_span_base);
+    StructDecl {
+        name,
+        name_span: span,
+        fields: Vec::new(),
+        span,
+    }
+}
+
+fn collect_custom_types_from_type_ref(ty: &TypeRef, custom_types: &mut HashSet<String>) {
+    match &ty.kind {
+        TypeRefKind::Path { path, arguments } => {
+            if let Some(name) = path.segments.last() {
+                if !is_builtin_type_name(name) {
+                    custom_types.insert(name.clone());
+                }
+            }
+            for argument in arguments {
+                collect_custom_types_from_type_ref(argument, custom_types);
+            }
+        }
+        TypeRefKind::Array { element, .. } => collect_custom_types_from_type_ref(element, custom_types),
+    }
+}
+
+fn is_builtin_type_name(name: &str) -> bool {
+    matches!(name, "int" | "byte" | "float" | "string" | "bool" | "Error" | "Result" | "Range")
+}
+
+struct ParsedSignature {
+    params: Vec<TypeRef>,
+    return_type: Option<TypeRef>,
+}
+
+fn parse_signature_text(source: &str) -> Result<ParsedSignature, SessionError> {
+    let source = source.trim();
+    let Some(rest) = source.strip_prefix("fn(") else {
+        return Err(SessionError::new(
+            "include",
+            format!("unsupported MLIB signature `{source}`"),
+        ));
+    };
+    let Some((params_text, return_text)) = rest.split_once(") -> ") else {
+        return Err(SessionError::new(
+            "include",
+            format!("unsupported MLIB signature `{source}`"),
+        ));
+    };
+
+    let params = if params_text.trim().is_empty() {
+        Vec::new()
+    } else {
+        split_top_level(params_text, ',')
+            .into_iter()
+            .map(|entry| parse_type_ref_text(entry.trim()))
+            .collect::<Result<Vec<_>, _>>()?
+    };
+    let return_type = if return_text.trim() == "()" {
+        None
+    } else {
+        Some(parse_type_ref_text(return_text.trim())?)
+    };
+
+    Ok(ParsedSignature { params, return_type })
+}
+
+fn parse_type_ref_text(source: &str) -> Result<TypeRef, SessionError> {
+    let span = Span::default();
+    if source == "_" {
+        return Err(SessionError::new(
+            "include",
+            "MLIB signatures cannot contain inferred `_` types",
+        ));
+    }
+
+    if let Some(inner) = source.strip_prefix('[').and_then(|rest| rest.strip_suffix(']')) {
+        let Some((element, length)) = inner.rsplit_once(';') else {
+            return Err(SessionError::new(
+                "include",
+                format!("unsupported array type `{source}`"),
+            ));
+        };
+        let element = parse_type_ref_text(element.trim())?;
+        let length = length.trim().parse::<usize>().map_err(|error| {
+            SessionError::new(
+                "include",
+                format!("invalid array length in `{source}`: {error}"),
+            )
+        })?;
+        return Ok(TypeRef {
+            kind: TypeRefKind::Array {
+                element: Box::new(element),
+                length,
+            },
+            span,
+        });
+    }
+
+    if let Some(inner) = source
+        .strip_prefix("Result<")
+        .and_then(|rest| rest.strip_suffix('>'))
+    {
+        let parts = split_top_level(inner, ',');
+        if parts.len() != 2 {
+            return Err(SessionError::new(
+                "include",
+                format!("unsupported Result type `{source}`"),
+            ));
+        }
+        return Ok(TypeRef {
+            kind: TypeRefKind::Path {
+                path: synthetic_path(vec!["Result".to_string()], span),
+                arguments: vec![
+                    parse_type_ref_text(parts[0].trim())?,
+                    parse_type_ref_text(parts[1].trim())?,
+                ],
+            },
+            span,
+        });
+    }
+
+    if let Some(inner) = source
+        .strip_prefix("Range<")
+        .and_then(|rest| rest.strip_suffix('>'))
+    {
+        return Ok(TypeRef {
+            kind: TypeRefKind::Path {
+                path: synthetic_path(vec!["Range".to_string()], span),
+                arguments: vec![parse_type_ref_text(inner.trim())?],
+            },
+            span,
+        });
+    }
+
+    if source.starts_with("fn(") {
+        return Err(SessionError::new(
+            "include",
+            format!("function-typed MLIB signatures are not supported yet: `{source}`"),
+        ));
+    }
+
+    Ok(TypeRef {
+        kind: TypeRefKind::Path {
+            path: synthetic_path(
+                source
+                    .split('.')
+                    .map(|segment| segment.trim().to_string())
+                    .collect(),
+                span,
+            ),
+            arguments: Vec::new(),
+        },
+        span,
+    })
+}
+
+fn split_top_level(source: &str, delimiter: char) -> Vec<String> {
+    let mut depth_angle = 0usize;
+    let mut depth_bracket = 0usize;
+    let mut current = String::new();
+    let mut parts = Vec::new();
+
+    for ch in source.chars() {
+        match ch {
+            '<' => depth_angle += 1,
+            '>' => depth_angle = depth_angle.saturating_sub(1),
+            '[' => depth_bracket += 1,
+            ']' => depth_bracket = depth_bracket.saturating_sub(1),
+            _ => {}
+        }
+
+        if ch == delimiter && depth_angle == 0 && depth_bracket == 0 {
+            parts.push(current.trim().to_string());
+            current.clear();
+        } else {
+            current.push(ch);
+        }
+    }
+
+    if !current.trim().is_empty() {
+        parts.push(current.trim().to_string());
+    }
+
+    parts
+}
+
+fn synthetic_path(segments: Vec<String>, span: Span) -> AstPath {
+    AstPath {
+        segment_spans: vec![span; segments.len()],
+        segments,
+        span,
+    }
+}
+
+fn fresh_span(next_span_base: &mut usize) -> Span {
+    let offset = *next_span_base;
+    *next_span_base += 1;
+    let position = Position::new(offset, 1, offset + 1);
+    Span::new(position, position)
 }
