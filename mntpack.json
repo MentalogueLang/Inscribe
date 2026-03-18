@@ -1,5 +1,5 @@
 {
   "bin": {
-    "inscribe": "target/release/inscribe-cli"
+    "inscribe": "./target/release/inscribe-cli"
   }
 }
