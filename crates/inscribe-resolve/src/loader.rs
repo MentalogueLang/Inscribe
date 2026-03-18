@@ -852,6 +852,33 @@ fn load_mlib_module(path: &Path, next_span_base: &mut usize) -> Result<Module, S
     })?;
 
     let mut custom_types = HashSet::new();
+    let mut declared_types = HashSet::new();
+    let mut items = Vec::new();
+    for export in &file.exports {
+        if export.kind != MlibExportKind::Type {
+            continue;
+        }
+        let signature = export.signature.as_deref().ok_or_else(|| {
+            SessionError::new(
+                "include",
+                format!("MLIB type export `{}` is missing metadata", export.name),
+            )
+        })?;
+        let signature = std::str::from_utf8(signature).map_err(|error| {
+            SessionError::new(
+                "include",
+                format!("MLIB type export `{}` has invalid metadata: {error}", export.name),
+            )
+        })?;
+        items.push(synthetic_type_item_from_export(
+            export.name.as_str(),
+            signature,
+            next_span_base,
+            &mut custom_types,
+        )?);
+        declared_types.insert(export.name.clone());
+    }
+
     let mut functions = Vec::new();
     for export in &file.exports {
         if export.kind != MlibExportKind::Function {
@@ -879,13 +906,128 @@ fn load_mlib_module(path: &Path, next_span_base: &mut usize) -> Result<Module, S
 
     let mut type_names = custom_types.into_iter().collect::<Vec<_>>();
     type_names.sort();
-    let mut items = type_names
+    items.extend(type_names
         .into_iter()
+        .filter(|name| !declared_types.contains(name))
         .map(|name| Item::Struct(synthetic_struct_decl(name, next_span_base)))
-        .collect::<Vec<_>>();
+    );
     items.extend(functions.into_iter().map(Item::Function));
     let span = fresh_span(next_span_base);
     Ok(Module { items, span })
+}
+
+fn synthetic_type_item_from_export(
+    export_name: &str,
+    signature: &str,
+    next_span_base: &mut usize,
+    custom_types: &mut HashSet<String>,
+) -> Result<Item, SessionError> {
+    let source = signature.trim();
+    if let Some(rest) = source.strip_prefix("struct") {
+        Ok(Item::Struct(synthetic_struct_decl_from_export(
+            export_name,
+            rest,
+            next_span_base,
+            custom_types,
+        )?))
+    } else if let Some(rest) = source.strip_prefix("enum") {
+        Ok(Item::Enum(synthetic_enum_decl_from_export(
+            export_name,
+            rest,
+            next_span_base,
+        )?))
+    } else {
+        Err(SessionError::new(
+            "include",
+            format!("unsupported MLIB type signature `{source}`"),
+        ))
+    }
+}
+
+fn synthetic_struct_decl_from_export(
+    export_name: &str,
+    body: &str,
+    next_span_base: &mut usize,
+    custom_types: &mut HashSet<String>,
+) -> Result<StructDecl, SessionError> {
+    let body = parse_braced_body(body.trim(), "struct")?;
+    let name_span = fresh_span(next_span_base);
+    let mut fields = Vec::new();
+
+    if !body.trim().is_empty() {
+        for field in split_top_level(body, ',') {
+            let Some((name, ty_text)) = field.split_once(':') else {
+                return Err(SessionError::new(
+                    "include",
+                    format!("unsupported MLIB struct field `{field}`"),
+                ));
+            };
+            let ty = parse_type_ref_text(ty_text.trim())?;
+            collect_custom_types_from_type_ref(&ty, custom_types);
+            let span = fresh_span(next_span_base);
+            let field_name = name.trim().to_string();
+            fields.push(StructField {
+                name: field_name,
+                name_span: span,
+                ty,
+                span,
+            });
+        }
+    }
+
+    let span = fresh_span(next_span_base);
+    Ok(StructDecl {
+        name: export_name.to_string(),
+        name_span,
+        fields,
+        span,
+    })
+}
+
+fn synthetic_enum_decl_from_export(
+    export_name: &str,
+    body: &str,
+    next_span_base: &mut usize,
+) -> Result<EnumDecl, SessionError> {
+    let body = parse_braced_body(body.trim(), "enum")?;
+    let name_span = fresh_span(next_span_base);
+    let mut variants = Vec::new();
+
+    if !body.trim().is_empty() {
+        for variant in split_top_level(body, ',') {
+            let Some((name, discriminant)) = variant.split_once('=') else {
+                return Err(SessionError::new(
+                    "include",
+                    format!("unsupported MLIB enum variant `{variant}`"),
+                ));
+            };
+            let discriminant = discriminant.trim().parse::<usize>().map_err(|error| {
+                SessionError::new(
+                    "include",
+                    format!(
+                        "invalid MLIB enum discriminant `{}` for `{}`: {error}",
+                        discriminant.trim(),
+                        name.trim()
+                    ),
+                )
+            })?;
+            let span = fresh_span(next_span_base);
+            variants.push(EnumVariant {
+                name: name.trim().to_string(),
+                name_span: span,
+                discriminant: Some(discriminant),
+                span,
+            });
+        }
+    }
+
+    let span = fresh_span(next_span_base);
+    Ok(EnumDecl {
+        name: export_name.to_string(),
+        name_span,
+        variants,
+        span,
+    })
 }
 
 fn synthetic_function_from_export(
@@ -959,6 +1101,23 @@ fn synthetic_struct_decl(name: String, next_span_base: &mut usize) -> StructDecl
         fields: Vec::new(),
         span,
     }
+}
+
+fn parse_braced_body<'a>(source: &'a str, kind: &str) -> Result<&'a str, SessionError> {
+    let source = source.trim();
+    let Some(rest) = source.strip_prefix('{') else {
+        return Err(SessionError::new(
+            "include",
+            format!("unsupported MLIB {kind} signature `{source}`"),
+        ));
+    };
+    let Some(rest) = rest.strip_suffix('}') else {
+        return Err(SessionError::new(
+            "include",
+            format!("unsupported MLIB {kind} signature `{source}`"),
+        ));
+    };
+    Ok(rest.trim())
 }
 
 fn collect_custom_types_from_type_ref(ty: &TypeRef, custom_types: &mut HashSet<String>) {

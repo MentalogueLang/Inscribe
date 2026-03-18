@@ -233,6 +233,7 @@ name = "inscribe-codegen"
 version = "0.1.0"
 dependencies = [
  "inscribe-abi",
+ "inscribe-ast",
  "inscribe-hir",
  "inscribe-lexer",
  "inscribe-mir",

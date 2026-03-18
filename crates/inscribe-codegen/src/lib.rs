@@ -60,7 +60,7 @@ mod tests {
     use inscribe_resolve::{load_module_graph, resolve_module, resolve_module_graph};
     use inscribe_typeck::check_module;
 
-    use crate::{emit_native_assembly, emit_native_executable, Target};
+    use crate::{emit_mlib, emit_native_assembly, emit_native_executable, Target};
 
     fn compile_source(source: &str) -> inscribe_mir::MirProgram {
         let tokens = lex(source).expect("lexing should succeed");
@@ -69,6 +69,14 @@ mod tests {
         let typed = check_module(&module, &resolved).expect("type checking should succeed");
         let hir = lower_module(&module, &resolved, &typed);
         lower_program(&hir)
+    }
+
+    fn compile_hir_source(source: &str) -> inscribe_hir::HirProgram {
+        let tokens = lex(source).expect("lexing should succeed");
+        let module = parse_module(tokens).expect("parsing should succeed");
+        let resolved = resolve_module(&module).expect("resolution should succeed");
+        let typed = check_module(&module, &resolved).expect("type checking should succeed");
+        lower_module(&module, &resolved, &typed)
     }
 
     fn compile_entry_source(entry: &str, files: &[(&str, &str)]) -> inscribe_mir::MirProgram {
@@ -344,6 +352,55 @@ fn main() -> int {
 
         assert!(assembly.contains("call __ml_fn_string_length"));
         assert!(assembly.contains("call __ml_fn_string_byte_at"));
+    }
+
+    #[test]
+    fn emitted_mlib_imports_custom_types() {
+        let hir = compile_hir_source(
+            r#"
+enum Kind {
+    Invalid = 0
+    Number = 1
+}
+
+struct Value {
+    kind: Kind
+    raw: int
+}
+
+fn parse_number(raw: int) -> Value {
+    Value { kind: Kind.Number, raw: raw }
+}
+"#,
+        );
+
+        let bytes = emit_mlib(&hir, Target::linux_x86_64()).expect("mlib emission should work");
+        let root = temp_dir("inscribe_codegen_mlib_types");
+        let package_dir = root.join(".suture").join("mlib").join("sample");
+        fs::create_dir_all(&package_dir).expect("should create package cache dir");
+        fs::write(package_dir.join("sample.mlib"), bytes).expect("should write mlib");
+
+        let main = root.join("main.mtl");
+        fs::write(
+            &main,
+            r#"
+import sample
+
+fn main() -> int {
+    let value = parse_number(9)
+    if value.kind as int == 1 {
+        value.raw
+    } else {
+        0
+    }
+}
+"#,
+        )
+        .expect("should write consumer");
+
+        let graph = load_module_graph(&main).expect("mlib import should load");
+        let resolved = resolve_module_graph(&graph).expect("mlib import should resolve");
+        check_module(&graph.merged, &resolved).expect("mlib import should typecheck");
     }
 
     #[test]

@@ -5,6 +5,8 @@ edition = "2021"
 
 [dependencies]
 inscribe-abi = { path = "../inscribe-abi" }
+inscribe-ast = { path = "../inscribe-ast" }
+inscribe-hir = { path = "../inscribe-hir" }
 inscribe-mir = { path = "../inscribe-mir" }
 inscribe-sandbox = { path = "../inscribe-sandbox" }
 inscribe-typeck = { path = "../inscribe-typeck" }

@@ -49,8 +49,8 @@ pub fn run(args: &[String]) -> Result<(), String> {
         }
         EmitFormat::Mlib => {
             let input = parsed.input.as_ref().expect("mlib emit requires an input");
-            let mir = compile_file_to_mir(input).map_err(|error| error.to_string())?;
-            emit_mlib(&mir, parsed.target).map_err(|error| error.to_string())?
+            let hir = compile_file_to_hir(input).map_err(|error| error.to_string())?;
+            emit_mlib(&hir, parsed.target).map_err(|error| error.to_string())?
         }
         EmitFormat::Dwarf => {
             let input = parsed.input.as_ref().expect("dwarf emit requires an input");

@@ -1,22 +1,42 @@
 use inscribe_abi::{AbiTarget, MlibExport, MlibExportKind, MlibFile};
-use inscribe_mir::{MirFunction, MirProgram};
+use inscribe_ast::nodes::Visibility;
+use inscribe_hir::nodes::HirEnum;
+use inscribe_hir::{HirField, HirItem, HirProgram, HirStruct, HirSymbolId};
 use inscribe_typeck::{FunctionSignature, Type};
 
 use crate::targets::{OperatingSystem, Target};
 use crate::CodegenError;
 
-pub fn emit_mlib(program: &MirProgram, target: Target) -> Result<Vec<u8>, CodegenError> {
-    let exports = program
-        .functions
-        .iter()
-        .filter(|function| !function.is_declaration)
-        .map(|function| MlibExport {
-            name: qualified_function_name(function),
-            kind: MlibExportKind::Function,
-            address: 0,
-            signature: Some(encode_signature(&function.signature).into_bytes()),
-        })
-        .collect::<Vec<_>>();
+pub fn emit_mlib(program: &HirProgram, target: Target) -> Result<Vec<u8>, CodegenError> {
+    let mut exports = Vec::new();
+
+    for item in &program.items {
+        match item {
+            HirItem::Function(function)
+                if !function.is_declaration && function.visibility == Visibility::Public =>
+            {
+                exports.push(MlibExport {
+                    name: qualified_function_name(program, function.receiver, &program.symbol_name(function.symbol)),
+                    kind: MlibExportKind::Function,
+                    address: 0,
+                    signature: Some(encode_signature(&function.signature).into_bytes()),
+                });
+            }
+            HirItem::Struct(struct_decl) => exports.push(MlibExport {
+                name: program.symbol_name(struct_decl.symbol).to_string(),
+                kind: MlibExportKind::Type,
+                address: 0,
+                signature: Some(encode_struct(program, struct_decl).into_bytes()),
+            }),
+            HirItem::Enum(enum_decl) => exports.push(MlibExport {
+                name: program.symbol_name(enum_decl.symbol).to_string(),
+                kind: MlibExportKind::Type,
+                address: 0,
+                signature: Some(encode_enum(program, enum_decl).into_bytes()),
+            }),
+            _ => {}
+        }
+    }
 
     let abi_target = match target.os {
         OperatingSystem::Linux => AbiTarget::LinuxX86_64,
@@ -27,12 +47,40 @@ pub fn emit_mlib(program: &MirProgram, target: Target) -> Result<Vec<u8>, Codege
     Ok(file.to_bytes())
 }
 
-fn qualified_function_name(function: &MirFunction) -> String {
-    function
-        .receiver
-        .as_ref()
-        .map(|receiver| format!("{receiver}.{}", function.name))
-        .unwrap_or_else(|| function.name.clone())
+fn qualified_function_name(program: &HirProgram, receiver: Option<HirSymbolId>, name: &str) -> String {
+    receiver
+        .map(|receiver| format!("{}.{}", program.symbol_name(receiver), name))
+        .unwrap_or_else(|| name.to_string())
+}
+
+fn encode_struct(program: &HirProgram, decl: &HirStruct) -> String {
+    let fields = decl
+        .fields
+        .iter()
+        .map(|field| encode_field(program, field))
+        .collect::<Vec<_>>()
+        .join(", ");
+    format!("struct {{ {fields} }}")
+}
+
+fn encode_field(program: &HirProgram, field: &HirField) -> String {
+    format!("{}: {}", program.symbol_name(field.symbol), type_to_text(&field.ty))
+}
+
+fn encode_enum(program: &HirProgram, decl: &HirEnum) -> String {
+    let variants = decl
+        .variants
+        .iter()
+        .map(|variant| {
+            format!(
+                "{} = {}",
+                program.symbol_name(variant.symbol),
+                variant.discriminant
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
+    format!("enum {{ {variants} }}")
 }
 
 fn encode_signature(signature: &FunctionSignature) -> String {
