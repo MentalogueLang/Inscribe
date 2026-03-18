@@ -1,0 +1,5 @@
+{
+  "bin": {
+    "inscribe": "target/release/inscribe-cli"
+  }
+}
