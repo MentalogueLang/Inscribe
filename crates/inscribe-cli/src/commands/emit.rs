@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use inscribe_abi::{current_header, AbiTarget, Stability};
-use inscribe_codegen::{emit_native_assembly, OperatingSystem, Target};
+use inscribe_codegen::{emit_mlib, emit_native_assembly, OperatingSystem, Target};
 use inscribe_debug::{
     build_program_debug_info_with_sources, emit_program_dwarf_with_sources, SourceFileId,
     SourceMap,
@@ -47,6 +47,11 @@ pub fn run(args: &[String]) -> Result<(), String> {
             let mir = compile_file_to_mir(input).map_err(|error| error.to_string())?;
             format!("{mir:#?}\n").into_bytes()
         }
+        EmitFormat::Mlib => {
+            let input = parsed.input.as_ref().expect("mlib emit requires an input");
+            let mir = compile_file_to_mir(input).map_err(|error| error.to_string())?;
+            emit_mlib(&mir, parsed.target).map_err(|error| error.to_string())?
+        }
         EmitFormat::Dwarf => {
             let input = parsed.input.as_ref().expect("dwarf emit requires an input");
             let mir = compile_file_to_mir(input).map_err(|error| error.to_string())?;
@@ -82,6 +87,7 @@ enum EmitFormat {
     Asm,
     Hir,
     Mir,
+    Mlib,
     Dwarf,
     Debug,
     Abi,
@@ -93,11 +99,12 @@ impl EmitFormat {
             "asm" => Ok(Self::Asm),
             "hir" => Ok(Self::Hir),
             "mir" => Ok(Self::Mir),
+            "mlib" => Ok(Self::Mlib),
             "dwarf" => Ok(Self::Dwarf),
             "debug" => Ok(Self::Debug),
             "abi" => Ok(Self::Abi),
             _ => Err(format!(
-                "unsupported emit format `{value}`; available formats: asm, hir, mir, dwarf, debug, abi"
+                "unsupported emit format `{value}`; available formats: asm, hir, mir, mlib, dwarf, debug, abi"
             )),
         }
     }
@@ -107,6 +114,7 @@ impl EmitFormat {
             Self::Asm => "asm",
             Self::Hir => "hir",
             Self::Mir => "mir",
+            Self::Mlib => "mlib",
             Self::Dwarf => "dwarf",
             Self::Debug => "debug",
             Self::Abi => "mabi",
@@ -118,6 +126,7 @@ impl EmitFormat {
             Self::Asm => "assembly",
             Self::Hir => "HIR",
             Self::Mir => "MIR",
+            Self::Mlib => "MLIB",
             Self::Dwarf => "DWARF summary",
             Self::Debug => "debug report",
             Self::Abi => "ABI header",
@@ -245,7 +254,7 @@ fn default_output_path(format: EmitFormat, input: Option<&Path>, target: Target)
 }
 
 fn usage() -> &'static str {
-    "usage: inscribe emit <asm|hir|mir|dwarf|debug> <input.mtl> [--target <linux-x86_64|windows-x86_64>] [-o <output>]\n       inscribe emit abi [--target <linux-x86_64|windows-x86_64>] [--stability <stable|experimental|internal>] [-o <output.mabi>]"
+    "usage: inscribe emit <asm|hir|mir|mlib|dwarf|debug> <input.mtl> [--target <linux-x86_64|windows-x86_64>] [-o <output>]\n       inscribe emit abi [--target <linux-x86_64|windows-x86_64>] [--stability <stable|experimental|internal>] [-o <output.mabi>]"
 }
 
 fn load_source_map(input: &Path) -> Result<(SourceMap, SourceFileId), String> {

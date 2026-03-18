@@ -22,7 +22,7 @@ pub fn usage() -> String {
     [
         "usage:",
         "  inscribe check <input.mtl>",
-        "  inscribe emit <asm|hir|mir|dwarf|debug> <input.mtl> [--target <linux-x86_64|windows-x86_64>] [-o <output>]",
+        "  inscribe emit <asm|hir|mir|mlib|dwarf|debug> <input.mtl> [--target <linux-x86_64|windows-x86_64>] [-o <output>]",
         "  inscribe emit abi [--target <linux-x86_64|windows-x86_64>] [--stability <stable|experimental|internal>] [-o <output.mabi>]",
         "  inscribe build <input.mtl> [--target <linux-x86_64|windows-x86_64>] [-o <output>]",
         "  inscribe run <input.mtl> [--sandbox]",
