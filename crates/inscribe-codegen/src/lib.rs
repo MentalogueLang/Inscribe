@@ -376,7 +376,7 @@ fn parse_number(raw: int) -> Value {
 
         let bytes = emit_mlib(&hir, Target::linux_x86_64()).expect("mlib emission should work");
         let root = temp_dir("inscribe_codegen_mlib_types");
-        let package_dir = root.join(".suture").join("mlib").join("sample");
+        let package_dir = root.join(".suture").join("mlib").join("sample").join("0.1.0");
         fs::create_dir_all(&package_dir).expect("should create package cache dir");
         fs::write(package_dir.join("sample.mlib"), bytes).expect("should write mlib");
 
@@ -401,6 +401,74 @@ fn main() -> int {
         let graph = load_module_graph(&main).expect("mlib import should load");
         let resolved = resolve_module_graph(&graph).expect("mlib import should resolve");
         check_module(&graph.merged, &resolved).expect("mlib import should typecheck");
+    }
+
+    #[test]
+    fn emitted_mlib_imports_nested_struct_fields() {
+        let hir = compile_hir_source(
+            r#"
+import core.string
+
+struct Document {
+    source: string
+    root: int
+}
+
+struct ParseError {
+    code: int
+}
+
+struct ParseResult {
+    ok: bool
+    document: Document
+    error: ParseError
+}
+
+fn parse(source: string) -> ParseResult {
+    ParseResult {
+        ok: true,
+        document: Document { source: source, root: 7 },
+        error: ParseError { code: 0 },
+    }
+}
+"#,
+        );
+
+        let bytes = emit_mlib(&hir, Target::linux_x86_64()).expect("mlib emission should work");
+        let root = temp_dir("inscribe_codegen_mlib_nested_types");
+        let package_dir = root.join(".suture").join("mlib").join("sample");
+        fs::create_dir_all(&package_dir).expect("should create package cache dir");
+        fs::write(package_dir.join("sample.mlib"), bytes).expect("should write mlib");
+
+        let main = root.join("main.mtl");
+        fs::write(
+            &main,
+            r#"
+import sample
+
+fn main() -> int {
+    let result = parse("ok")
+    if result.ok {
+        result.document.root + result.error.code
+    } else {
+        0
+    }
+}
+"#,
+        )
+        .expect("should write consumer");
+
+        let graph = load_module_graph(&main).expect("mlib import should load");
+        let resolved = resolve_module_graph(&graph).expect("mlib import should resolve");
+        let parse_result = resolved
+            .structs
+            .get("ParseResult")
+            .expect("ParseResult should be resolved");
+        assert_eq!(parse_result.fields.len(), 3, "{resolved:#?}");
+        assert!(parse_result.fields.contains_key("ok"), "{resolved:#?}");
+        assert!(parse_result.fields.contains_key("document"), "{resolved:#?}");
+        assert!(parse_result.fields.contains_key("error"), "{resolved:#?}");
+        check_module(&graph.merged, &resolved).expect("nested MLIB struct fields should typecheck");
     }
 
     #[test]

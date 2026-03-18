@@ -23,6 +23,8 @@ pub struct CompiledArtifacts {
     pub mir: MirProgram,
 }
 
+const CACHE_SCHEMA_VERSION: &str = "inscribe-cache-v2";
+
 #[derive(Debug, Default)]
 pub struct IncrementalSession {
     engine: QueryEngine,
@@ -189,7 +191,8 @@ fn fingerprint_graph_sources(graph: &LoadedModuleGraph) -> Result<Fingerprint, S
         .map(|module| module.path.clone())
         .collect::<Vec<_>>();
     paths.sort();
-    fingerprint_paths(&paths)
+    let fingerprint = fingerprint_paths(&paths)?;
+    Ok(fingerprint.combine(compiler_cache_fingerprint()?))
 }
 
 fn fingerprint_paths(paths: &[PathBuf]) -> Result<Fingerprint, SessionError> {
@@ -210,6 +213,34 @@ fn fingerprint_paths(paths: &[PathBuf]) -> Result<Fingerprint, SessionError> {
 fn cache_root_for_entry(entry: &Path) -> PathBuf {
     let base = entry.parent().unwrap_or_else(|| Path::new("."));
     base.join(".inscribe").join("cache")
+}
+
+fn compiler_cache_fingerprint() -> Result<Fingerprint, SessionError> {
+    let mut builder = FingerprintBuilder::new();
+    builder.update_str(CACHE_SCHEMA_VERSION);
+    builder.update_str(env!("CARGO_PKG_VERSION"));
+
+    let exe = std::env::current_exe().map_err(|error| {
+        SessionError::new("io", format!("failed to resolve current executable: {error}"))
+    })?;
+    builder.update_str(&exe.to_string_lossy());
+
+    let metadata = fs::metadata(&exe).map_err(|error| {
+        SessionError::new(
+            "io",
+            format!("failed to read compiler metadata for `{}`: {error}", exe.display()),
+        )
+    })?;
+    builder.update_u64(metadata.len());
+
+    if let Ok(modified) = metadata.modified() {
+        if let Ok(duration) = modified.duration_since(UNIX_EPOCH) {
+            builder.update_u64(duration.as_secs());
+            builder.update_u64(u64::from(duration.subsec_nanos()));
+        }
+    }
+
+    Ok(builder.finish())
 }
 
 fn cache_error(stage: &str, error: &std::io::Error) -> SessionError {
