@@ -53,6 +53,7 @@ jobs:
           $staging = Join-Path $PWD "release-staging\$label"
           New-Item -ItemType Directory -Force -Path $staging | Out-Null
           Copy-Item "target\$target\release\$binary" $staging
+          Copy-Item "stdlib" (Join-Path $staging "stdlib") -Recurse
           Copy-Item "README.md" $staging
           Copy-Item "RELEASE_NOTE.md" $staging
 

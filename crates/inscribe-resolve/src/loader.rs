@@ -39,7 +39,7 @@ pub struct ModuleLoadOptions {
 impl Default for ModuleLoadOptions {
     fn default() -> Self {
         Self {
-            stdlib_root: workspace_root().join("stdlib"),
+            stdlib_root: detect_stdlib_root(),
         }
     }
 }
@@ -487,6 +487,65 @@ fn workspace_root() -> PathBuf {
         .and_then(Path::parent)
         .expect("resolve crate should live under the workspace")
         .to_path_buf()
+}
+
+fn detect_stdlib_root() -> PathBuf {
+    if let Ok(value) = std::env::var("INSCRIBE_STDLIB_DIR") {
+        let path = PathBuf::from(value);
+        if path.exists() {
+            return path;
+        }
+    }
+
+    for candidate in installed_stdlib_candidates() {
+        if candidate.exists() {
+            return candidate;
+        }
+    }
+
+    workspace_root().join("stdlib")
+}
+
+fn installed_stdlib_candidates() -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            candidates.push(parent.join("stdlib"));
+            if let Some(grandparent) = parent.parent() {
+                candidates.push(grandparent.join("stdlib"));
+            }
+        }
+    }
+
+    if let Some(home) = home_dir() {
+        candidates.push(home.join(".mentalogue").join("inscribe").join("stdlib"));
+    }
+
+    if let Ok(local_app_data) = std::env::var("LOCALAPPDATA") {
+        candidates.push(
+            PathBuf::from(local_app_data)
+                .join("Mentalogue")
+                .join("Inscribe")
+                .join("stdlib"),
+        );
+    }
+
+    candidates
+}
+
+fn home_dir() -> Option<PathBuf> {
+    if let Ok(value) = std::env::var("HOME") {
+        if !value.is_empty() {
+            return Some(PathBuf::from(value));
+        }
+    }
+    if let Ok(value) = std::env::var("USERPROFILE") {
+        if !value.is_empty() {
+            return Some(PathBuf::from(value));
+        }
+    }
+    None
 }
 
 fn rebase_module_spans(module: &mut Module, base_offset: usize) {
