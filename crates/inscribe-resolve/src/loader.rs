@@ -791,42 +791,11 @@ fn resolve_suture_import_path(
     };
 
     loop {
-        let package_root = current.join(".suture").join("mlib").join(&package);
-        if package_root.is_dir() {
-            let direct = package_root.join(format!("{package}.mlib"));
-            if direct.exists() {
-                return direct.canonicalize().map(Some).map_err(|error| {
-                    SessionError::new(
-                        "include",
-                        format!("failed to resolve `{}`: {error}", direct.display()),
-                    )
-                });
-            }
-
-            let mut versions = fs::read_dir(&package_root)
-                .map_err(|error| {
-                    SessionError::new(
-                        "include",
-                        format!("failed to read `{}`: {error}", package_root.display()),
-                    )
-                })?
-                .filter_map(|entry| entry.ok())
-                .map(|entry| entry.path())
-                .filter(|path| path.is_dir())
-                .collect::<Vec<_>>();
-            versions.sort();
-            versions.reverse();
-            for version_dir in versions {
-                let candidate = version_dir.join(format!("{package}.mlib"));
-                if candidate.exists() {
-                    return candidate.canonicalize().map(Some).map_err(|error| {
-                        SessionError::new(
-                            "include",
-                            format!("failed to resolve `{}`: {error}", candidate.display()),
-                        )
-                    });
-                }
-            }
+        if let Some(candidate) = resolve_suture_source_import_path(&current, &package)? {
+            return Ok(Some(candidate));
+        }
+        if let Some(candidate) = resolve_suture_mlib_import_path(&current, &package)? {
+            return Ok(Some(candidate));
         }
 
         if !current.pop() {
@@ -835,6 +804,100 @@ fn resolve_suture_import_path(
     }
 
     Ok(None)
+}
+
+fn resolve_suture_source_import_path(
+    current: &Path,
+    package: &str,
+) -> Result<Option<PathBuf>, SessionError> {
+    let package_root = current.join(".suture").join("sources").join(package);
+    if !package_root.is_dir() {
+        return Ok(None);
+    }
+
+    let direct = resolve_suture_source_entry(&package_root);
+    if let Some(path) = direct {
+        return canonicalize_include_path(path).map(Some);
+    }
+
+    let mut versions = fs::read_dir(&package_root)
+        .map_err(|error| {
+            SessionError::new(
+                "include",
+                format!("failed to read `{}`: {error}", package_root.display()),
+            )
+        })?
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .collect::<Vec<_>>();
+    versions.sort();
+    versions.reverse();
+
+    for version_dir in versions {
+        if let Some(path) = resolve_suture_source_entry(&version_dir) {
+            return canonicalize_include_path(path).map(Some);
+        }
+    }
+
+    Ok(None)
+}
+
+fn resolve_suture_source_entry(base: &Path) -> Option<PathBuf> {
+    let candidates = ["lib.mtl", "src/lib.mtl", "main.mtl", "src/main.mtl"];
+    for relative in candidates {
+        let candidate = base.join(relative);
+        if candidate.exists() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+
+fn resolve_suture_mlib_import_path(
+    current: &Path,
+    package: &str,
+) -> Result<Option<PathBuf>, SessionError> {
+    let package_root = current.join(".suture").join("mlib").join(package);
+    if !package_root.is_dir() {
+        return Ok(None);
+    }
+
+    let direct = package_root.join(format!("{package}.mlib"));
+    if direct.exists() {
+        return canonicalize_include_path(direct).map(Some);
+    }
+
+    let mut versions = fs::read_dir(&package_root)
+        .map_err(|error| {
+            SessionError::new(
+                "include",
+                format!("failed to read `{}`: {error}", package_root.display()),
+            )
+        })?
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .collect::<Vec<_>>();
+    versions.sort();
+    versions.reverse();
+    for version_dir in versions {
+        let candidate = version_dir.join(format!("{package}.mlib"));
+        if candidate.exists() {
+            return canonicalize_include_path(candidate).map(Some);
+        }
+    }
+
+    Ok(None)
+}
+
+fn canonicalize_include_path(path: PathBuf) -> Result<PathBuf, SessionError> {
+    path.canonicalize().map_err(|error| {
+        SessionError::new(
+            "include",
+            format!("failed to resolve `{}`: {error}", path.display()),
+        )
+    })
 }
 
 fn load_mlib_module(path: &Path, next_span_base: &mut usize) -> Result<Module, SessionError> {

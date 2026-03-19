@@ -32,28 +32,25 @@ pub fn run(args: &[String]) -> Result<(), String> {
         return Err("usage: inscribe run <input.mtl> [--sandbox]".to_string());
     };
 
+    let mir = compile_file_to_mir(&input).map_err(|error| error.to_string())?;
+
     if sandbox {
-        let mir = compile_file_to_mir(&input).map_err(|error| error.to_string())?;
-        let policy = SandboxPolicy {
-            allow_stdout: true,
-            allow_stdin: false,
-            allow_network: false,
-            deterministic_only: true,
-        };
-        let result = run_sandbox_main(&mir, policy).map_err(|error| error.message)?;
-        if !matches!(result, ComptimeValue::Unit) {
-            match result {
-                ComptimeValue::String(value) => println!("{value}"),
-                other => println!("{}", other.display()),
-            }
-        }
-        return Ok(());
+        return run_with_sandbox(&mir);
     }
 
     let target = host_target();
     let temp = temp_output_path(target.executable_extension());
-    let mir = compile_file_to_mir(&input).map_err(|error| error.to_string())?;
-    let bytes = emit_native_executable(&mir, target).map_err(|error| error.to_string())?;
+    let bytes = match emit_native_executable(&mir, target) {
+        Ok(bytes) => bytes,
+        Err(error) if should_fallback_to_sandbox(&error.message) => {
+            eprintln!(
+                "native backend unavailable: {}. Falling back to sandbox execution.",
+                error.message
+            );
+            return run_with_sandbox(&mir);
+        }
+        Err(error) => return Err(error.to_string()),
+    };
 
     write_output(&temp, &bytes).map_err(|error| error.to_string())?;
 
@@ -61,4 +58,27 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let _ = fs::remove_file(&temp);
     println!("program exited with code {exit_code}");
     Ok(())
+}
+
+fn run_with_sandbox(mir: &inscribe_mir::MirProgram) -> Result<(), String> {
+    let policy = SandboxPolicy {
+        allow_stdout: true,
+        allow_stdin: false,
+        allow_network: false,
+        deterministic_only: true,
+    };
+    let result = run_sandbox_main(mir, policy).map_err(|error| error.message)?;
+    if !matches!(result, ComptimeValue::Unit) {
+        match result {
+            ComptimeValue::String(value) => println!("{value}"),
+            other => println!("{}", other.display()),
+        }
+    }
+    Ok(())
+}
+
+fn should_fallback_to_sandbox(message: &str) -> bool {
+    message.contains("native codegen does not yet support")
+        || message.contains("native codegen does not yet implement")
+        || message.contains("native codegen currently only supports")
 }
