@@ -212,6 +212,7 @@ dependencies = [
 name = "inscribe-cli"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "inscribe-abi",
  "inscribe-ast",
  "inscribe-codegen",

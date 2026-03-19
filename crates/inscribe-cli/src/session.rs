@@ -10,7 +10,9 @@ use inscribe_incremental::{
     Cache, DiskCache, Fingerprint, FingerprintBuilder, QueryEngine, QueryError,
 };
 use inscribe_mir::{lower_program, optimize_program, MirProgram};
-use inscribe_resolve::{load_module_graph, resolve_module_graph, LoadedModuleGraph, ResolvedProgram};
+use inscribe_resolve::{
+    load_module_graph, resolve_module_graph, LoadedModuleGraph, ResolvedProgram,
+};
 use inscribe_session::{Session, SessionError};
 use inscribe_typeck::{check_module, TypeCheckResult};
 
@@ -24,6 +26,7 @@ pub struct CompiledArtifacts {
 }
 
 const CACHE_SCHEMA_VERSION: &str = "inscribe-cache-v2";
+const SMTL_MAGIC: &[u8] = b"SMTL1";
 
 #[derive(Debug, Default)]
 pub struct IncrementalSession {
@@ -82,9 +85,11 @@ fn compile_file_with_incremental(
         let fingerprint = fingerprint_graph_sources(&entry_cache.value)?;
         if fingerprint == entry_cache.fingerprint {
             source_fingerprint = Some(entry_cache.fingerprint);
-            incremental
-                .graph_cache
-                .insert(entry.clone(), entry_cache.fingerprint, entry_cache.value.clone());
+            incremental.graph_cache.insert(
+                entry.clone(),
+                entry_cache.fingerprint,
+                entry_cache.value.clone(),
+            );
             graph = Some(entry_cache.value);
         }
     }
@@ -92,9 +97,8 @@ fn compile_file_with_incremental(
     let graph = match graph {
         Some(graph) => graph,
         None => {
-            let graph = load_module_graph(&entry).map_err(|error| {
-                SessionError::new("load", error.to_string())
-            })?;
+            let graph = load_module_graph(&entry)
+                .map_err(|error| SessionError::new("load", error.to_string()))?;
             let fingerprint = fingerprint_graph_sources(&graph)?;
             graph_disk
                 .store(&entry, fingerprint, &graph)
@@ -221,14 +225,20 @@ fn compiler_cache_fingerprint() -> Result<Fingerprint, SessionError> {
     builder.update_str(env!("CARGO_PKG_VERSION"));
 
     let exe = std::env::current_exe().map_err(|error| {
-        SessionError::new("io", format!("failed to resolve current executable: {error}"))
+        SessionError::new(
+            "io",
+            format!("failed to resolve current executable: {error}"),
+        )
     })?;
     builder.update_str(&exe.to_string_lossy());
 
     let metadata = fs::metadata(&exe).map_err(|error| {
         SessionError::new(
             "io",
-            format!("failed to read compiler metadata for `{}`: {error}", exe.display()),
+            format!(
+                "failed to read compiler metadata for `{}`: {error}",
+                exe.display()
+            ),
         )
     })?;
     builder.update_u64(metadata.len());
@@ -244,10 +254,7 @@ fn compiler_cache_fingerprint() -> Result<Fingerprint, SessionError> {
 }
 
 fn cache_error(stage: &str, error: &std::io::Error) -> SessionError {
-    SessionError::new(
-        "cache",
-        format!("failed to access {stage} cache: {error}"),
-    )
+    SessionError::new("cache", format!("failed to access {stage} cache: {error}"))
 }
 
 fn canonicalize_path(path: &Path) -> Result<PathBuf, SessionError> {
@@ -297,6 +304,10 @@ pub fn default_executable_output(input: &Path, target: Target) -> PathBuf {
     input.with_extension(target.executable_extension())
 }
 
+pub fn default_sandbox_output(input: &Path) -> PathBuf {
+    input.with_extension("smtl")
+}
+
 pub fn write_output(path: &Path, bytes: &[u8]) -> Result<(), SessionError> {
     if let Some(parent) = path.parent() {
         if !parent.as_os_str().is_empty() {
@@ -321,6 +332,35 @@ pub fn parse_path_arg(value: &str) -> PathBuf {
     PathBuf::from(value)
 }
 
+pub fn encode_sandbox_module(mir: &MirProgram) -> Result<Vec<u8>, SessionError> {
+    let encoded = bincode::serialize(mir).map_err(|error| {
+        SessionError::new(
+            "io",
+            format!("failed to serialize sandbox artifact: {error}"),
+        )
+    })?;
+    let mut bytes = Vec::with_capacity(SMTL_MAGIC.len() + encoded.len());
+    bytes.extend_from_slice(SMTL_MAGIC);
+    bytes.extend_from_slice(&encoded);
+    Ok(bytes)
+}
+
+pub fn decode_sandbox_module(bytes: &[u8]) -> Result<MirProgram, SessionError> {
+    if bytes.len() < SMTL_MAGIC.len() || &bytes[..SMTL_MAGIC.len()] != SMTL_MAGIC {
+        return Err(SessionError::new(
+            "io",
+            "invalid .smtl file: missing SMTL1 header",
+        ));
+    }
+
+    bincode::deserialize::<MirProgram>(&bytes[SMTL_MAGIC.len()..]).map_err(|error| {
+        SessionError::new(
+            "io",
+            format!("invalid .smtl file: failed to decode MIR payload: {error}"),
+        )
+    })
+}
+
 pub fn run_host_executable(path: &Path) -> Result<i32, SessionError> {
     let status = Command::new(path).status().map_err(|error| {
         SessionError::new(
@@ -342,7 +382,7 @@ pub fn temp_output_path(extension: &str) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use super::compile_file_to_mir;
+    use super::{compile_file_to_mir, decode_sandbox_module, encode_sandbox_module};
     use std::path::Path;
 
     #[test]
@@ -364,6 +404,15 @@ mod tests {
         let path = workspace_root().join("tests/compile_pass/import_io_console.mtl");
         let program = compile_file_to_mir(&path).expect("io stdlib imports should compile");
         assert!(!program.functions.is_empty());
+    }
+
+    #[test]
+    fn sandbox_module_roundtrip() {
+        let path = workspace_root().join("tests/compile_pass/import_local.mtl");
+        let program = compile_file_to_mir(&path).expect("local imports should compile");
+        let bytes = encode_sandbox_module(&program).expect("sandbox artifact should encode");
+        let decoded = decode_sandbox_module(&bytes).expect("sandbox artifact should decode");
+        assert_eq!(program, decoded);
     }
 
     fn workspace_root() -> std::path::PathBuf {

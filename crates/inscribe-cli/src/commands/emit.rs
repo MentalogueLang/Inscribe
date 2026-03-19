@@ -3,8 +3,7 @@ use std::path::{Path, PathBuf};
 use inscribe_abi::{current_header, AbiTarget, Stability};
 use inscribe_codegen::{emit_mlib, emit_native_assembly, OperatingSystem, Target};
 use inscribe_debug::{
-    build_program_debug_info_with_sources, emit_program_dwarf_with_sources, SourceFileId,
-    SourceMap,
+    build_program_debug_info_with_sources, emit_program_dwarf_with_sources, SourceFileId, SourceMap,
 };
 use inscribe_hir::render as render_hir;
 use inscribe_resolve::load_module_graph;
@@ -146,24 +145,6 @@ pub(crate) struct ParsedArgs {
     pub(crate) stability: Stability,
 }
 
-#[derive(Debug)]
-pub(crate) struct CommonArgs {
-    pub(crate) input: PathBuf,
-    pub(crate) output: Option<PathBuf>,
-    pub(crate) target: Target,
-}
-
-pub(crate) fn parse_common_args(args: &[String]) -> Result<CommonArgs, String> {
-    let parsed = parse_emit_args(EmitFormat::Asm, args)?;
-    Ok(CommonArgs {
-        input: parsed
-            .input
-            .expect("common emit arguments should always include an input"),
-        output: parsed.output,
-        target: parsed.target,
-    })
-}
-
 fn parse_emit_args(format: EmitFormat, args: &[String]) -> Result<ParsedArgs, String> {
     let mut input = None;
     let mut output = None;
@@ -287,7 +268,10 @@ mod tests {
         let args = vec!["program.mtl".to_string()];
         let parsed = parse_emit_args(EmitFormat::Hir, &args).expect("hir args should parse");
 
-        assert_eq!(parsed.input.as_deref(), Some(std::path::Path::new("program.mtl")));
+        assert_eq!(
+            parsed.input.as_deref(),
+            Some(std::path::Path::new("program.mtl"))
+        );
         assert_eq!(parsed.stability, Stability::Stable);
     }
 
@@ -309,7 +293,8 @@ mod tests {
     #[test]
     fn rejects_input_for_abi_emit() {
         let args = vec!["program.mtl".to_string()];
-        let error = parse_emit_args(EmitFormat::Abi, &args).expect_err("abi emit should reject input");
+        let error =
+            parse_emit_args(EmitFormat::Abi, &args).expect_err("abi emit should reject input");
 
         assert!(error.contains("does not accept an input file"));
     }

@@ -5,8 +5,8 @@ use inscribe_comptime::ComptimeValue;
 use inscribe_sandbox::{run_main as run_sandbox_main, SandboxPolicy};
 
 use crate::session::{
-    compile_file_to_mir, host_target, parse_path_arg, run_host_executable, temp_output_path,
-    write_output,
+    compile_file_to_mir, decode_sandbox_module, host_target, parse_path_arg, run_host_executable,
+    temp_output_path, write_output,
 };
 
 pub fn run(args: &[String]) -> Result<(), String> {
@@ -16,9 +16,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
     for arg in args {
         match arg.as_str() {
             "--sandbox" => sandbox = true,
-            value if value.starts_with('-') => {
-                return Err(format!("unknown flag `{value}`"))
-            }
+            value if value.starts_with('-') => return Err(format!("unknown flag `{value}`")),
             value => {
                 if input.is_some() {
                     return Err("expected a single input file".to_string());
@@ -29,8 +27,15 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
 
     let Some(input) = input else {
-        return Err("usage: inscribe run <input.mtl> [--sandbox]".to_string());
+        return Err("usage: inscribe run <input.mtl|input.smtl> [--sandbox]".to_string());
     };
+
+    if is_sandbox_module_path(&input) {
+        let bytes = std::fs::read(&input)
+            .map_err(|error| format!("failed to read `{}`: {error}", input.display()))?;
+        let mir = decode_sandbox_module(&bytes).map_err(|error| error.to_string())?;
+        return run_with_sandbox(&mir);
+    }
 
     let mir = compile_file_to_mir(&input).map_err(|error| error.to_string())?;
 
@@ -58,6 +63,13 @@ pub fn run(args: &[String]) -> Result<(), String> {
     let _ = fs::remove_file(&temp);
     println!("program exited with code {exit_code}");
     Ok(())
+}
+
+fn is_sandbox_module_path(path: &std::path::Path) -> bool {
+    path.extension()
+        .and_then(|extension| extension.to_str())
+        .map(|extension| extension.eq_ignore_ascii_case("smtl"))
+        .unwrap_or(false)
 }
 
 fn run_with_sandbox(mir: &inscribe_mir::MirProgram) -> Result<(), String> {
