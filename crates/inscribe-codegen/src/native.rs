@@ -55,10 +55,16 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
 
     let mut instructions = Vec::new();
     let mut state = LoweringState::default();
+    let layouts = build_type_layouts(&program)?;
     let labels = program
         .functions
         .iter()
         .map(|function| (callable_name(function), function_label(function)))
+        .collect::<HashMap<_, _>>();
+    let functions = program
+        .functions
+        .iter()
+        .map(|function| (callable_name(function), function))
         .collect::<HashMap<_, _>>();
 
     emit_entry_wrapper(
@@ -69,7 +75,15 @@ fn lower_program(program: &MirProgram, target: Target) -> Result<LoweredProgram,
     );
 
     for function in &program.functions {
-        lower_function(function, &labels, target, &mut state, &mut instructions)?;
+        lower_function(
+            function,
+            &labels,
+            &functions,
+            &layouts,
+            target,
+            &mut state,
+            &mut instructions,
+        )?;
     }
 
     Ok(LoweredProgram {
@@ -102,7 +116,10 @@ impl LoweringState {
 
         let label = format!("__ml_data_{}", self.data_items.len());
         self.data_labels.insert(bytes.clone(), label.clone());
-        self.data_items.push(DataItem { label: label.clone(), bytes });
+        self.data_items.push(DataItem {
+            label: label.clone(),
+            bytes,
+        });
         label
     }
 
@@ -119,9 +136,272 @@ struct DataItem {
     bytes: Vec<u8>,
 }
 
+#[derive(Debug, Clone, Default)]
+struct TypeLayouts {
+    structs: HashMap<String, StructLayout>,
+}
+
+#[derive(Debug, Clone)]
+struct StructLayout {
+    fields: Vec<StructFieldLayout>,
+    size: usize,
+}
+
+#[derive(Debug, Clone)]
+struct StructFieldLayout {
+    name: String,
+    ty: Type,
+    offset: usize,
+}
+
+impl TypeLayouts {
+    fn field_layout(&self, struct_name: &str, field: &str) -> Option<&StructFieldLayout> {
+        self.structs
+            .get(struct_name)
+            .and_then(|layout| layout.fields.iter().find(|item| item.name == field))
+    }
+}
+
+fn build_type_layouts(program: &MirProgram) -> Result<TypeLayouts, CodegenError> {
+    let mut field_order: HashMap<String, Vec<String>> = HashMap::new();
+    let mut field_types: HashMap<String, HashMap<String, Type>> = HashMap::new();
+
+    for function in &program.functions {
+        for block in &function.blocks {
+            for statement in &block.statements {
+                let StatementKind::Assign(place, Rvalue::AggregateStruct { path, fields }) =
+                    &statement.kind
+                else {
+                    continue;
+                };
+                let struct_name = infer_aggregate_struct_name(function, place, path)?;
+                let order = field_order.entry(struct_name).or_default();
+                for (field_name, _) in fields {
+                    if !order.iter().any(|known| known == field_name) {
+                        order.push(field_name.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    for _ in 0..32 {
+        let mut changed = false;
+
+        for function in &program.functions {
+            for block in &function.blocks {
+                for statement in &block.statements {
+                    let StatementKind::Assign(place, Rvalue::AggregateStruct { path, fields }) =
+                        &statement.kind
+                    else {
+                        continue;
+                    };
+                    let struct_name = infer_aggregate_struct_name(function, place, path)?;
+                    let mut inferred = Vec::new();
+                    for (field_name, operand) in fields {
+                        let already_known = field_types
+                            .get(&struct_name)
+                            .and_then(|known| known.get(field_name))
+                            .is_some();
+                        if already_known {
+                            continue;
+                        }
+                        if let Some(ty) =
+                            infer_operand_type_for_layout(function, operand, &field_types)
+                        {
+                            inferred.push((field_name.clone(), ty));
+                        }
+                    }
+                    let known_fields = field_types.entry(struct_name).or_default();
+                    for (field_name, ty) in inferred {
+                        if known_fields.insert(field_name, ty).is_none() {
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        if !changed {
+            break;
+        }
+    }
+
+    let mut resolved_structs = HashMap::new();
+    let mut visiting = Vec::new();
+    let names = field_order.keys().cloned().collect::<Vec<_>>();
+    for name in names {
+        resolve_struct_layout(
+            &name,
+            &field_order,
+            &field_types,
+            &mut resolved_structs,
+            &mut visiting,
+        )?;
+    }
+
+    Ok(TypeLayouts {
+        structs: resolved_structs,
+    })
+}
+
+fn infer_aggregate_struct_name(
+    function: &MirFunction,
+    destination: &Place,
+    path: &[String],
+) -> Result<String, CodegenError> {
+    if let Some(Type::Struct(name)) = function
+        .locals
+        .get(destination.local.0)
+        .map(|local| &local.ty)
+    {
+        return Ok(name.clone());
+    }
+
+    path.last()
+        .cloned()
+        .ok_or_else(|| CodegenError::new("aggregate struct literal is missing a type path"))
+}
+
+fn infer_operand_type_for_layout(
+    function: &MirFunction,
+    operand: &Operand,
+    field_types: &HashMap<String, HashMap<String, Type>>,
+) -> Option<Type> {
+    match operand {
+        Operand::Constant(constant) => Some(constant.ty.clone()),
+        Operand::Copy(place) | Operand::Move(place) => {
+            infer_place_type_for_layout(function, place, field_types)
+        }
+    }
+}
+
+fn infer_place_type_for_layout(
+    function: &MirFunction,
+    place: &Place,
+    field_types: &HashMap<String, HashMap<String, Type>>,
+) -> Option<Type> {
+    let mut ty = function.locals.get(place.local.0)?.ty.clone();
+    for projection in &place.projection {
+        ty = match (projection, ty) {
+            (ProjectionElem::Field(field), Type::Struct(struct_name)) => {
+                field_types.get(&struct_name)?.get(field)?.clone()
+            }
+            (ProjectionElem::Index(_), Type::Array(element, _)) => *element,
+            _ => return None,
+        };
+    }
+    Some(ty)
+}
+
+fn resolve_struct_layout(
+    name: &str,
+    field_order: &HashMap<String, Vec<String>>,
+    field_types: &HashMap<String, HashMap<String, Type>>,
+    resolved_structs: &mut HashMap<String, StructLayout>,
+    visiting: &mut Vec<String>,
+) -> Result<(), CodegenError> {
+    if resolved_structs.contains_key(name) {
+        return Ok(());
+    }
+
+    if visiting.iter().any(|active| active == name) {
+        return Err(CodegenError::new(format!(
+            "native codegen does not support recursive struct layout for `{name}`"
+        )));
+    }
+    visiting.push(name.to_string());
+
+    let Some(order) = field_order.get(name) else {
+        visiting.pop();
+        return Err(CodegenError::new(format!(
+            "native codegen could not infer fields for struct `{name}`"
+        )));
+    };
+    let Some(types) = field_types.get(name) else {
+        visiting.pop();
+        return Err(CodegenError::new(format!(
+            "native codegen could not infer field types for struct `{name}`"
+        )));
+    };
+
+    let mut fields = Vec::with_capacity(order.len());
+    let mut offset = 0usize;
+
+    for field_name in order {
+        let Some(field_ty) = types.get(field_name).cloned() else {
+            visiting.pop();
+            return Err(CodegenError::new(format!(
+                "native codegen could not infer type for `{name}.{field_name}`"
+            )));
+        };
+        let size = type_stack_size_with_layouts(
+            &field_ty,
+            field_order,
+            field_types,
+            resolved_structs,
+            visiting,
+        )?;
+        fields.push(StructFieldLayout {
+            name: field_name.clone(),
+            ty: field_ty,
+            offset,
+        });
+        offset += size;
+    }
+
+    visiting.pop();
+    resolved_structs.insert(
+        name.to_string(),
+        StructLayout {
+            fields,
+            size: offset,
+        },
+    );
+    Ok(())
+}
+
+fn type_stack_size_with_layouts(
+    ty: &Type,
+    field_order: &HashMap<String, Vec<String>>,
+    field_types: &HashMap<String, HashMap<String, Type>>,
+    resolved_structs: &mut HashMap<String, StructLayout>,
+    visiting: &mut Vec<String>,
+) -> Result<usize, CodegenError> {
+    match ty {
+        Type::Array(element, length) => {
+            let Some(size) = supported_array_element_size(element) else {
+                return Err(CodegenError::new(format!(
+                    "native codegen does not support array element type `{}`",
+                    element.display_name()
+                )));
+            };
+            Ok(size * *length)
+        }
+        Type::Struct(name) => {
+            resolve_struct_layout(name, field_order, field_types, resolved_structs, visiting)?;
+            resolved_structs
+                .get(name)
+                .map(|layout| layout.size)
+                .ok_or_else(|| {
+                    CodegenError::new(format!(
+                        "native codegen could not resolve layout for struct `{name}`"
+                    ))
+                })
+        }
+        _ if is_supported_scalar_type(ty) => Ok(8),
+        _ => Err(CodegenError::new(format!(
+            "native codegen does not yet support type `{}`",
+            ty.display_name()
+        ))),
+    }
+}
+
 fn lower_function(
     function: &MirFunction,
     labels: &HashMap<String, String>,
+    functions: &HashMap<String, &MirFunction>,
+    layouts: &TypeLayouts,
     target: Target,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
@@ -130,17 +410,27 @@ fn lower_function(
         return emit_runtime_function(function, target, state, instructions);
     }
 
-    let stack = StackLayout::new(function, target)?;
+    let stack = StackLayout::new(function, layouts, target)?;
     instructions.push(Instruction::Label(function_label(function)));
     if stack.total_size > 0 {
         instructions.push(Instruction::SubRsp(stack.total_size as u32));
     }
-    spill_params(function, &stack, target, instructions)?;
+    spill_params(function, &stack, layouts, target, instructions)?;
     instructions.push(Instruction::Jump(block_label(function, function.entry)));
 
     for block in &function.blocks {
         instructions.push(Instruction::Label(block_label(function, block.id)));
-        lower_block(function, block, &stack, labels, target, state, instructions)?;
+        lower_block(
+            function,
+            block,
+            &stack,
+            labels,
+            functions,
+            layouts,
+            target,
+            state,
+            instructions,
+        )?;
     }
 
     Ok(())
@@ -151,6 +441,8 @@ fn lower_block(
     block: &inscribe_mir::BasicBlockData,
     stack: &StackLayout,
     labels: &HashMap<String, String>,
+    functions: &HashMap<String, &MirFunction>,
+    layouts: &TypeLayouts,
     codegen_target: Target,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
@@ -162,7 +454,7 @@ fn lower_block(
             | StatementKind::Drop(_)
             | StatementKind::Nop => {}
             StatementKind::Assign(place, value) => {
-                lower_assign(function, place, value, stack, state, instructions)?
+                lower_assign(function, place, value, stack, layouts, state, instructions)?
             }
         }
     }
@@ -176,7 +468,14 @@ fn lower_block(
             then_bb,
             else_bb,
         } => {
-            load_operand(condition, Register::Rax, stack, state, instructions)?;
+            load_operand(
+                condition,
+                Register::Rax,
+                stack,
+                layouts,
+                state,
+                instructions,
+            )?;
             instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
             instructions.push(Instruction::JumpIf(
                 Condition::NotEqual,
@@ -184,7 +483,7 @@ fn lower_block(
             ));
             instructions.push(Instruction::Jump(block_label(function, *else_bb)));
         }
-        TerminatorKind::Return => emit_function_return(function, stack, instructions)?,
+        TerminatorKind::Return => emit_function_return(function, stack, layouts, instructions)?,
         TerminatorKind::Unreachable => instructions.push(Instruction::Ud2),
         TerminatorKind::Match { .. } => {
             return Err(CodegenError::new(
@@ -204,6 +503,8 @@ fn lower_block(
             *next_block,
             stack,
             labels,
+            functions,
+            layouts,
             codegen_target,
             state,
             instructions,
@@ -228,28 +529,72 @@ fn lower_assign(
     place: &Place,
     value: &Rvalue,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
-    ensure_supported_local_type(function, place.local.0)?;
+    ensure_supported_local_type(function, layouts, place.local.0)?;
     match value {
-        Rvalue::AggregateArray { elements } => {
-            lower_array_aggregate_assign(function, place, elements, stack, state, instructions)
-        }
-        Rvalue::RepeatArray { value, length } => {
-            lower_repeat_array_assign(function, place, value, *length, stack, state, instructions)
-        }
+        Rvalue::AggregateArray { elements } => lower_array_aggregate_assign(
+            function,
+            place,
+            elements,
+            stack,
+            layouts,
+            state,
+            instructions,
+        ),
+        Rvalue::RepeatArray { value, length } => lower_repeat_array_assign(
+            function,
+            place,
+            value,
+            *length,
+            stack,
+            layouts,
+            state,
+            instructions,
+        ),
+        Rvalue::AggregateStruct { path, fields } => lower_struct_aggregate_assign(
+            function,
+            place,
+            path,
+            fields,
+            stack,
+            layouts,
+            state,
+            instructions,
+        ),
         _ => {
-            let value_ty = place_type(function, place)?;
+            let value_ty = place_type(function, place, layouts)?;
             if !is_supported_scalar_type(&value_ty) {
+                if let Rvalue::Use(operand) = value {
+                    copy_operand_into_place(
+                        function,
+                        operand,
+                        place,
+                        stack,
+                        layouts,
+                        state,
+                        instructions,
+                    )?;
+                    return Ok(());
+                }
                 return Err(CodegenError::new(format!(
                     "native codegen does not yet support assigning `{}` through `{}`",
                     value_ty.display_name(),
                     function.locals[place.local.0].name
                 )));
             }
-            lower_rvalue(value, stack, state, instructions)?;
-            store_scalar_place(function, place, Register::Rax, stack, state, instructions)
+            lower_rvalue(value, stack, layouts, state, instructions)?;
+            store_scalar_place(
+                function,
+                place,
+                Register::Rax,
+                stack,
+                layouts,
+                state,
+                instructions,
+            )
         }
     }
 }
@@ -257,13 +602,16 @@ fn lower_assign(
 fn lower_rvalue(
     value: &Rvalue,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     match value {
-        Rvalue::Use(operand) => load_operand(operand, Register::Rax, stack, state, instructions),
+        Rvalue::Use(operand) => {
+            load_operand(operand, Register::Rax, stack, layouts, state, instructions)
+        }
         Rvalue::UnaryOp { op, operand } => {
-            load_operand(operand, Register::Rax, stack, state, instructions)?;
+            load_operand(operand, Register::Rax, stack, layouts, state, instructions)?;
             match op.as_str() {
                 "Negate" => instructions.push(Instruction::NegReg(Register::Rax)),
                 "Not" => {
@@ -280,8 +628,8 @@ fn lower_rvalue(
             Ok(())
         }
         Rvalue::BinaryOp { op, left, right } => {
-            load_operand(left, Register::Rax, stack, state, instructions)?;
-            load_operand(right, Register::Rcx, stack, state, instructions)?;
+            load_operand(left, Register::Rax, stack, layouts, state, instructions)?;
+            load_operand(right, Register::Rcx, stack, layouts, state, instructions)?;
             match op.as_str() {
                 "Add" => instructions.push(Instruction::AddRegReg(Register::Rax, Register::Rcx)),
                 "Subtract" => {
@@ -322,6 +670,163 @@ fn lower_rvalue(
     }
 }
 
+fn lower_struct_aggregate_assign(
+    function: &MirFunction,
+    place: &Place,
+    _path: &[String],
+    fields: &[(String, Operand)],
+    stack: &StackLayout,
+    layouts: &TypeLayouts,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let destination_ty = place_type(function, place, layouts)?;
+    if !matches!(destination_ty, Type::Struct(_)) {
+        return Err(CodegenError::new(
+            "struct aggregate assignment requires a struct destination",
+        ));
+    }
+
+    for (field_name, operand) in fields {
+        let mut field_place = place.clone();
+        field_place
+            .projection
+            .push(ProjectionElem::Field(field_name.clone()));
+        let field_ty = place_type(function, &field_place, layouts)?;
+        if is_supported_scalar_type(&field_ty) {
+            load_operand(operand, Register::Rax, stack, layouts, state, instructions)?;
+            store_scalar_place(
+                function,
+                &field_place,
+                Register::Rax,
+                stack,
+                layouts,
+                state,
+                instructions,
+            )?;
+        } else {
+            copy_operand_into_place(
+                function,
+                operand,
+                &field_place,
+                stack,
+                layouts,
+                state,
+                instructions,
+            )?;
+        }
+    }
+
+    Ok(())
+}
+
+fn copy_operand_into_place(
+    function: &MirFunction,
+    operand: &Operand,
+    destination: &Place,
+    stack: &StackLayout,
+    layouts: &TypeLayouts,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let destination_ty = place_type(function, destination, layouts)?;
+    let size = type_stack_size(&destination_ty, layouts)?;
+    if size == 0 {
+        return Ok(());
+    }
+
+    load_operand_address(operand, Register::R11, stack, layouts, state, instructions)?;
+    compute_place_address(destination, stack, layouts, state, instructions, "copy_dst")?;
+    copy_bytes_fixed(size, Register::R11, Register::R10, instructions)?;
+    Ok(())
+}
+
+fn load_operand_address(
+    operand: &Operand,
+    destination: Register,
+    stack: &StackLayout,
+    layouts: &TypeLayouts,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let place = match operand {
+        Operand::Copy(place) | Operand::Move(place) => place,
+        Operand::Constant(_) => {
+            return Err(CodegenError::new(
+                "native codegen cannot take an address of a constant operand",
+            ))
+        }
+    };
+    compute_place_address(place, stack, layouts, state, instructions, "operand_addr")?;
+    if destination != Register::R10 {
+        instructions.push(Instruction::MovRegReg(destination, Register::R10));
+    }
+    Ok(())
+}
+
+fn compute_place_address(
+    place: &Place,
+    stack: &StackLayout,
+    layouts: &TypeLayouts,
+    state: &mut LoweringState,
+    instructions: &mut Vec<Instruction>,
+    label_prefix: &str,
+) -> Result<(), CodegenError> {
+    if place.projection.is_empty() {
+        instructions.push(Instruction::LeaRegRspOffset(
+            Register::R10,
+            stack.offset_for(place.local.0)?,
+        ));
+        return Ok(());
+    }
+    let (_element_ty, oob_label, done_label) =
+        compute_projected_address(place, stack, layouts, state, instructions, label_prefix)?;
+    instructions.push(Instruction::Jump(done_label.clone()));
+    instructions.push(Instruction::Label(oob_label));
+    instructions.push(Instruction::MovRegImm64(Register::R10, 0));
+    instructions.push(Instruction::Label(done_label));
+    Ok(())
+}
+
+fn copy_bytes_fixed(
+    size: usize,
+    src: Register,
+    dst: Register,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let mut remaining = size;
+    while remaining >= 8 {
+        instructions.push(Instruction::MovRegMem(Register::Rax, src));
+        instructions.push(Instruction::MovMemReg(dst, Register::Rax));
+        instructions.push(Instruction::AddRegImm(src, 8));
+        instructions.push(Instruction::AddRegImm(dst, 8));
+        remaining -= 8;
+    }
+    while remaining > 0 {
+        instructions.push(Instruction::MovzxRegMem8(Register::Rax, src));
+        instructions.push(Instruction::MovMemReg8(dst, Register::Rax));
+        instructions.push(Instruction::AddRegImm(src, 1));
+        instructions.push(Instruction::AddRegImm(dst, 1));
+        remaining -= 1;
+    }
+    Ok(())
+}
+
+fn operand_type(
+    function: &MirFunction,
+    operand: &Operand,
+    layouts: &TypeLayouts,
+) -> Result<Type, CodegenError> {
+    match operand {
+        Operand::Constant(constant) => Ok(constant.ty.clone()),
+        Operand::Copy(place) | Operand::Move(place) => place_type(function, place, layouts),
+    }
+}
+
+fn is_pass_indirect_type(ty: &Type, layouts: &TypeLayouts) -> bool {
+    !is_supported_scalar_type(ty) && is_supported_local_type(ty, layouts)
+}
+
 fn lower_call_terminator(
     function: &MirFunction,
     callee: &Operand,
@@ -330,6 +835,8 @@ fn lower_call_terminator(
     target: BasicBlockId,
     stack: &StackLayout,
     labels: &HashMap<String, String>,
+    functions: &HashMap<String, &MirFunction>,
+    layouts: &TypeLayouts,
     target_info: Target,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
@@ -345,28 +852,89 @@ fn lower_call_terminator(
             "native codegen could not find callee `{callee_name}`"
         )));
     };
+    let callee_function = functions.get(callee_name).copied();
 
-    let arg_registers = argument_registers(target_info);
-    let register_arg_count = args.len().min(arg_registers.len());
-    for (operand, register) in args.iter().take(register_arg_count).zip(arg_registers.iter()) {
-        load_operand(operand, *register, stack, state, instructions)?;
+    let mut abi_index = 0usize;
+    let returns_indirect = callee_function
+        .map(|callee| is_pass_indirect_type(callee.signature.return_type.as_ref(), layouts))
+        .unwrap_or(false);
+    if returns_indirect {
+        let Some(destination_place) = destination else {
+            return Err(CodegenError::new(format!(
+                "native codegen requires a destination for aggregate return from `{callee_name}`"
+            )));
+        };
+        compute_place_address(
+            destination_place,
+            stack,
+            layouts,
+            state,
+            instructions,
+            "call_ret_dst",
+        )?;
+        emit_store_call_argument(abi_index, Register::R10, stack, target_info, instructions)?;
+        abi_index += 1;
     }
-    for (stack_index, operand) in args.iter().skip(register_arg_count).enumerate() {
-        load_operand(operand, Register::Rax, stack, state, instructions)?;
-        instructions.push(Instruction::MovStackReg(
-            stack.outgoing_arg_offset(target_info, stack_index)?,
-            Register::Rax,
-        ));
+
+    for (arg_index, operand) in args.iter().enumerate() {
+        let pass_indirect = callee_function
+            .and_then(|callee| callee.signature.params.get(arg_index))
+            .map(|ty| is_pass_indirect_type(ty, layouts))
+            .unwrap_or_else(|| {
+                operand_type(function, operand, layouts)
+                    .map(|ty| is_pass_indirect_type(&ty, layouts))
+                    .unwrap_or(false)
+            });
+        if pass_indirect {
+            load_operand_address(operand, Register::Rax, stack, layouts, state, instructions)?;
+        } else {
+            load_operand(operand, Register::Rax, stack, layouts, state, instructions)?;
+        }
+        emit_store_call_argument(abi_index, Register::Rax, stack, target_info, instructions)?;
+        abi_index += 1;
     }
 
     instructions.push(Instruction::Call(label.clone()));
 
-    if let Some(place) = destination {
-        ensure_supported_local_type(function, place.local.0)?;
-        store_scalar_place(function, place, Register::Rax, stack, state, instructions)?;
+    if !returns_indirect {
+        if let Some(place) = destination {
+            ensure_supported_local_type(function, layouts, place.local.0)?;
+            store_scalar_place(
+                function,
+                place,
+                Register::Rax,
+                stack,
+                layouts,
+                state,
+                instructions,
+            )?;
+        }
     }
 
     instructions.push(Instruction::Jump(block_label(function, target)));
+    Ok(())
+}
+
+fn emit_store_call_argument(
+    abi_index: usize,
+    value: Register,
+    stack: &StackLayout,
+    target: Target,
+    instructions: &mut Vec<Instruction>,
+) -> Result<(), CodegenError> {
+    let arg_registers = argument_registers(target);
+    if let Some(register) = arg_registers.get(abi_index) {
+        if *register != value {
+            instructions.push(Instruction::MovRegReg(*register, value));
+        }
+        return Ok(());
+    }
+
+    let stack_index = abi_index - arg_registers.len();
+    instructions.push(Instruction::MovStackReg(
+        stack.outgoing_arg_offset(target, stack_index)?,
+        value,
+    ));
     Ok(())
 }
 
@@ -489,34 +1057,61 @@ fn emit_entry_wrapper(
 fn spill_params(
     function: &MirFunction,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     target: Target,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     let arg_registers = argument_registers(target);
-    let register_arg_count = function.signature.params.len().min(arg_registers.len());
-    for (index, register) in arg_registers.iter().take(register_arg_count).enumerate() {
-        let local_index = 1 + index;
-        if local_index >= function.locals.len() {
-            break;
+    let mut abi_index = 0usize;
+    if let Some(return_ptr_offset) = stack.return_ptr_offset {
+        if let Some(register) = arg_registers.get(abi_index) {
+            instructions.push(Instruction::MovRegReg(Register::Rax, *register));
+        } else {
+            let stack_index = abi_index - arg_registers.len();
+            instructions.push(Instruction::MovRegStack(
+                Register::Rax,
+                stack.incoming_arg_offset(target, stack_index)?,
+            ));
         }
-        instructions.push(Instruction::MovStackReg(
-            stack.offset_for(local_index)?,
-            *register,
-        ));
+        instructions.push(Instruction::MovStackReg(return_ptr_offset, Register::Rax));
+        abi_index += 1;
     }
-    for index in register_arg_count..function.signature.params.len() {
+
+    for index in 0..function.signature.params.len() {
         let local_index = 1 + index;
         if local_index >= function.locals.len() {
             break;
         }
-        instructions.push(Instruction::MovRegStack(
-            Register::Rax,
-            stack.incoming_arg_offset(target, index - register_arg_count)?,
-        ));
-        instructions.push(Instruction::MovStackReg(
-            stack.offset_for(local_index)?,
-            Register::Rax,
-        ));
+
+        if let Some(register) = arg_registers.get(abi_index) {
+            instructions.push(Instruction::MovRegReg(Register::Rax, *register));
+        } else {
+            let stack_index = abi_index - arg_registers.len();
+            instructions.push(Instruction::MovRegStack(
+                Register::Rax,
+                stack.incoming_arg_offset(target, stack_index)?,
+            ));
+        }
+
+        if is_pass_indirect_type(&function.signature.params[index], layouts) {
+            instructions.push(Instruction::LeaRegRspOffset(
+                Register::R10,
+                stack.offset_for(local_index)?,
+            ));
+            instructions.push(Instruction::MovRegReg(Register::R11, Register::Rax));
+            copy_bytes_fixed(
+                type_stack_size(&function.signature.params[index], layouts)?,
+                Register::R11,
+                Register::R10,
+                instructions,
+            )?;
+        } else {
+            instructions.push(Instruction::MovStackReg(
+                stack.offset_for(local_index)?,
+                Register::Rax,
+            ));
+        }
+        abi_index += 1;
     }
     Ok(())
 }
@@ -524,6 +1119,7 @@ fn spill_params(
 fn emit_function_return(
     function: &MirFunction,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     match function.signature.return_type.as_ref() {
@@ -533,10 +1129,27 @@ fn emit_function_return(
             stack.offset_for(function.return_local.0)?,
         ))
         }
+        Type::Struct(_) => {
+            let return_ptr_offset = stack.return_ptr_offset.ok_or_else(|| {
+                CodegenError::new("native codegen missing hidden return pointer slot")
+            })?;
+            instructions.push(Instruction::LeaRegRspOffset(
+                Register::R10,
+                stack.offset_for(function.return_local.0)?,
+            ));
+            instructions.push(Instruction::MovRegStack(Register::R11, return_ptr_offset));
+            copy_bytes_fixed(
+                type_stack_size(function.signature.return_type.as_ref(), layouts)?,
+                Register::R10,
+                Register::R11,
+                instructions,
+            )?;
+            instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
+        }
         Type::Unit => instructions.push(Instruction::MovRegImm64(Register::Rax, 0)),
         other => {
             return Err(CodegenError::new(format!(
-                "native codegen currently only supports direct returns of `int`, `byte`, `bool`, enum, `string`, or `()`, found `{}`",
+                "native codegen currently only supports returns of scalar types, structs, or `()`, found `{}`",
                 other.display_name()
             )))
         }
@@ -636,7 +1249,10 @@ fn emit_runtime_print_int(
 
     instructions.push(Instruction::Label(function_label(function)));
     instructions.push(Instruction::SubRsp(frame));
-    instructions.push(Instruction::LeaRegRspOffset(Register::R10, runtime_buffer_end_offset(target)));
+    instructions.push(Instruction::LeaRegRspOffset(
+        Register::R10,
+        runtime_buffer_end_offset(target),
+    ));
     instructions.push(Instruction::LeaRegRspOffset(
         Register::R11,
         runtime_buffer_end_offset(target) + 1,
@@ -649,7 +1265,10 @@ fn emit_runtime_print_int(
     instructions.push(Instruction::JumpIf(Condition::Equal, zero_label.clone()));
     instructions.push(Instruction::MovRegImm64(Register::R8, 0));
     instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
-    instructions.push(Instruction::JumpIf(Condition::GreaterEqual, non_negative_label.clone()));
+    instructions.push(Instruction::JumpIf(
+        Condition::GreaterEqual,
+        non_negative_label.clone(),
+    ));
     instructions.push(Instruction::NegReg(Register::Rax));
     instructions.push(Instruction::MovRegImm64(Register::R8, 1));
     instructions.push(Instruction::Label(non_negative_label));
@@ -663,7 +1282,10 @@ fn emit_runtime_print_int(
     instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
     instructions.push(Instruction::JumpIf(Condition::NotEqual, loop_label));
     instructions.push(Instruction::CmpRegImm(Register::R8, 0));
-    instructions.push(Instruction::JumpIf(Condition::Equal, after_sign_label.clone()));
+    instructions.push(Instruction::JumpIf(
+        Condition::Equal,
+        after_sign_label.clone(),
+    ));
     instructions.push(Instruction::MovRegImm64(Register::Rdx, 45));
     instructions.push(Instruction::MovMemReg8(Register::R10, Register::Rdx));
     instructions.push(Instruction::Jump(done_label.clone()));
@@ -810,22 +1432,25 @@ fn emit_runtime_read_int(
     instructions.push(Instruction::Label(read_label.clone()));
     emit_read_stdin_byte(target, state, instructions);
     instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
-    instructions.push(Instruction::JumpIf(Condition::LessEqual, check_started_label.clone()));
+    instructions.push(Instruction::JumpIf(
+        Condition::LessEqual,
+        check_started_label.clone(),
+    ));
 
     instructions.push(Instruction::LeaRegRspOffset(
         Register::R10,
         runtime_input_buffer_offset(target),
     ));
-    instructions.push(Instruction::MovzxRegMem8(
-        Register::Rax,
-        Register::R10,
-    ));
+    instructions.push(Instruction::MovzxRegMem8(Register::Rax, Register::R10));
     instructions.push(Instruction::MovRegStack(
         Register::R9,
         runtime_started_offset(target),
     ));
     instructions.push(Instruction::CmpRegImm(Register::R9, 0));
-    instructions.push(Instruction::JumpIf(Condition::Equal, skip_space_label.clone()));
+    instructions.push(Instruction::JumpIf(
+        Condition::Equal,
+        skip_space_label.clone(),
+    ));
 
     instructions.push(Instruction::Jump(digit_loop_label.clone()));
 
@@ -839,7 +1464,10 @@ fn emit_runtime_read_int(
     instructions.push(Instruction::CmpRegImm(Register::Rax, 13));
     instructions.push(Instruction::JumpIf(Condition::Equal, read_label.clone()));
     instructions.push(Instruction::CmpRegImm(Register::Rax, 45));
-    instructions.push(Instruction::JumpIf(Condition::Equal, mark_negative_label.clone()));
+    instructions.push(Instruction::JumpIf(
+        Condition::Equal,
+        mark_negative_label.clone(),
+    ));
     instructions.push(Instruction::Jump(first_digit_label.clone()));
 
     instructions.push(Instruction::Label(mark_negative_label));
@@ -869,7 +1497,10 @@ fn emit_runtime_read_int(
     instructions.push(Instruction::CmpRegImm(Register::Rax, 48));
     instructions.push(Instruction::JumpIf(Condition::Less, finish_label.clone()));
     instructions.push(Instruction::CmpRegImm(Register::Rax, 57));
-    instructions.push(Instruction::JumpIf(Condition::Greater, finish_label.clone()));
+    instructions.push(Instruction::JumpIf(
+        Condition::Greater,
+        finish_label.clone(),
+    ));
     instructions.push(Instruction::SubRegImm(Register::Rax, 48));
     instructions.push(Instruction::MovRegStack(
         Register::R9,
@@ -983,7 +1614,10 @@ fn emit_runtime_string_byte_at(
     instructions.push(Instruction::JumpIf(Condition::Less, zero_label.clone()));
     instructions.push(Instruction::Label(loop_label.clone()));
     instructions.push(Instruction::CmpRegImm(Register::R11, 0));
-    instructions.push(Instruction::JumpIf(Condition::Equal, at_index_label.clone()));
+    instructions.push(Instruction::JumpIf(
+        Condition::Equal,
+        at_index_label.clone(),
+    ));
     instructions.push(Instruction::MovzxRegMem8(Register::Rax, Register::R10));
     instructions.push(Instruction::CmpRegImm(Register::Rax, 0));
     instructions.push(Instruction::JumpIf(Condition::Equal, zero_label.clone()));
@@ -1028,7 +1662,9 @@ fn emit_write_stdout(
         OperatingSystem::Windows => {
             state.uses_windows_runtime_imports = true;
             instructions.push(Instruction::MovRegImm64(Register::Rcx, -11));
-            instructions.push(Instruction::CallImport(WIN_IMPORT_GET_STD_HANDLE.to_string()));
+            instructions.push(Instruction::CallImport(
+                WIN_IMPORT_GET_STD_HANDLE.to_string(),
+            ));
             instructions.push(Instruction::MovRegReg(Register::Rcx, Register::Rax));
             instructions.push(Instruction::MovRegReg(Register::Rdx, pointer));
             instructions.push(Instruction::MovRegReg(Register::R8, length));
@@ -1037,7 +1673,10 @@ fn emit_write_stdout(
                 runtime_written_offset(target),
             ));
             instructions.push(Instruction::MovRegImm64(Register::Rax, 0));
-            instructions.push(Instruction::MovStackReg(runtime_windows_arg5_offset(target), Register::Rax));
+            instructions.push(Instruction::MovStackReg(
+                runtime_windows_arg5_offset(target),
+                Register::Rax,
+            ));
             instructions.push(Instruction::CallImport(WIN_IMPORT_WRITE_FILE.to_string()));
         }
     }
@@ -1066,7 +1705,9 @@ fn emit_read_stdin_byte(
         OperatingSystem::Windows => {
             state.uses_windows_runtime_imports = true;
             instructions.push(Instruction::MovRegImm64(Register::Rcx, -10));
-            instructions.push(Instruction::CallImport(WIN_IMPORT_GET_STD_HANDLE.to_string()));
+            instructions.push(Instruction::CallImport(
+                WIN_IMPORT_GET_STD_HANDLE.to_string(),
+            ));
             instructions.push(Instruction::MovRegReg(Register::Rcx, Register::Rax));
             instructions.push(Instruction::LeaRegRspOffset(
                 Register::R10,
@@ -1173,12 +1814,7 @@ fn argument_registers(target: Target) -> &'static [Register] {
             Register::R8,
             Register::R9,
         ][..],
-        OperatingSystem::Windows => &[
-            Register::Rcx,
-            Register::Rdx,
-            Register::R8,
-            Register::R9,
-        ][..],
+        OperatingSystem::Windows => &[Register::Rcx, Register::Rdx, Register::R8, Register::R9][..],
     }
 }
 
@@ -1186,17 +1822,14 @@ fn load_operand(
     operand: &Operand,
     destination: Register,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
     match operand {
-        Operand::Copy(place) | Operand::Move(place) => load_place_operand(
-            place,
-            destination,
-            stack,
-            state,
-            instructions,
-        ),
+        Operand::Copy(place) | Operand::Move(place) => {
+            load_place_operand(place, destination, stack, layouts, state, instructions)
+        }
         Operand::Constant(constant) => {
             load_constant(&constant.value, destination, state, instructions)
         }
@@ -1236,14 +1869,18 @@ fn load_constant(
     Ok(())
 }
 
-fn ensure_supported_local_type(function: &MirFunction, local: usize) -> Result<(), CodegenError> {
+fn ensure_supported_local_type(
+    function: &MirFunction,
+    layouts: &TypeLayouts,
+    local: usize,
+) -> Result<(), CodegenError> {
     let Some(local_decl) = function.locals.get(local) else {
         return Err(CodegenError::new(format!(
             "MIR local `{local}` does not exist"
         )));
     };
 
-    if is_supported_local_type(&local_decl.ty) {
+    if is_supported_local_type(&local_decl.ty, layouts) {
         Ok(())
     } else {
         Err(CodegenError::new(format!(
@@ -1261,25 +1898,37 @@ fn is_supported_scalar_type(ty: &Type) -> bool {
     )
 }
 
-fn is_supported_local_type(ty: &Type) -> bool {
-    match ty {
-        Type::Array(element, _) => supported_array_element_size(element).is_some(),
-        _ => is_supported_scalar_type(ty),
-    }
+fn is_supported_local_type(ty: &Type, layouts: &TypeLayouts) -> bool {
+    type_stack_size(ty, layouts).is_ok()
 }
 
-fn place_type(function: &MirFunction, place: &Place) -> Result<Type, CodegenError> {
+fn place_type(
+    function: &MirFunction,
+    place: &Place,
+    layouts: &TypeLayouts,
+) -> Result<Type, CodegenError> {
     let mut ty = function
         .locals
         .get(place.local.0)
         .map(|local| local.ty.clone())
-        .ok_or_else(|| CodegenError::new(format!("MIR local `{}` does not exist", place.local.0)))?;
+        .ok_or_else(|| {
+            CodegenError::new(format!("MIR local `{}` does not exist", place.local.0))
+        })?;
     for projection in &place.projection {
         ty = match (projection, ty) {
-            (ProjectionElem::Field(_), _) => {
-                return Err(CodegenError::new(
-                    "native codegen does not yet support field projections",
-                ))
+            (ProjectionElem::Field(field), Type::Struct(struct_name)) => layouts
+                .field_layout(&struct_name, field)
+                .map(|layout| layout.ty.clone())
+                .ok_or_else(|| {
+                    CodegenError::new(format!(
+                        "native codegen could not resolve field `{field}` on `{struct_name}`"
+                    ))
+                })?,
+            (ProjectionElem::Field(field), other) => {
+                return Err(CodegenError::new(format!(
+                    "cannot access field `{field}` on `{}` during native lowering",
+                    other.display_name()
+                )))
             }
             (ProjectionElem::Index(_), Type::Array(element, _)) => *element,
             (ProjectionElem::Index(_), other) => {
@@ -1301,11 +1950,30 @@ fn supported_array_element_size(ty: &Type) -> Option<usize> {
     }
 }
 
-fn type_stack_size(ty: &Type) -> Option<usize> {
+fn type_stack_size(ty: &Type, layouts: &TypeLayouts) -> Result<usize, CodegenError> {
     match ty {
-        Type::Array(element, length) => supported_array_element_size(element).map(|size| size * length),
-        _ if is_supported_scalar_type(ty) => Some(8),
-        _ => None,
+        Type::Array(element, length) => supported_array_element_size(element)
+            .map(|size| size * length)
+            .ok_or_else(|| {
+                CodegenError::new(format!(
+                    "native codegen does not support array element type `{}`",
+                    element.display_name()
+                ))
+            }),
+        Type::Struct(name) => layouts
+            .structs
+            .get(name)
+            .map(|layout| layout.size)
+            .ok_or_else(|| {
+                CodegenError::new(format!(
+                    "native codegen could not resolve layout for struct `{name}`"
+                ))
+            }),
+        _ if is_supported_scalar_type(ty) => Ok(8),
+        _ => Err(CodegenError::new(format!(
+            "native codegen does not yet support type `{}`",
+            ty.display_name()
+        ))),
     }
 }
 
@@ -1313,6 +1981,7 @@ fn load_place_operand(
     place: &Place,
     destination: Register,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
@@ -1326,7 +1995,7 @@ fn load_place_operand(
     }
 
     let (element_ty, oob_label, done_label) =
-        compute_projected_address(place, stack, state, instructions, "load_place")?;
+        compute_projected_address(place, stack, layouts, state, instructions, "load_place")?;
     match element_ty {
         Type::Byte => {
             instructions.push(Instruction::MovzxRegMem8(destination, Register::R10));
@@ -1357,6 +2026,7 @@ fn store_scalar_place(
     place: &Place,
     source: Register,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
@@ -1368,9 +2038,9 @@ fn store_scalar_place(
         return Ok(());
     }
 
-    let value_ty = place_type(function, place)?;
+    let value_ty = place_type(function, place, layouts)?;
     let (_element_ty, oob_label, done_label) =
-        compute_projected_address(place, stack, state, instructions, "store_place")?;
+        compute_projected_address(place, stack, layouts, state, instructions, "store_place")?;
     match value_ty {
         Type::Byte => instructions.push(Instruction::MovMemReg8(Register::R10, source)),
         other if is_supported_scalar_type(&other) => {
@@ -1394,6 +2064,7 @@ fn lower_array_aggregate_assign(
     place: &Place,
     elements: &[Operand],
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
@@ -1406,7 +2077,9 @@ fn lower_array_aggregate_assign(
         .locals
         .get(place.local.0)
         .map(|local| local.ty.clone())
-        .ok_or_else(|| CodegenError::new(format!("MIR local `{}` does not exist", place.local.0)))?;
+        .ok_or_else(|| {
+            CodegenError::new(format!("MIR local `{}` does not exist", place.local.0))
+        })?;
     let Type::Array(element, length) = array_ty else {
         return Err(CodegenError::new(
             "array aggregate assignment requires an array destination",
@@ -1419,7 +2092,7 @@ fn lower_array_aggregate_assign(
         )));
     }
     for (index, operand) in elements.iter().enumerate() {
-        load_operand(operand, Register::Rax, stack, state, instructions)?;
+        load_operand(operand, Register::Rax, stack, layouts, state, instructions)?;
         let element_place = Place {
             local: place.local,
             projection: vec![ProjectionElem::Index(Operand::Constant(Constant {
@@ -1437,7 +2110,15 @@ fn lower_array_aggregate_assign(
                 "native codegen does not support nested array elements yet",
             ));
         };
-        store_scalar_place(function, &element_place, Register::Rax, stack, state, instructions)?;
+        store_scalar_place(
+            function,
+            &element_place,
+            Register::Rax,
+            stack,
+            layouts,
+            state,
+            instructions,
+        )?;
     }
     Ok(())
 }
@@ -1448,6 +2129,7 @@ fn lower_repeat_array_assign(
     value: &Operand,
     length: usize,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
 ) -> Result<(), CodegenError> {
@@ -1455,7 +2137,9 @@ fn lower_repeat_array_assign(
         .locals
         .get(place.local.0)
         .map(|local| local.ty.clone())
-        .ok_or_else(|| CodegenError::new(format!("MIR local `{}` does not exist", place.local.0)))?;
+        .ok_or_else(|| {
+            CodegenError::new(format!("MIR local `{}` does not exist", place.local.0))
+        })?;
     let Type::Array(element, expected_len) = array_ty else {
         return Err(CodegenError::new(
             "repeat array assignment requires an array destination",
@@ -1467,7 +2151,7 @@ fn lower_repeat_array_assign(
         )));
     }
     for index in 0..length {
-        load_operand(value, Register::Rax, stack, state, instructions)?;
+        load_operand(value, Register::Rax, stack, layouts, state, instructions)?;
         let element_place = Place {
             local: place.local,
             projection: vec![ProjectionElem::Index(Operand::Constant(Constant {
@@ -1483,7 +2167,15 @@ fn lower_repeat_array_assign(
                 "native codegen does not support nested array elements yet",
             ));
         }
-        store_scalar_place(function, &element_place, Register::Rax, stack, state, instructions)?;
+        store_scalar_place(
+            function,
+            &element_place,
+            Register::Rax,
+            stack,
+            layouts,
+            state,
+            instructions,
+        )?;
     }
     Ok(())
 }
@@ -1491,6 +2183,7 @@ fn lower_repeat_array_assign(
 fn compute_projected_address(
     place: &Place,
     stack: &StackLayout,
+    layouts: &TypeLayouts,
     state: &mut LoweringState,
     instructions: &mut Vec<Instruction>,
     label_prefix: &str,
@@ -1503,22 +2196,36 @@ fn compute_projected_address(
         .local_types
         .get(place.local.0)
         .cloned()
-        .ok_or_else(|| CodegenError::new(format!("MIR local `{}` does not exist", place.local.0)))?;
+        .ok_or_else(|| {
+            CodegenError::new(format!("MIR local `{}` does not exist", place.local.0))
+        })?;
     let oob_label = format!("__ml_{label_prefix}_oob_{}", instructions.len());
     let done_label = format!("__ml_{label_prefix}_done_{}", instructions.len());
     for projection in &place.projection {
         match (projection, current_ty) {
-            (ProjectionElem::Field(_), _) => {
-                return Err(CodegenError::new(
-                    "native codegen does not yet support field projections",
-                ))
+            (ProjectionElem::Field(field), Type::Struct(struct_name)) => {
+                let field_layout = layouts.field_layout(&struct_name, field).ok_or_else(|| {
+                    CodegenError::new(format!(
+                        "native codegen could not resolve field `{field}` on `{struct_name}`"
+                    ))
+                })?;
+                if field_layout.offset > 0 {
+                    instructions.push(Instruction::AddRegImm(
+                        Register::R10,
+                        field_layout.offset as i32,
+                    ));
+                }
+                current_ty = field_layout.ty.clone();
             }
             (ProjectionElem::Index(index), Type::Array(element, length)) => {
-                load_operand(index, Register::Rcx, stack, state, instructions)?;
+                load_operand(index, Register::Rcx, stack, layouts, state, instructions)?;
                 instructions.push(Instruction::CmpRegImm(Register::Rcx, 0));
                 instructions.push(Instruction::JumpIf(Condition::Less, oob_label.clone()));
                 instructions.push(Instruction::CmpRegImm(Register::Rcx, length as i32));
-                instructions.push(Instruction::JumpIf(Condition::GreaterEqual, oob_label.clone()));
+                instructions.push(Instruction::JumpIf(
+                    Condition::GreaterEqual,
+                    oob_label.clone(),
+                ));
                 let size = supported_array_element_size(&element).ok_or_else(|| {
                     CodegenError::new(format!(
                         "native codegen does not support array element type `{}`",
@@ -1532,6 +2239,12 @@ fn compute_projected_address(
                     size as u8,
                 ));
                 current_ty = *element;
+            }
+            (ProjectionElem::Field(_), other) => {
+                return Err(CodegenError::new(format!(
+                    "cannot access field on `{}` during native lowering",
+                    other.display_name()
+                )))
             }
             (ProjectionElem::Index(_), other) => {
                 return Err(CodegenError::new(format!(
@@ -1628,7 +2341,12 @@ fn emit_elf(program: &LoweredProgram) -> Result<Vec<u8>, CodegenError> {
     let code_offset = 0x1000usize;
     let base_vaddr = 0x400000u64;
     let section_vaddr = base_vaddr + code_offset as u64;
-    let section = build_section(program, Target::linux_x86_64(), section_vaddr, code_offset as u32)?;
+    let section = build_section(
+        program,
+        Target::linux_x86_64(),
+        section_vaddr,
+        code_offset as u32,
+    )?;
     let entry = section_vaddr + program.entry_offset() as u64;
     let file_size = code_offset + section.bytes.len();
 
@@ -1780,16 +2498,17 @@ fn build_section(
         cursor += item.bytes.len();
     }
 
-    let import_layout = if target.os == OperatingSystem::Windows && program.uses_windows_runtime_imports {
-        let layout = build_windows_import_layout(cursor, section_rva)?;
-        for (label, offset) in &layout.label_offsets {
-            all_labels.insert(label.clone(), *offset);
-        }
-        cursor = layout.end_offset;
-        Some(layout)
-    } else {
-        None
-    };
+    let import_layout =
+        if target.os == OperatingSystem::Windows && program.uses_windows_runtime_imports {
+            let layout = build_windows_import_layout(cursor, section_rva)?;
+            for (label, offset) in &layout.label_offsets {
+                all_labels.insert(label.clone(), *offset);
+            }
+            cursor = layout.end_offset;
+            Some(layout)
+        } else {
+            None
+        };
 
     let mut bytes = encode(
         program,
@@ -1821,7 +2540,10 @@ fn build_section(
         bytes.resize(cursor, 0);
     }
 
-    Ok(BuiltSection { bytes, import_directory })
+    Ok(BuiltSection {
+        bytes,
+        import_directory,
+    })
 }
 
 struct WindowsImportLayout {
@@ -1875,15 +2597,11 @@ fn build_windows_import_layout(
     let ilt_write_rva = section_rva + base as u32 + hint_write_offset as u32;
     let ilt_read_rva = section_rva + base as u32 + hint_read_offset as u32;
     bytes[ilt_offset..ilt_offset + 8].copy_from_slice(&(ilt_get_rva as u64).to_le_bytes());
-    bytes[ilt_offset + 8..ilt_offset + 16]
-        .copy_from_slice(&(ilt_write_rva as u64).to_le_bytes());
-    bytes[ilt_offset + 16..ilt_offset + 24]
-        .copy_from_slice(&(ilt_read_rva as u64).to_le_bytes());
+    bytes[ilt_offset + 8..ilt_offset + 16].copy_from_slice(&(ilt_write_rva as u64).to_le_bytes());
+    bytes[ilt_offset + 16..ilt_offset + 24].copy_from_slice(&(ilt_read_rva as u64).to_le_bytes());
     bytes[iat_offset..iat_offset + 8].copy_from_slice(&(ilt_get_rva as u64).to_le_bytes());
-    bytes[iat_offset + 8..iat_offset + 16]
-        .copy_from_slice(&(ilt_write_rva as u64).to_le_bytes());
-    bytes[iat_offset + 16..iat_offset + 24]
-        .copy_from_slice(&(ilt_read_rva as u64).to_le_bytes());
+    bytes[iat_offset + 8..iat_offset + 16].copy_from_slice(&(ilt_write_rva as u64).to_le_bytes());
+    bytes[iat_offset + 16..iat_offset + 24].copy_from_slice(&(ilt_read_rva as u64).to_le_bytes());
 
     let descriptor_rva = section_rva + base as u32 + descriptor_offset as u32;
     let ilt_rva = section_rva + base as u32 + ilt_offset as u32;
@@ -1893,8 +2611,7 @@ fn build_windows_import_layout(
     bytes[descriptor_offset..descriptor_offset + 4].copy_from_slice(&ilt_rva.to_le_bytes());
     bytes[descriptor_offset + 12..descriptor_offset + 16]
         .copy_from_slice(&dll_name_rva.to_le_bytes());
-    bytes[descriptor_offset + 16..descriptor_offset + 20]
-        .copy_from_slice(&iat_rva.to_le_bytes());
+    bytes[descriptor_offset + 16..descriptor_offset + 20].copy_from_slice(&iat_rva.to_le_bytes());
 
     Ok(WindowsImportLayout {
         bytes,
@@ -1952,7 +2669,8 @@ fn max_outgoing_call_area(function: &MirFunction, target: Target) -> usize {
         .iter()
         .filter_map(|block| match &block.terminator {
             TerminatorKind::Call { args, .. } => {
-                let stack_args = args.len().saturating_sub(argument_registers(target).len()) * 8;
+                let abi_args = args.len() + 1;
+                let stack_args = abi_args.saturating_sub(argument_registers(target).len()) * 8;
                 Some(stack_arg_base(target) + stack_args)
             }
             _ => None,
@@ -1994,14 +2712,19 @@ fn required_frame_alignment(function: &MirFunction, target: Target) -> usize {
 struct StackLayout {
     total_size: usize,
     outgoing_call_area: usize,
+    return_ptr_offset: Option<i32>,
     offsets: Vec<i32>,
     local_types: Vec<Type>,
 }
 
 impl StackLayout {
-    fn new(function: &MirFunction, target: Target) -> Result<Self, CodegenError> {
+    fn new(
+        function: &MirFunction,
+        layouts: &TypeLayouts,
+        target: Target,
+    ) -> Result<Self, CodegenError> {
         for local in &function.locals {
-            if !is_supported_local_type(&local.ty) {
+            if !is_supported_local_type(&local.ty, layouts) {
                 return Err(CodegenError::new(format!(
                     "native codegen does not yet support local `{}` of type `{}`",
                     local.name,
@@ -2015,14 +2738,16 @@ impl StackLayout {
         let mut offsets = Vec::with_capacity(function.locals.len());
         for local in &function.locals {
             offsets.push((outgoing_call_area + frame_size) as i32);
-            frame_size += type_stack_size(&local.ty).ok_or_else(|| {
-                CodegenError::new(format!(
-                    "native codegen does not yet support local `{}` of type `{}`",
-                    local.name,
-                    local.ty.display_name()
-                ))
-            })?;
+            frame_size += type_stack_size(&local.ty, layouts)?;
         }
+        let return_ptr_offset =
+            if is_pass_indirect_type(function.signature.return_type.as_ref(), layouts) {
+                let offset = (outgoing_call_area + frame_size) as i32;
+                frame_size += 8;
+                Some(offset)
+            } else {
+                None
+            };
         let mut total_size = outgoing_call_area + frame_size;
         while total_size % 16 != required_frame_alignment(function, target) {
             total_size += 1;
@@ -2031,8 +2756,13 @@ impl StackLayout {
         Ok(Self {
             total_size,
             outgoing_call_area,
+            return_ptr_offset,
             offsets,
-            local_types: function.locals.iter().map(|local| local.ty.clone()).collect(),
+            local_types: function
+                .locals
+                .iter()
+                .map(|local| local.ty.clone())
+                .collect(),
         })
     }
 
@@ -2060,8 +2790,9 @@ impl StackLayout {
             .checked_add(incoming_stack_arg_base(target))
             .and_then(|value| value.checked_add(stack_index * 8))
             .ok_or_else(|| CodegenError::new("incoming stack argument offset overflowed"))?;
-        i32::try_from(base)
-            .map_err(|_| CodegenError::new("incoming stack argument offset exceeds x86-64 frame limits"))
+        i32::try_from(base).map_err(|_| {
+            CodegenError::new("incoming stack argument offset exceeds x86-64 frame limits")
+        })
     }
 }
 
@@ -2315,11 +3046,21 @@ impl Instruction {
                 format!("lea {}, [rsp + {offset}]", reg.name())
             }
             Self::LeaRegBaseIndexScale(dst, base, index, scale) => {
-                format!("lea {}, [{} + {}*{}]", dst.name(), base.name(), index.name(), scale)
+                format!(
+                    "lea {}, [{} + {}*{}]",
+                    dst.name(),
+                    base.name(),
+                    index.name(),
+                    scale
+                )
             }
             Self::MovRegReg(dst, src) => format!("mov {}, {}", dst.name(), src.name()),
-            Self::MovRegMem(dst, base) => format!("mov {}, qword ptr [{}]", dst.name(), base.name()),
-            Self::MovMemReg(base, src) => format!("mov qword ptr [{}], {}", base.name(), src.name()),
+            Self::MovRegMem(dst, base) => {
+                format!("mov {}, qword ptr [{}]", dst.name(), base.name())
+            }
+            Self::MovMemReg(base, src) => {
+                format!("mov qword ptr [{}], {}", base.name(), src.name())
+            }
             Self::AddRegReg(dst, src) => format!("add {}, {}", dst.name(), src.name()),
             Self::SubRegReg(dst, src) => format!("sub {}, {}", dst.name(), src.name()),
             Self::AddRegImm(reg, value) => format!("add {}, {}", reg.name(), value),
@@ -2330,7 +3071,9 @@ impl Instruction {
             Self::Cqo => "cqo".to_string(),
             Self::IDivReg(reg) => format!("idiv {}", reg.name()),
             Self::NegReg(reg) => format!("neg {}", reg.name()),
-            Self::MovMemReg8(base, src) => format!("mov byte ptr [{}], {}", base.name(), low8_name(*src)),
+            Self::MovMemReg8(base, src) => {
+                format!("mov byte ptr [{}], {}", base.name(), low8_name(*src))
+            }
             Self::MovzxRegMem8(dst, base) => {
                 format!("movzx {}, byte ptr [{}]", reg32_name(*dst), base.name())
             }
@@ -2370,7 +3113,10 @@ fn instruction_offsets(instructions: &[Instruction]) -> InstructionOffsets {
             _ => cursor += instruction.len(),
         }
     }
-    InstructionOffsets { labels, size: cursor }
+    InstructionOffsets {
+        labels,
+        size: cursor,
+    }
 }
 
 fn encode(program: &LoweredProgram, context: EncodeContext) -> Result<Vec<u8>, CodegenError> {
@@ -2394,7 +3140,9 @@ fn encode_instruction(
         Instruction::SubRsp(value) => encode_sub_rsp(output, *value),
         Instruction::AddRsp(value) => encode_add_rsp(output, *value),
         Instruction::MovRegImm64(reg, value) => encode_mov_reg_imm64(output, *reg, *value),
-        Instruction::MovRegDataAddr(reg, label) => encode_mov_reg_data_addr(output, *reg, label, context)?,
+        Instruction::MovRegDataAddr(reg, label) => {
+            encode_mov_reg_data_addr(output, *reg, label, context)?
+        }
         Instruction::MovRegStack(reg, offset) => encode_mov_reg_stack(output, *reg, *offset),
         Instruction::MovStackReg(offset, reg) => encode_mov_stack_reg(output, *offset, *reg),
         Instruction::LeaRegRspOffset(reg, offset) => encode_lea_reg_rsp(output, *reg, *offset),
@@ -2637,7 +3385,18 @@ fn encode_rsp_memory_operand(output: &mut Vec<u8>, reg: u8, offset: i32) {
 }
 
 fn encode_register_memory_operand(output: &mut Vec<u8>, reg: u8, base: Register) {
-    if matches!(base, Register::Rax | Register::Rcx | Register::Rdx | Register::Rdi | Register::Rsi | Register::R8 | Register::R9 | Register::R10 | Register::R11) {
+    if matches!(
+        base,
+        Register::Rax
+            | Register::Rcx
+            | Register::Rdx
+            | Register::Rdi
+            | Register::Rsi
+            | Register::R8
+            | Register::R9
+            | Register::R10
+            | Register::R11
+    ) {
         if base.low3() == 0b100 {
             output.push(modrm(0b00, reg, 0b100));
             output.push(sib(0, 0b100, base.low3()));
