@@ -28,9 +28,3 @@ This extension adds:
 - `Mentalogue: Refresh IntelliSense Index`
 - `Mentalogue: Run Inscribe Check`
 - `Mentalogue: Suture Pull In Workspace`
-
-## Development
-
-1. Open this folder in VS Code.
-2. Press `F5` to launch an Extension Development Host.
-3. Open a Mentalogue project and edit `.mtl` files.

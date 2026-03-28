@@ -29,3 +29,31 @@ fn clamp_int(value: int, lower: int, upper: int) -> int {
 fn square_int(value: int) -> int {
     value * value
 }
+
+fn sign_int(value: int) -> int {
+    if value > 0 {
+        1
+    } else {
+        if value < 0 {
+            -1
+        } else {
+            0
+        }
+    }
+}
+
+fn pow_int(value: int, exponent: int) -> int {
+    let result = value
+
+    while _ < 5 {
+        
+    }
+}
+
+fn clamp01_int(value: int) -> int {
+    clamp_int(value, 0, 1)
+}
+
+fn abs_diff_int(left: int, right: int) -> int {
+    abs_int(left - right)
+}

@@ -1,0 +1,7 @@
+import core.bool
+import io.console
+
+fn main() -> int {
+    write_line_bool(int_to_bool(1))
+    0
+}

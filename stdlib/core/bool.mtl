@@ -6,6 +6,10 @@ fn bool_to_int(value: bool) -> int {
     }
 }
 
+fn int_to_bool(value: int) -> bool {
+    value != 0
+}
+
 fn select_int(condition: bool, when_true: int, when_false: int) -> int {
     if condition {
         when_true
