@@ -26,6 +26,22 @@ cargo run -p inscribe-cli -- run examples/json_parser/main.mtl
 
 Tip: you can install via `mntpack sync MentalogueLang/Inscribe -g -r auto`, though it is preferred to install Inscribe through [Stratum](https://github.com/MentalogueLang/Stratum) when available.
 
+## VS Code Extension
+
+A Mentalogue VS Code extension is included at `tools/vscode-mentalogue`.
+
+Features:
+
+- `.mtl` and `.mlib` syntax highlighting
+- IntelliSense from workspace `.mtl` and `.mlib` symbols (including `.suture` packages when present)
+- Periodic `inscribe check` diagnostics on the active `.mtl` file
+
+To test it locally:
+
+1. Open `tools/vscode-mentalogue` in VS Code.
+2. Press `F5` to launch an Extension Development Host.
+3. Open a Mentalogue project and edit `.mtl` files.
+
 ## Check An Example
 
 ```powershell
