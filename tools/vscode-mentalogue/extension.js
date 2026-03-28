@@ -47,12 +47,14 @@ class SymbolIndex {
     this.byFile = new Map();
     this.byName = new Map();
     this.modulePaths = new Set();
+    this.moduleToFileKeys = new Map();
   }
 
   clear() {
     this.byFile.clear();
     this.byName.clear();
     this.modulePaths.clear();
+    this.moduleToFileKeys.clear();
   }
 
   removeUri(uri) {
@@ -165,6 +167,7 @@ class SymbolIndex {
       if (!trimmed || trimmed.startsWith("//")) {
         continue;
       }
+      const visibility = /^\s*priv\b/.test(line) ? "private" : "public";
       const declaration = line.replace(/^\s*(?:pub|priv)\s+/, "").trimStart();
 
       let match = declaration.match(/^fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/);
@@ -183,6 +186,7 @@ class SymbolIndex {
           uri,
           range: toRange(lineIndex, start, start + name.length),
           sourceKind: "mtl",
+          visibility,
           fileKey: uri.toString(),
         });
         continue;
@@ -199,6 +203,7 @@ class SymbolIndex {
           uri,
           range: toRange(lineIndex, start, start + name.length),
           sourceKind: "mtl",
+          visibility,
           fileKey: uri.toString(),
         });
         continue;
@@ -215,6 +220,7 @@ class SymbolIndex {
           uri,
           range: toRange(lineIndex, start, start + name.length),
           sourceKind: "mtl",
+          visibility,
           fileKey: uri.toString(),
         });
         continue;
@@ -231,6 +237,7 @@ class SymbolIndex {
           uri,
           range: toRange(lineIndex, start, start + name.length),
           sourceKind: "mtl",
+          visibility,
           fileKey: uri.toString(),
         });
       }
@@ -272,6 +279,7 @@ class SymbolIndex {
         uri,
         range: toRange(0, 0, Math.max(1, name.length)),
         sourceKind: "mlib",
+        visibility: "public",
         fileKey: uri.toString(),
       });
       i += 1;
@@ -282,13 +290,24 @@ class SymbolIndex {
 
   rebuildModulePaths() {
     this.modulePaths.clear();
-    const folders = vscode.workspace.workspaceFolders || [];
+    this.moduleToFileKeys.clear();
     const byFileKeys = Array.from(this.byFile.keys());
     for (const key of byFileKeys) {
       const uri = vscode.Uri.parse(key);
-      if (!isMtl(uri)) {
-        continue;
+      const candidates = this.modulePathsForUri(uri);
+      for (const modulePath of candidates) {
+        this.modulePaths.add(modulePath);
+        const fileKeys = this.moduleToFileKeys.get(modulePath) || new Set();
+        fileKeys.add(key);
+        this.moduleToFileKeys.set(modulePath, fileKeys);
       }
+    }
+  }
+
+  modulePathsForUri(uri) {
+    const out = new Set();
+    if (isMtl(uri)) {
+      const folders = vscode.workspace.workspaceFolders || [];
       for (const folder of folders) {
         const root = folder.uri.fsPath;
         const relative = path.relative(root, uri.fsPath);
@@ -300,13 +319,74 @@ class SymbolIndex {
           continue;
         }
         const withoutExt = normalized.slice(0, -4);
-        if (!withoutExt) {
-          continue;
+        if (withoutExt) {
+          out.add(withoutExt.replace(/\//g, "."));
         }
-        this.modulePaths.add(withoutExt.replace(/\//g, "."));
+      }
+    } else if (isMlib(uri)) {
+      const base = path.basename(uri.fsPath, ".mlib");
+      if (base) {
+        out.add(base);
       }
     }
+    return Array.from(out);
   }
+
+  symbolsForDocument(document) {
+    const visible = [];
+    const seen = new Set();
+    const localKey = document.uri.toString();
+    const localSymbols = this.byFile.get(localKey) || [];
+    for (const symbol of localSymbols) {
+      const id = `${symbol.name}|${symbol.signature}|${symbol.fileKey}`;
+      if (!seen.has(id)) {
+        seen.add(id);
+        visible.push(symbol);
+      }
+    }
+
+    const imports = parseImports(document.getText());
+    for (const imported of imports) {
+      const fileKeys = this.moduleToFileKeys.get(imported);
+      if (!fileKeys) {
+        continue;
+      }
+      for (const fileKey of fileKeys) {
+        if (fileKey === localKey) {
+          continue;
+        }
+        const symbols = this.byFile.get(fileKey) || [];
+        for (const symbol of symbols) {
+          if (symbol.visibility === "private") {
+            continue;
+          }
+          const id = `${symbol.name}|${symbol.signature}|${symbol.fileKey}`;
+          if (!seen.has(id)) {
+            seen.add(id);
+            visible.push(symbol);
+          }
+        }
+      }
+    }
+
+    return visible;
+  }
+
+  matchesForDocument(document, name) {
+    return this.symbolsForDocument(document).filter((symbol) => symbol.name === name);
+  }
+}
+
+function parseImports(text) {
+  const imports = new Set();
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    const match = line.match(/^\s*import\s+([A-Za-z_][A-Za-z0-9_.]*)\s*$/);
+    if (match) {
+      imports.add(match[1]);
+    }
+  }
+  return imports;
 }
 
 function symbolToCompletion(symbol) {
@@ -381,6 +461,7 @@ function parseDiagnostics(output, document) {
 
 function runCommand(exe, args, cwd, timeoutMs) {
   return new Promise((resolve) => {
+    const useShell = process.platform === "win32";
     cp.execFile(
       exe,
       args,
@@ -389,6 +470,7 @@ function runCommand(exe, args, cwd, timeoutMs) {
         timeout: timeoutMs,
         windowsHide: true,
         maxBuffer: 8 * 1024 * 1024,
+        shell: useShell,
       },
       (error, stdout, stderr) => {
         const output = `${stdout || ""}\n${stderr || ""}`;
@@ -418,6 +500,9 @@ function activate(context) {
     selector,
     {
       provideCompletionItems(document, position) {
+        if (!isMtl(document.uri)) {
+          return [];
+        }
         const linePrefix = document.lineAt(position.line).text.slice(0, position.character);
         const items = [];
 
@@ -440,7 +525,7 @@ function activate(context) {
           item.sortText = `t_${ty}`;
           items.push(item);
         }
-        for (const symbol of index.allSymbols()) {
+        for (const symbol of index.symbolsForDocument(document)) {
           items.push(symbolToCompletion(symbol));
         }
         return items;
@@ -456,7 +541,7 @@ function activate(context) {
         return null;
       }
       const name = document.getText(range);
-      const matches = index.find(name);
+      const matches = index.matchesForDocument(document, name);
       if (matches.length === 0) {
         return null;
       }
@@ -475,7 +560,7 @@ function activate(context) {
         return null;
       }
       const name = document.getText(range);
-      const matches = index.find(name);
+      const matches = index.matchesForDocument(document, name);
       if (matches.length === 0) {
         return null;
       }
