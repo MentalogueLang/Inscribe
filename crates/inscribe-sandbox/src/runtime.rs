@@ -1,4 +1,5 @@
 use std::io::{self, Write};
+use std::time::Duration;
 
 use inscribe_comptime::{ComptimeError, ComptimeResult, ComptimeValue, Runtime};
 
@@ -126,6 +127,58 @@ impl Runtime for SandboxRuntime {
                     .into_string()
                     .map_err(|error| ComptimeError::new(format!("http_get failed: {error}")))?;
                 Ok(ComptimeValue::String(body))
+            }
+            "http_serve_once" => {
+                self.require(Capability::Network)?;
+                let address = self.expect_string(args, 0)?;
+                let status_code = self.expect_int(args, 1)?;
+                let content_type = self.expect_string(args, 2)?;
+                let body = self.expect_string(args, 3)?;
+                let timeout_ms = self.expect_int(args, 4)?;
+
+                let status_code = u16::try_from(status_code).map_err(|_| {
+                    ComptimeError::new("http_serve_once expected status_code in 0..=65535")
+                })?;
+
+                let server = tiny_http::Server::http(address).map_err(|error| {
+                    ComptimeError::new(format!("http_serve_once failed to bind `{address}`: {error}"))
+                })?;
+
+                let request = if timeout_ms > 0 {
+                    let timeout = Duration::from_millis(timeout_ms as u64);
+                    server.recv_timeout(timeout).map_err(|error| {
+                        ComptimeError::new(format!(
+                            "http_serve_once failed while waiting for request: {error}"
+                        ))
+                    })?
+                } else {
+                    Some(server.recv().map_err(|error| {
+                        ComptimeError::new(format!(
+                            "http_serve_once failed while waiting for request: {error}"
+                        ))
+                    })?)
+                };
+
+                let Some(request) = request else {
+                    return Ok(ComptimeValue::Integer(0));
+                };
+
+                let header =
+                    tiny_http::Header::from_bytes("Content-Type", content_type).map_err(|error| {
+                        ComptimeError::new(format!(
+                            "http_serve_once failed to create Content-Type header: {error:?}"
+                        ))
+                    })?;
+
+                let response = tiny_http::Response::from_string(body.to_owned())
+                    .with_status_code(status_code)
+                    .with_header(header);
+
+                request.respond(response).map_err(|error| {
+                    ComptimeError::new(format!("http_serve_once failed to send response: {error}"))
+                })?;
+
+                Ok(ComptimeValue::Integer(1))
             }
             _ => Err(ComptimeError::new(format!(
                 "unknown runtime declaration `{name}`"

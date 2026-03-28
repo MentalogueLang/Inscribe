@@ -1,1 +1,8 @@
 fn http_get(url: string) -> string
+fn http_serve_once(
+    address: string,
+    status_code: int,
+    content_type: string,
+    body: string,
+    timeout_ms: int,
+) -> int

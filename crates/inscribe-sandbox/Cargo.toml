@@ -7,3 +7,4 @@ edition = "2021"
 inscribe-comptime = { path = "../inscribe-comptime" }
 inscribe-mir = { path = "../inscribe-mir" }
 ureq = "2.9"
+tiny_http = "0.12"

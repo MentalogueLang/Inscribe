@@ -12,10 +12,20 @@ use crate::session::{
 pub fn run(args: &[String]) -> Result<(), String> {
     let mut input = None;
     let mut sandbox = false;
+    let mut allow_stdin = false;
+    let mut allow_network = false;
 
     for arg in args {
         match arg.as_str() {
             "--sandbox" => sandbox = true,
+            "--allow-stdin" => {
+                sandbox = true;
+                allow_stdin = true;
+            }
+            "--allow-network" => {
+                sandbox = true;
+                allow_network = true;
+            }
             value if value.starts_with('-') => return Err(format!("unknown flag `{value}`")),
             value => {
                 if input.is_some() {
@@ -27,20 +37,29 @@ pub fn run(args: &[String]) -> Result<(), String> {
     }
 
     let Some(input) = input else {
-        return Err("usage: inscribe run <input.mtl|input.smtl> [--sandbox]".to_string());
+        return Err(
+            "usage: inscribe run <input.mtl|input.smtl> [--sandbox] [--allow-stdin] [--allow-network]"
+                .to_string(),
+        );
+    };
+    let sandbox_policy = SandboxPolicy {
+        allow_stdout: true,
+        allow_stdin,
+        allow_network,
+        deterministic_only: !(allow_stdin || allow_network),
     };
 
     if is_sandbox_module_path(&input) {
         let bytes = std::fs::read(&input)
             .map_err(|error| format!("failed to read `{}`: {error}", input.display()))?;
         let mir = decode_sandbox_module(&bytes).map_err(|error| error.to_string())?;
-        return run_with_sandbox(&mir);
+        return run_with_sandbox(&mir, &sandbox_policy);
     }
 
     let mir = compile_file_to_mir(&input).map_err(|error| error.to_string())?;
 
     if sandbox {
-        return run_with_sandbox(&mir);
+        return run_with_sandbox(&mir, &sandbox_policy);
     }
 
     let target = host_target();
@@ -52,7 +71,7 @@ pub fn run(args: &[String]) -> Result<(), String> {
                 "native backend unavailable: {}. Falling back to sandbox execution.",
                 error.message
             );
-            return run_with_sandbox(&mir);
+            return run_with_sandbox(&mir, &sandbox_policy);
         }
         Err(error) => return Err(error.to_string()),
     };
@@ -72,14 +91,8 @@ fn is_sandbox_module_path(path: &std::path::Path) -> bool {
         .unwrap_or(false)
 }
 
-fn run_with_sandbox(mir: &inscribe_mir::MirProgram) -> Result<(), String> {
-    let policy = SandboxPolicy {
-        allow_stdout: true,
-        allow_stdin: false,
-        allow_network: false,
-        deterministic_only: true,
-    };
-    let result = run_sandbox_main(mir, policy).map_err(|error| error.message)?;
+fn run_with_sandbox(mir: &inscribe_mir::MirProgram, policy: &SandboxPolicy) -> Result<(), String> {
+    let result = run_sandbox_main(mir, policy.clone()).map_err(|error| error.message)?;
     if !matches!(result, ComptimeValue::Unit) {
         match result {
             ComptimeValue::String(value) => println!("{value}"),
