@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use inscribe_abi::{MlibExportKind, MlibFile};
+use inscribe_abi::{MlibExportKind, MlibFile, MLIB_FLAG_EMBEDDED_SOURCE};
 use inscribe_ast::nodes::{
     Block, EnumDecl, EnumVariant, Expr, ExprKind, FunctionDecl, Import, Item, MatchArm, Module,
     Param, Path as AstPath, Pattern, PatternKind, Stmt, StructDecl, StructField,
@@ -421,24 +421,8 @@ fn resolve_import_path(
         segments
     };
 
-    if !std_segments.is_empty() {
-        let candidate = std_segments
-            .iter()
-            .fold(options.stdlib_root.clone(), |path, segment| {
-                path.join(segment)
-            })
-            .with_extension("mtl");
-        if candidate.exists() {
-            return candidate.canonicalize().map_err(|error| {
-                SessionError::new(
-                    "include",
-                    format!(
-                        "failed to resolve stdlib import `{}`: {error}",
-                        candidate.display()
-                    ),
-                )
-            });
-        }
+    if let Some(candidate) = resolve_stdlib_import_path(std_segments, options)? {
+        return Ok(candidate);
     }
 
     let base_dir = current_file.parent().ok_or_else(|| {
@@ -806,6 +790,47 @@ fn resolve_suture_import_path(
     Ok(None)
 }
 
+fn resolve_stdlib_import_path(
+    std_segments: &[String],
+    options: &ModuleLoadOptions,
+) -> Result<Option<PathBuf>, SessionError> {
+    if std_segments.is_empty() {
+        return Ok(None);
+    }
+
+    let import_name = std_segments.join(".");
+    for base in stdlib_import_roots(options) {
+        let stem = std_segments
+            .iter()
+            .fold(base.clone(), |path, segment| path.join(segment));
+        for extension in ["mlib", "mtl"] {
+            let candidate = stem.with_extension(extension);
+            if !candidate.exists() {
+                continue;
+            }
+            return candidate.canonicalize().map(Some).map_err(|error| {
+                SessionError::new(
+                    "include",
+                    format!(
+                        "failed to resolve stdlib import `{import_name}` from `{}`: {error}",
+                        candidate.display()
+                    ),
+                )
+            });
+        }
+    }
+
+    Ok(None)
+}
+
+fn stdlib_import_roots(options: &ModuleLoadOptions) -> [PathBuf; 3] {
+    [
+        options.stdlib_root.clone(),
+        options.stdlib_root.join(".mlib"),
+        options.stdlib_root.join("mlib"),
+    ]
+}
+
 fn resolve_suture_source_import_path(
     current: &Path,
     package: &str,
@@ -913,6 +938,22 @@ fn load_mlib_module(path: &Path, next_span_base: &mut usize) -> Result<Module, S
             format!("failed to decode MLIB `{}`", path.display()),
         )
     })?;
+
+    if file.header.flags & MLIB_FLAG_EMBEDDED_SOURCE != 0 {
+        let source = file.embedded_source().ok_or_else(|| {
+            SessionError::new(
+                "include",
+                format!("MLIB `{}` has invalid embedded source payload", path.display()),
+            )
+        })?;
+        let tokens = inscribe_lexer::lex(source)
+            .map_err(|error| SessionError::new("lex", error.to_string()))?;
+        let mut module =
+            parse_module(tokens).map_err(|error| SessionError::new("parse", error.to_string()))?;
+        rebase_module_spans(&mut module, *next_span_base);
+        *next_span_base += source.len().max(1) + 1;
+        return Ok(module);
+    }
 
     let mut custom_types = HashSet::new();
     let mut declared_types = HashSet::new();

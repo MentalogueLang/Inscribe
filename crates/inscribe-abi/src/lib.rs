@@ -10,7 +10,7 @@ pub use calling_conv::{AbiTarget, CallingConvention};
 pub use layout::{AbiType, FieldLayout, Layout, StructField, StructLayout, StructMemoryLayout};
 pub use mlib::{
     MlibExport, MlibExportKind, MlibFile, MlibHeader, MLIB_EXPORT_ENTRY_SIZE, MLIB_HEADER_SIZE,
-    MLIB_MAGIC,
+    MLIB_FLAG_EMBEDDED_SOURCE, MLIB_MAGIC,
 };
 pub use stability::Stability;
 pub use versioning::{AbiVersion, CURRENT_ABI_VERSION};

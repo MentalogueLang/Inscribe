@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use inscribe_abi::{current_header, AbiTarget, Stability};
-use inscribe_codegen::{emit_mlib, emit_native_assembly, OperatingSystem, Target};
+use inscribe_abi::{current_header, AbiTarget, MlibFile, Stability};
+use inscribe_codegen::{emit_mlib_with_source, emit_native_assembly, OperatingSystem, Target};
 use inscribe_debug::{
     build_program_debug_info_with_sources, emit_program_dwarf_with_sources, SourceFileId, SourceMap,
 };
@@ -49,7 +49,10 @@ pub fn run(args: &[String]) -> Result<(), String> {
         EmitFormat::Mlib => {
             let input = parsed.input.as_ref().expect("mlib emit requires an input");
             let hir = compile_file_to_hir(input).map_err(|error| error.to_string())?;
-            emit_mlib(&hir, parsed.target).map_err(|error| error.to_string())?
+            let source = std::fs::read_to_string(input)
+                .map_err(|error| format!("failed to read `{}`: {error}", input.display()))?;
+            emit_mlib_with_source(&hir, parsed.target, Some(source.as_str()))
+                .map_err(|error| error.to_string())?
         }
         EmitFormat::Dwarf => {
             let input = parsed.input.as_ref().expect("dwarf emit requires an input");
@@ -243,8 +246,7 @@ fn load_source_map(input: &Path) -> Result<(SourceMap, SourceFileId), String> {
     let mut merged = String::new();
 
     for module in &graph.modules {
-        let source = std::fs::read_to_string(&module.path)
-            .map_err(|error| format!("failed to read `{}`: {error}", module.path.display()))?;
+        let source = load_module_source_text(&module.path)?;
         let padding = source.len().max(1) + 1 - source.len();
         merged.push_str(&source);
         for _ in 0..padding {
@@ -255,6 +257,23 @@ fn load_source_map(input: &Path) -> Result<(SourceMap, SourceFileId), String> {
     let mut map = SourceMap::new();
     let file = map.add_file(graph.entry.to_string_lossy(), merged);
     Ok((map, file))
+}
+
+fn load_module_source_text(path: &Path) -> Result<String, String> {
+    if path
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("mlib"))
+    {
+        let bytes = std::fs::read(path)
+            .map_err(|error| format!("failed to read `{}`: {error}", path.display()))?;
+        let file = MlibFile::from_bytes(&bytes)
+            .ok_or_else(|| format!("failed to decode MLIB `{}`", path.display()))?;
+        return Ok(file.embedded_source().unwrap_or_default().to_string());
+    }
+
+    std::fs::read_to_string(path)
+        .map_err(|error| format!("failed to read `{}`: {error}", path.display()))
 }
 
 #[cfg(test)]

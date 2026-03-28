@@ -4,6 +4,7 @@ use crate::versioning::{AbiVersion, CURRENT_ABI_VERSION};
 pub const MLIB_MAGIC: [u8; 4] = *b"MLIB";
 pub const MLIB_HEADER_SIZE: usize = 80;
 pub const MLIB_EXPORT_ENTRY_SIZE: usize = 24;
+pub const MLIB_FLAG_EMBEDDED_SOURCE: u32 = 1 << 0;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MlibHeader {
@@ -165,6 +166,13 @@ impl MlibFile {
             code: bytes[code_start..code_end].to_vec(),
             data: bytes[data_start..data_end].to_vec(),
         })
+    }
+
+    pub fn embedded_source(&self) -> Option<&str> {
+        if self.header.flags & MLIB_FLAG_EMBEDDED_SOURCE == 0 {
+            return None;
+        }
+        std::str::from_utf8(&self.data).ok()
     }
 
     fn rebuild_layout(&mut self) {

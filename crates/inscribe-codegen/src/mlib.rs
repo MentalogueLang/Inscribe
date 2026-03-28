@@ -1,4 +1,6 @@
-use inscribe_abi::{AbiTarget, MlibExport, MlibExportKind, MlibFile};
+use inscribe_abi::{
+    AbiTarget, MlibExport, MlibExportKind, MlibFile, MLIB_FLAG_EMBEDDED_SOURCE,
+};
 use inscribe_ast::nodes::Visibility;
 use inscribe_hir::nodes::HirEnum;
 use inscribe_hir::{HirField, HirItem, HirProgram, HirStruct, HirSymbolId};
@@ -8,6 +10,14 @@ use crate::targets::{OperatingSystem, Target};
 use crate::CodegenError;
 
 pub fn emit_mlib(program: &HirProgram, target: Target) -> Result<Vec<u8>, CodegenError> {
+    emit_mlib_with_source(program, target, None)
+}
+
+pub fn emit_mlib_with_source(
+    program: &HirProgram,
+    target: Target,
+    source: Option<&str>,
+) -> Result<Vec<u8>, CodegenError> {
     let mut exports = Vec::new();
 
     for item in &program.items {
@@ -43,7 +53,11 @@ pub fn emit_mlib(program: &HirProgram, target: Target) -> Result<Vec<u8>, Codege
         OperatingSystem::Windows => AbiTarget::WindowsX86_64,
     };
 
-    let file = MlibFile::new(abi_target, exports, Vec::new(), Vec::new());
+    let data = source.map(|value| value.as_bytes().to_vec()).unwrap_or_default();
+    let mut file = MlibFile::new(abi_target, exports, Vec::new(), data);
+    if source.is_some() {
+        file.header.flags |= MLIB_FLAG_EMBEDDED_SOURCE;
+    }
     Ok(file.to_bytes())
 }
 

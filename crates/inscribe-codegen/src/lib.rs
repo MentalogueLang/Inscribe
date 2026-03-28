@@ -10,7 +10,7 @@ pub mod targets;
 pub mod wasm;
 
 pub use native::{emit_assembly, emit_executable};
-pub use mlib::emit_mlib;
+pub use mlib::{emit_mlib, emit_mlib_with_source};
 pub use targets::{Architecture, ExecutableFormat, OperatingSystem, Target};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -57,10 +57,15 @@ mod tests {
     use inscribe_lexer::lex;
     use inscribe_mir::lower_program;
     use inscribe_parser::parse_module;
-    use inscribe_resolve::{load_module_graph, resolve_module, resolve_module_graph};
+    use inscribe_resolve::{
+        load_module_graph, load_module_graph_with_options, resolve_module, resolve_module_graph,
+        ModuleLoadOptions,
+    };
     use inscribe_typeck::check_module;
 
-    use crate::{emit_mlib, emit_native_assembly, emit_native_executable, Target};
+    use crate::{
+        emit_mlib, emit_mlib_with_source, emit_native_assembly, emit_native_executable, Target,
+    };
 
     fn compile_source(source: &str) -> inscribe_mir::MirProgram {
         let tokens = lex(source).expect("lexing should succeed");
@@ -469,6 +474,98 @@ fn main() -> int {
         assert!(parse_result.fields.contains_key("document"), "{resolved:#?}");
         assert!(parse_result.fields.contains_key("error"), "{resolved:#?}");
         check_module(&graph.merged, &resolved).expect("nested MLIB struct fields should typecheck");
+    }
+
+    #[test]
+    fn emitted_mlib_with_embedded_source_preserves_function_bodies() {
+        let lib_source = r#"
+fn add_one(value: int) -> int {
+    value + 1
+}
+"#;
+        let hir = compile_hir_source(lib_source);
+        let bytes = emit_mlib_with_source(&hir, Target::linux_x86_64(), Some(lib_source))
+            .expect("mlib emission should work");
+
+        let root = temp_dir("inscribe_codegen_mlib_embedded_source");
+        let package_dir = root.join(".suture").join("mlib").join("sample");
+        fs::create_dir_all(&package_dir).expect("should create package cache dir");
+        fs::write(package_dir.join("sample.mlib"), bytes).expect("should write mlib");
+
+        let main = root.join("main.mtl");
+        fs::write(
+            &main,
+            r#"
+import sample
+
+fn main() -> int {
+    add_one(41)
+}
+"#,
+        )
+        .expect("should write consumer");
+
+        let graph = load_module_graph(&main).expect("mlib import should load");
+        let resolved = resolve_module_graph(&graph).expect("mlib import should resolve");
+        let typed = check_module(&graph.merged, &resolved).expect("mlib import should typecheck");
+        let hir = lower_module(&graph.merged, &resolved, &typed);
+        let mir = lower_program(&hir);
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("__ml_fn_add_one:"));
+    }
+
+    #[test]
+    fn loads_runtime_stdlib_import_from_embedded_mlib() {
+        let runtime_source = r#"
+fn print_int(value: int)
+fn print_bool(value: bool)
+fn print_string(value: string)
+fn print_newline()
+fn flush_stdout()
+fn read_int() -> int
+"#;
+        let runtime_hir = compile_hir_source(runtime_source);
+        let runtime_mlib =
+            emit_mlib_with_source(&runtime_hir, Target::linux_x86_64(), Some(runtime_source))
+                .expect("runtime mlib emission should work");
+
+        let root = temp_dir("inscribe_codegen_stdlib_mlib_runtime");
+        let stdlib = root.join("stdlib");
+        fs::create_dir_all(stdlib.join("runtime")).expect("should create stdlib runtime dir");
+        fs::write(stdlib.join("runtime").join("io.mlib"), runtime_mlib)
+            .expect("should write runtime mlib");
+
+        let main = root.join("main.mtl");
+        fs::write(
+            &main,
+            r#"
+import runtime.io
+
+fn main() -> int {
+    print_int(7)
+    0
+}
+"#,
+        )
+        .expect("should write consumer");
+
+        let graph = load_module_graph_with_options(
+            &main,
+            &ModuleLoadOptions {
+                stdlib_root: stdlib,
+            },
+        )
+        .expect("stdlib mlib import should load");
+        let resolved = resolve_module_graph(&graph).expect("stdlib mlib import should resolve");
+        let typed = check_module(&graph.merged, &resolved).expect("stdlib mlib import should typecheck");
+        let hir = lower_module(&graph.merged, &resolved, &typed);
+        let mir = lower_program(&hir);
+        let assembly =
+            emit_native_assembly(&mir, Target::linux_x86_64()).expect("assembly emission");
+
+        assert!(assembly.contains("call __ml_fn_print_int"));
     }
 
     #[test]
