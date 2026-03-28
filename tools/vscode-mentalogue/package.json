@@ -105,6 +105,11 @@
           "minimum": 1000,
           "description": "Timeout in milliseconds for each `inscribe check` invocation."
         },
+        "mentalogue.checkUnsavedChanges": {
+          "type": "boolean",
+          "default": true,
+          "description": "When enabled, checks unsaved edits by running inscribe against a temporary snapshot."
+        },
         "mentalogue.indexMlib": {
           "type": "boolean",
           "default": true,

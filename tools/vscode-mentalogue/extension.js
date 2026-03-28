@@ -1,5 +1,6 @@
 const vscode = require("vscode");
 const cp = require("child_process");
+const fs = require("fs/promises");
 const path = require("path");
 
 const KEYWORDS = [
@@ -480,6 +481,31 @@ function runCommand(exe, args, cwd, timeoutMs) {
   });
 }
 
+async function withCheckPathForDocument(document, useUnsaved, fn) {
+  if (!useUnsaved || !document.isDirty) {
+    return fn(document.uri.fsPath);
+  }
+
+  const sourcePath = document.uri.fsPath;
+  const dir = path.dirname(sourcePath);
+  const base = path.basename(sourcePath, ".mtl");
+  const tempPath = path.join(
+    dir,
+    `.${base}.mentalogue-check-${process.pid}-${Date.now()}.mtl`
+  );
+
+  try {
+    await fs.writeFile(tempPath, document.getText(), "utf8");
+    return await fn(tempPath);
+  } finally {
+    try {
+      await fs.unlink(tempPath);
+    } catch {
+      // Ignore cleanup errors for temp diagnostics files.
+    }
+  }
+}
+
 function activate(context) {
   const output = vscode.window.createOutputChannel("Mentalogue");
   const diagnostics = vscode.languages.createDiagnosticCollection("mentalogue");
@@ -592,8 +618,11 @@ function activate(context) {
       const config = vscode.workspace.getConfiguration("mentalogue");
       const inscribePath = config.get("inscribePath", "inscribe");
       const timeoutMs = config.get("checkTimeoutMs", 12000);
+      const useUnsaved = config.get("checkUnsavedChanges", true);
       const cwd = path.dirname(document.uri.fsPath);
-      const result = await runCommand(inscribePath, ["check", document.uri.fsPath], cwd, timeoutMs);
+      const result = await withCheckPathForDocument(document, useUnsaved, async (checkPath) =>
+        runCommand(inscribePath, ["check", checkPath], cwd, timeoutMs)
+      );
 
       const maybeMissing =
         result.error &&

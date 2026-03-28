@@ -21,6 +21,7 @@ This extension adds:
 - Frequent checks:
   - Periodic checks (`mentalogue.enablePeriodicCheck`, `mentalogue.checkIntervalMs`)
   - Check on save (`mentalogue.checkOnSave`)
+  - Unsaved buffer snapshots while typing (`mentalogue.checkUnsavedChanges`)
 
 ## Commands
 
@@ -33,4 +34,3 @@ This extension adds:
 1. Open this folder in VS Code.
 2. Press `F5` to launch an Extension Development Host.
 3. Open a Mentalogue project and edit `.mtl` files.
-
